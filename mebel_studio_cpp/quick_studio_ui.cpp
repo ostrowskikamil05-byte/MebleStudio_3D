@@ -213,7 +213,7 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     field(type_section->body, "name", "Nazwa", false, true);
     for (auto& [key, label] : std::vector<std::pair<std::string, std::string>>{{"width", "Szerokość"}, {"height", "Wysokość całkowita"}, {"depth", "Głębokość"}, {"thickness", "Grubość korpusu"}})
         field(type_section->body, key, label);
-    (new ttk::Label(type_section->body, {{"text", "Wysokość obejmuje nóżki i blat."}, {"font", "{Segoe UI} 9"}, {"foreground", "#68788a"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(type_section->body, {{"text", "Wysokość obejmuje nóżki i blat."}, {"font", "{Segoe UI} 9"}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     // A visible shortcut strip changes geometry in one click, like the reference tool.
     auto* quick = new ttk::Frame(top);
     quick->pack({{"fill", "x"}, {"pady", "5 0"}});
@@ -235,7 +235,7 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     auto* fronts = new Section(body, "Fronty i uchwyty");
     sections["fronts"] = fronts;
     combo(fronts->body, "front_style", "Styl frontu", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}});
-    preview = new tk::Canvas(fronts->body, {{"height", 112}, {"bg", "#edf1f4"}, {"highlightthickness", 0}});
+    preview = new tk::Canvas(fronts->body, {{"height", 112}, {"bg", "#f1eee8"}, {"highlightthickness", 0}});
     preview->pack({{"fill", "x"}, {"pady", 4}});
     preview->bind("<Configure>", plain([this](tk::Event&) { draw_preview(); }));
     field(fronts->body, "front_thickness", "Grubość frontu");
@@ -852,7 +852,7 @@ void QuickInspector::draw_preview() {
     std::vector<double> flat;
     for (auto& [x, y] : profile) { flat.push_back(x); flat.push_back(y); }
     c->create_polygon(flat, {{"fill", "#c7b28c"}, {"outline", "#807151"}});
-    c->create_text(117, 99, {{"text", "Schemat przekroju · frez od frontu"}, {"anchor", "w"}, {"fill", "#647486"}, {"font", "{Segoe UI} 8"}});
+    c->create_text(117, 99, {{"text", "Schemat przekroju · frez od frontu"}, {"anchor", "w"}, {"fill", "#6b7266"}, {"font", "{Segoe UI} 8"}});
 }
 
 // ---------------------------------------------------------------------------
@@ -1126,8 +1126,10 @@ void build(App* app) {
     make_button(pages["Ustawienia"], "Pomoc", [app] { app->help(); });
     make_button(pages["Ustawienia"], "Silnik C++ i stan migracji", [app] { migration_status::open_status(app); });
     build_production(app);
-    (new ttk::Label(app, {{"textvariable", app->status}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"padding", "12 5"}, {"font", "{Segoe UI} 9"}}))
-        ->pack({{"side", "bottom"}, {"fill", "x"}, {"before", workspacepane->path()}});
+    auto* statusbar = new ttk::Frame(app, {{"style", "Header.TFrame"}, {"padding", "12 5"}});
+    statusbar->pack({{"side", "bottom"}, {"fill", "x"}, {"before", workspacepane->path()}});
+    (new ttk::Label(statusbar, {{"textvariable", app->status}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "left"}});
+    (new ttk::Label(statusbar, {{"textvariable", app->status_right}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "right"}});
     app->workspace = new dock_workspace::DockWorkspace(app, app->tabs);
     app->workspace->add_existing(design, "Projekt 3D", false);
     hardware_ui::install(app);

@@ -472,7 +472,7 @@ VisualCatalogue::VisualCatalogue(form_dialog::Form* parent, App* app_, const std
     categorycombo->pack({{"side", "right"}});
     categorycombo->bind("<<ComboboxSelected>>", [this](tk::Event&) { render(); return std::string(); });
     query.trace_add("write", [this] { schedule(); });
-    (new ttk::Label(this, {{"textvariable", count}, {"foreground", "#68788a"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(this, {{"textvariable", count}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     auto* bottom = new ttk::Frame(this);
     bottom->pack({{"side", "bottom"}, {"fill", "x"}, {"pady", "7 0"}});
     choosebutton = new ttk::Button(bottom, {{"text", "Zastosuj wybrane"}, {"command", std::function<void()>([this] { activate_selected(); })}, {"state", "disabled"}});
@@ -482,7 +482,7 @@ VisualCatalogue::VisualCatalogue(form_dialog::Form* parent, App* app_, const std
     (new ttk::Label(bottom, {{"textvariable", note}, {"wraplength", 650}}))->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}});
     auto* content = new ttk::Frame(this);
     content->pack({{"fill", "both"}, {"expand", true}});
-    canvas = new tk::Canvas(content, {{"height", 410}, {"highlightthickness", 0}, {"bg", "#f2f5f6"}});
+    canvas = new tk::Canvas(content, {{"height", 410}, {"highlightthickness", 0}, {"bg", "#f3f0ea"}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* sb = new ttk::Scrollbar(content, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     sb->pack({{"side", "right"}, {"fill", "y"}});
@@ -560,12 +560,12 @@ void VisualCatalogue::render() {
         auto* card = new ttk::Frame(gridbody, {{"padding", 7}, {"relief", "ridge"}});
         card->grid({{"row", index / cols}, {"column", index % cols}, {"padx", 4}, {"pady", 4}, {"sticky", "nsew"}});
         gridbody->columnconfigure(index % cols, {{"weight", 1}});
-        auto* image = new tk::Canvas(card, {{"width", 190}, {"height", 118}, {"bg", "#fafbf9"}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+        auto* image = new tk::Canvas(card, {{"width", 190}, {"height", 118}, {"bg", "#fbfaf7"}, {"highlightthickness", 0}, {"cursor", "hand2"}});
         image->pack({{"fill", "x"}});
         catalogue_previews::draw_preview(image, item, 190, 118);
         auto* title = new ttk::Label(card, {{"text", item.at("title").get<std::string>()}, {"wraplength", 185}, {"font", "{Segoe UI} 9 bold"}});
         title->pack({{"fill", "x"}, {"pady", "3 0"}});
-        (new ttk::Label(card, {{"text", dimension_text(item)}, {"wraplength", 185}, {"foreground", "#596c78"}}))->pack({{"fill", "x"}});
+        (new ttk::Label(card, {{"text", dimension_text(item)}, {"wraplength", 185}, {"foreground", "#6b7266"}}))->pack({{"fill", "x"}});
         (new ttk::Label(card, {{"text", item.at("category").get<std::string>()}, {"wraplength", 185}, {"foreground", "#4e6b3f"}, {"font", "{Segoe UI} 8"}}))->pack({{"fill", "x"}});
         json copy = item;
         (new ttk::Button(card, {{"text", "Wybierz"}, {"command", std::function<void()>([this, copy] { activate(copy); })}}))->pack({{"fill", "x"}, {"pady", "5 0"}});

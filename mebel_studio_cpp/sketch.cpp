@@ -224,7 +224,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     int side_window = viewport->create_window(0, 0, {{"window", side->path()}, {"anchor", "nw"}});
     side->bind("<Configure>", [viewport](tk::Event&) { responsive_ui::update_scrollregion(viewport); return std::string(); });
     viewport->bind("<Configure>", [viewport, side_window](tk::Event& e) { viewport->itemconfigure(side_window, {{"width", e.width}}); return std::string(); });
-    canvas = new tk::Canvas(body, {{"bg", "#f7fafc"}, {"highlightthickness", 0}, {"takefocus", true}});
+    canvas = new tk::Canvas(body, {{"bg", "#fbfaf7"}, {"highlightthickness", 0}, {"takefocus", true}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* sketch_tools = new ttk::Frame(this, {{"padding", "8 2"}});
     sketch_tools->pack({{"fill", "x"}, {"before", body->path()}});
@@ -846,7 +846,7 @@ void Sketch::label(double x, double y, const std::string& text, const std::strin
     int item = canvas->create_text(x, y, {{"text", text}, {"fill", color}, {"font", "{Segoe UI} 9 bold"}});
     auto box = canvas->bbox(item);
     if (box && box->size() == 4) {
-        int rect = canvas->create_rectangle((*box)[0], (*box)[1], (*box)[2], (*box)[3], {{"fill", "#f7fafc"}, {"outline", ""}});
+        int rect = canvas->create_rectangle((*box)[0], (*box)[1], (*box)[2], (*box)[3], {{"fill", "#fbfaf7"}, {"outline", ""}});
         canvas->tag_lower(rect, item);
     }
 }
@@ -867,8 +867,8 @@ void Sketch::draw() {
         long long count = std::max(0LL, (long long)(limit / step) + 2);
         for (long long i = 0; i < count; ++i) {
             double p = py::mod(axis_origin, step) + i * step;
-            if (screen_axis == 0) c->create_line({p, 0, p, (double)h}, {{"fill", "#e4eaf0"}});
-            else c->create_line({0, p, (double)w, p}, {{"fill", "#e4eaf0"}});
+            if (screen_axis == 0) c->create_line({p, 0, p, (double)h}, {{"fill", "#e8e4db"}});
+            else c->create_line({0, p, (double)w, p}, {{"fill", "#e8e4db"}});
         }
     }
     c->create_line({0, origin[1], (double)w, origin[1]}, {{"fill", "#a93f3f"}});

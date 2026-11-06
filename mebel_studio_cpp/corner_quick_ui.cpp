@@ -36,7 +36,7 @@ CornerPanel::CornerPanel(tk::Widget* parent, App* app_) : ttk::Frame(parent, {{"
     apply_button = new ttk::Button(footer, {{"text", "Zastosuj narożnik"}, {"command", std::function<void()>([this] { apply(); })}}); apply_button->pack({{"fill", "x"}});
     (new ttk::Label(footer, {{"textvariable", note}, {"wraplength", 280}, {"font", "{Segoe UI} 9"}}))->pack({{"fill", "x"}, {"pady", 4}});
     scroll = new quick_studio_ui::ScrollPanel(this); scroll->pack({{"fill", "both"}, {"expand", true}}); body = scroll->body;
-    preview = new tk::Canvas(body, {{"height", 104}, {"bg", "#edf1f4"}, {"highlightthickness", 0}}); preview->pack({{"fill", "x"}, {"pady", 4}});
+    preview = new tk::Canvas(body, {{"height", 104}, {"bg", "#f1eee8"}, {"highlightthickness", 0}}); preview->pack({{"fill", "x"}, {"pady", 4}});
     preview->bind("<Configure>", [this](tk::Event&) { draw_preview(); return std::string(); });
     auto* row = new ttk::Frame(body); row->pack({{"fill", "x"}});
     for (auto& [label, shape] : std::vector<std::pair<std::string, std::string>>{{"L", "L"}, {"Ścięty", "chamfer"}, {"Okrągły", "rounded"}}) {

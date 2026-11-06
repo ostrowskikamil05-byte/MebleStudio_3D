@@ -139,7 +139,7 @@ ShapeDialog::ShapeDialog(App* app_, const core::Part& part) : dock_workspace::Do
     body->pack({{"fill", "both"}, {"expand", true}, {"padx", 10}});
     auto* left = new ttk::Frame(body);
     left->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}, {"padx", "0 10"}});
-    auto* canvas = new tk::Canvas(left, {{"bg", "#eef3f7"}, {"highlightthickness", 0}});
+    auto* canvas = new tk::Canvas(left, {{"bg", "#f1eee8"}, {"highlightthickness", 0}});
     canvas->pack({{"fill", "both"}, {"expand", true}});
     tk::StringVar summary;
     (new ttk::Label(left, {{"textvariable", summary}, {"wraplength", 470}, {"padding", 10}}))->pack({{"fill", "x"}});
@@ -230,9 +230,9 @@ ShapeDialog::ShapeDialog(App* app_, const core::Part& part) : dock_workspace::Do
                 flat.push_back(cx + (pt[0] - u / 2) * scale);
                 flat.push_back(cy - (pt[1] - v / 2) * scale);
             }
-            canvas->create_polygon(flat, {{"fill", app->project->mat(p.material).color}, {"outline", "#244c61"}, {"width", 2}});
-            canvas->create_text(w / 2.0, h - 24.0, {{"text", std::format("U = {} mm", g(u))}, {"font", "{Segoe UI} 11 bold"}, {"fill", "#244c61"}});
-            canvas->create_text(12, 15, {{"anchor", "nw"}, {"text", std::format("V = {} mm\nT = {} mm", g(v), g(t))}, {"fill", "#244c61"}});
+            canvas->create_polygon(flat, {{"fill", app->project->mat(p.material).color}, {"outline", "#2f4a26"}, {"width", 2}});
+            canvas->create_text(w / 2.0, h - 24.0, {{"text", std::format("U = {} mm", g(u))}, {"font", "{Segoe UI} 11 bold"}, {"fill", "#2f4a26"}});
+            canvas->create_text(12, 15, {{"anchor", "nw"}, {"text", std::format("V = {} mm\nT = {} mm", g(v), g(t))}, {"fill", "#2f4a26"}});
             struct Corner { double x, y; const char* label; };
             for (const Corner& corner : {Corner{0, 0, "R1"}, Corner{u, 0, "R2"}, Corner{u, v, "R3"}, Corner{0, v, "R4"}})
                 canvas->create_text(cx + (corner.x - u / 2) * scale, cy - (corner.y - v / 2) * scale,

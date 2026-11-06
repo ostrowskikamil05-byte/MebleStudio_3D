@@ -107,7 +107,7 @@ MachiningEditor::MachiningEditor(App* app_, const core::Part& part_) : dock_work
     table->configure({{"yscrollcommand", scroll->path() + " set"}});
     (new ttk::Button(history, {{"text", "Edytuj wybrane frezowanie"}, {"command", std::function<void()>([this] { edit_cut(); })}}))->pack({{"fill", "x"}, {"pady", 4}});
     (new ttk::Button(history, {{"text", "Usuń wybrane ręczne operacje"}, {"command", std::function<void()>([this] { delete_selected(); })}}))->pack({{"fill", "x"}, {"pady", 8}});
-    canvas = new tk::Canvas(body, {{"bg", "#eef1f5"}, {"highlightthickness", 0}});
+    canvas = new tk::Canvas(body, {{"bg", "#f1eee8"}, {"highlightthickness", 0}});
     canvas->pack({{"fill", "both"}, {"expand", true}, {"padx", 8}});
     canvas->bind("<Configure>", [this](tk::Event&) { draw(); return std::string(); });
     auto* footer = new ttk::Frame(this, {{"padding", 8}});
@@ -252,7 +252,7 @@ void MachiningEditor::draw() {
         for (const auto& p : face.at("points")) for (const auto& value : p) flat.push_back(value.get<double>());
         bool mesh = py::truthy(py::get(face, "mesh"));
         std::string color = face.at("color").get<std::string>();
-        canvas->create_polygon(flat, {{"fill", color}, {"outline", mesh ? color : std::string("#66727f")}, {"width", mesh ? 0 : 1}});
+        canvas->create_polygon(flat, {{"fill", color}, {"outline", mesh ? color : std::string("#6b7266")}, {"width", mesh ? 0 : 1}});
     }
 }
 

@@ -1,10 +1,29 @@
 #include "forma_theme.h"
 
+#include <string>
+
+#include "tkcore.h"
 #include "ttk.h"
 
 namespace forma_theme {
 
 void apply(tk::Widget* root) {
+    // Klasyczne widgety tk (nie ttk): domyślne kolory z bazy opcji Tk, żeby wszystkie okna i dialogi wyglądały spójnie.
+    auto option = [](const char* pattern, const char* value) { tkcore::eval({"option", "add", pattern, value}); };
+    for (const char* kind : {"Frame", "Label", "Toplevel", "Canvas"}) option((std::string("*") + kind + ".background").c_str(), BG);
+    option("*Label.foreground", TEXT);
+    option("*Text.background", CARD); option("*Text.foreground", TEXT); option("*Text.relief", "flat");
+    option("*Text.highlightThickness", "1"); option("*Text.highlightBackground", BORDER); option("*Text.highlightColor", ACCENT);
+    option("*Text.selectBackground", ACCENT_SOFT); option("*Text.selectForeground", TEXT);
+    option("*Listbox.background", CARD); option("*Listbox.foreground", TEXT); option("*Listbox.relief", "flat");
+    option("*Listbox.highlightThickness", "1"); option("*Listbox.highlightBackground", BORDER);
+    option("*Listbox.selectBackground", ACCENT_SOFT); option("*Listbox.selectForeground", TEXT);
+    option("*Entry.background", CARD); option("*Entry.relief", "flat"); option("*Entry.highlightThickness", "1"); option("*Entry.highlightBackground", BORDER);
+    option("*Button.background", CARD); option("*Button.activeBackground", HOVER); option("*Button.relief", "flat"); option("*Button.borderWidth", "1");
+    option("*Menu.background", CARD); option("*Menu.foreground", TEXT); option("*Menu.activeBackground", ACCENT_SOFT);
+    option("*Menu.activeForeground", TEXT); option("*Menu.relief", "flat"); option("*Menu.borderWidth", "1");
+    option("*Menu.font", "{Segoe UI} 10");
+    root->configure({{"background", BG}});
     ttk::Style s(root);
     s.theme_use("clam");
     const std::string font = "{Segoe UI} 10", bold = "{Segoe UI} 10 bold";

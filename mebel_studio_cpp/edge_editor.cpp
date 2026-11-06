@@ -54,7 +54,7 @@ EdgeEditor::EdgeEditor(App* app_, const Part& part_, std::optional<cad_geometry:
     table->column("edge", {{"width", 240}}); table->column("radius", {{"width", 65}});
     table->pack({{"fill", "both"}, {"expand", true}});
     auto* scroll = new ttk::Scrollbar(side, {{"orient", "vertical"}, {"command", table->path() + " yview"}}); scroll->pack({{"side", "right"}, {"fill", "y"}}); table->configure({{"yscrollcommand", scroll->path() + " set"}});
-    canvas = new tk::Canvas(body, {{"bg", "#eef1f5"}, {"highlightthickness", 0}}); canvas->pack({{"fill", "both"}, {"expand", true}});
+    canvas = new tk::Canvas(body, {{"bg", "#f1eee8"}, {"highlightthickness", 0}}); canvas->pack({{"fill", "both"}, {"expand", true}});
     canvas->bind("<Configure>", [this](tk::Event&) { draw(); return std::string(); });
     table->bind("<<TreeviewSelect>>", [this](tk::Event& e) { select(&e); return std::string(); });
     candidate = part; refresh();
@@ -119,7 +119,7 @@ void EdgeEditor::draw() {
         for (auto& p : face["points"]) for (auto& v : p) coords.push_back(v.get<double>());
         bool mesh = py::truthy(py::get(face, "mesh"));
         std::string color = face["color"].get<std::string>();
-        canvas->create_polygon(coords, {{"fill", color}, {"outline", mesh ? color : "#66727f"}, {"width", mesh ? 0 : 1}});
+        canvas->create_polygon(coords, {{"fill", color}, {"outline", mesh ? color : "#6b7266"}, {"width", mesh ? 0 : 1}});
     }
     auto selection = table->selection();
     for (auto& spec_ : specs) {

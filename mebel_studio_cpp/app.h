@@ -23,6 +23,7 @@
 #include <vector>
 #include "pyutil.h"
 #include "forma_shell.h"
+#include "viewport_hud.h"
 #include "forma_theme.h"
 #include "tk.h"            // tk::Tk, tk::StringVar, tk::DoubleVar, tk::BooleanVar, tk::Event, tk::Opts,
                            // tk::messagebox, tk::filedialog, tk::colorchooser
@@ -168,7 +169,7 @@ public:
     ttk::Notebook* inspector_tabs = nullptr;
     tk::Widget* design_page = nullptr;
     // quick_studio_ui::build: układ okna (nagłówek, wstążka, panele, paski narzędzi)
-    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; ttk::Frame* library_panel = nullptr;
+    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; tk::StringVar status_right; ttk::Frame* library_panel = nullptr;
     ttk::Panedwindow* workspace_pane = nullptr; ttk::Notebook* ribbon = nullptr;
     std::map<std::string, responsive_ui::WrapToolbar*> ribbon_pages; std::vector<responsive_ui::WrapToolbar*> responsive_toolbars;
     ttk::Panedwindow* main_pane = nullptr; ttk::Frame* inspector_frame = nullptr; ttk::Frame* view_frame = nullptr;
@@ -229,7 +230,7 @@ public:
     App() : tk::Tk() {
         title("Mebel Studio 3D · projektowanie i produkcja");
         geometry(std::format("{}x{}+10+10", std::min(1440, winfo_screenwidth() - 40), std::min(900, winfo_screenheight() - 100))); minsize(1180, 600);
-        configure({{"bg", "#eff2f6"}});
+        configure({{"bg", "#f1eee8"}});
         _native_document = nullptr; _native_pending = false;
         project_generation = 0;
         project = std::make_shared<Project>();
@@ -555,7 +556,7 @@ public:
         auto& s = sheets[index]; int w = std::max(c->winfo_width(), 200); int h = std::max(c->winfo_height(), 200);
         double su = s["u"], sv = s["v"];
         double scale = std::min((w - 50) / su, (h - 50) / sv); double ox = (w - su * scale) / 2; double oy = (h - sv * scale) / 2;
-        c->create_rectangle(ox, oy, ox + su * scale, oy + sv * scale, {{"fill", "#eef1f5"}, {"outline", "#536277"}});
+        c->create_rectangle(ox, oy, ox + su * scale, oy + sv * scale, {{"fill", "#f1eee8"}, {"outline", "#6b7266"}});
         for (size_t n = 0; n < s["pieces"].size(); ++n) {
             auto& r = s["pieces"][n];
             Part* p = nullptr; for (auto& q : project->parts) if (json(q.id) == r["id"]) { p = &q; break; }
@@ -641,8 +642,9 @@ public:
             return camera.project({position[0] + shift[0], position[1] + shift[1], position[2] + shift[2]}, w, h);
         };
         viewport_annotations::paint(this, display);
-        c->create_text(18, 20, {{"text", std::format("{} elementów   /   {}", project->parts.size(), project->name)}, {"anchor", "w"}, {"font", "{Segoe UI} 11"}, {"fill", "#637285"}});
+        c->create_text(18, 20, {{"text", std::format("{} elementów   /   {}", project->parts.size(), project->name)}, {"anchor", "w"}, {"font", "{Segoe UI} 11"}, {"fill", "#6b7266"}});
         viewport_scene::paint_overlay(c, camera, {w, h}, background["spacing"]);
+        viewport_hud::paint(this, w, h, background["spacing"]);
         handles = {}; edge_handles = {};
         bool any_open = false; for (auto& [k, v] : open_amounts) if (v) any_open = true;
         if (p && !any_open && (edit_mode.get() == "resize" || edit_mode.get() == "furniture") && !py::truthy(py::get(p->assembly, "generated_by"))) {

@@ -124,7 +124,7 @@ RoomScenePanel::RoomScenePanel(tk::Widget* parent, App* app_)
     (new ttk::Checkbutton(body, {{"text", "Widoczny w scenie"}, {"variable", enabled}}))->pack({{"anchor", "w"}, {"pady", 4}});
     (new ttk::Checkbutton(body, {{"text", "Światło obiektu (lampa / żarówka)"}, {"variable", light_enabled}}))->pack({{"anchor", "w"}});
     (new ttk::Label(body, {{"text", "Gabaryty są ustawieniem własnym. Nie tworzą otworów w meblach; dobierz artykuł i miejsce montażu."}, {"wraplength", 285},
-                           {"font", "{Segoe UI} 9"}, {"foreground", "#68788a"}}))->pack({{"fill", "x"}, {"pady", 5}});
+                           {"font", "{Segoe UI} 9"}, {"foreground", "#6b7266"}}))->pack({{"fill", "x"}, {"pady", 5}});
     auto wheel = [this](tk::Event& event) { canvas->yview_scroll(event.delta > 0 ? -1 : 1, "units"); return std::string("break"); };
     std::function<void(tk::Widget*)> bind_wheel = [&](tk::Widget* widget) {
         widget->bind("<MouseWheel>", wheel, true);
