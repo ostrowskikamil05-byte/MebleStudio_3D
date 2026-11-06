@@ -34,6 +34,9 @@ void watch_notebook(App* app, ttk::Notebook* notebook, const std::string& name);
 void report(App* app);
 // Przełącza po kolei wszystkie zakładki i strony paneli, mierząc każde przełączenie; wynik trafia do logu.
 void self_test(App* app);
+
+// Przełącza na widok 3D i mierzy koszt odrysowania płótna (obraz z alfa vs bez), żeby wskazać źródło wielosekundowych postojów Tk.
+void diagnose_redraw(App* app);
 // Zeruje statystyki.
 void reset();
 

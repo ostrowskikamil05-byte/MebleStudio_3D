@@ -1,6 +1,8 @@
 #include "perf_monitor.h"
 
 #include <algorithm>
+#include <cstdint>
+#include <functional>
 #include <format>
 #include <map>
 #include <memory>
@@ -175,6 +177,56 @@ void report(App* app) {
     }
     if (rows.empty()) app->log->info("[wydajność] Brak zmierzonych czynności powyżej 1 ms.");
     app->log->info("[wydajność] ===== KONIEC RAPORTU =====");
+}
+
+void diagnose_redraw(App* app) {
+    if (app->tabs == nullptr || app->canvas == nullptr) { app->log->warning("[wydajność] Diagnoza: brak widoku 3D"); return; }
+    const std::string original = app->tabs->select();
+    std::string target;
+    for (const auto& tab : app->tabs->tabs())
+        if (app->tabs->tab(tab, "text").find("3D") != std::string::npos) { target = tab; break; }
+    if (target.empty()) { app->log->warning("[wydajność] Diagnoza: nie znaleziono zakładki widoku 3D"); return; }
+    app->log->info("[wydajność] Diagnoza odrysowania: przełączam na widok 3D i mierzę (ok. 5 s, nie ruszaj myszą)…");
+    app->tabs->select(target);
+    app->after(700, [app, original]() {
+        tk::Canvas* canvas = app->canvas;
+        const int w = std::max(canvas->winfo_width(), 50), h = std::max(canvas->winfo_height(), 50);
+        auto measure = [app](const std::string& label, const std::function<void()>& action) {
+            auto started = Clock::now();
+            try { action(); app->update(); } catch (const tk::TclError& error) { app->log->warning("[wydajność] Diagnoza " + label + ": błąd " + error.what()); return; }
+            double ms = std::chrono::duration<double, std::milli>(Clock::now() - started).count();
+            app->log->info(std::format("[wydajność] Diagnoza: {:>7.0f} ms — {}", ms, label));
+            return;
+        };
+        app->log->info(std::format("[wydajność] Diagnoza: płótno {}×{}", w, h));
+        measure("odrysowanie bez zmian (punkt odniesienia)", [] {});
+        measure("odrysowanie bez zmian (drugi raz)", [] {});
+        std::vector<std::unique_ptr<tk::PhotoImage>> keep;
+        auto image_test = [&](const std::string& label, int alpha_mode) {
+            std::vector<std::uint8_t> rgba((size_t)w * h * 4, 200);
+            for (size_t i = 0; i < (size_t)w * h; ++i) {
+                std::uint8_t a = 255;
+                if (alpha_mode == 1) a = 0;                          // w całości przezroczysty
+                else if (alpha_mode == 2) a = (i % w) < (size_t)w / 2 ? 0 : 255;  // połowa przezroczysta
+                rgba[i * 4 + 3] = a;
+            }
+            keep.push_back(std::make_unique<tk::PhotoImage>(canvas, w, h, rgba));
+            tk::PhotoImage* image = keep.back().get();
+            measure(label, [&] { canvas->create_image(0, 0, {{"anchor", "nw"}, {"image", *image}, {"tags", "diag"}}); });
+            measure(label + " — ponowne odrysowanie", [] {});
+            canvas->delete_("diag");
+            app->update();
+        };
+        image_test("obraz pełnoekranowy, w pełni nieprzezroczysty", 0);
+        image_test("obraz pełnoekranowy, w pełni przezroczysty", 1);
+        image_test("obraz pełnoekranowy, połowa przezroczysta", 2);
+        measure("prostokąt pełnoekranowy (zwykły element płótna)", [&] { canvas->create_rectangle(0, 0, w, h, {{"fill", "#cccccc"}, {"outline", ""}, {"tags", "diag"}}); });
+        canvas->delete_("diag");
+        measure("pełne odrysowanie sceny (App::draw)", [app] { app->draw(); });
+        measure("odrysowanie sceny — ponownie", [app] { app->draw(); });
+        app->log->info("[wydajność] Diagnoza: jeśli „przezroczysty/połowa” ≫ „nieprzezroczysty”, winne jest mieszanie alfa obrazu 3D w Tk.");
+        if (!original.empty()) app->tabs->select(original);
+    });
 }
 
 void self_test(App* app) {
