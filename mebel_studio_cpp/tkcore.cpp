@@ -206,7 +206,21 @@ std::string eval(const Args& words) {
     ObjList objs(words);
     const int code = Tcl_EvalObjv(g_interp, objs.size(), objs.data(), TCL_EVAL_GLOBAL);
     std::string result = result_text();
-    if (code != TCL_OK) throw tk::TclError(result);
+    if (code != TCL_OK) {
+        // Komunikat Tcl + polecenie, które go wywołało (ułatwia lokalizację błędu w interfejsie).
+        std::string message = result.empty() ? "pusty komunikat Tcl (kod " + std::to_string(code) + ")" : result;
+        message += "\n  polecenie Tcl:";
+        for (std::size_t i = 0; i < words.size() && i < 5; ++i) {
+            message += ' ' + (words[i].size() > 80 ? words[i].substr(0, 80) + "..." : words[i]);
+        }
+        const char* info = Tcl_GetVar2(g_interp, "errorInfo", nullptr, TCL_GLOBAL_ONLY);
+        if (info && *info) {
+            std::string text = info;
+            if (text.size() > 700) text.resize(700);
+            message += "\n  errorInfo: " + text;
+        }
+        throw tk::TclError(message);
+    }
     return result;
 }
 

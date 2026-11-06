@@ -179,7 +179,7 @@ int main() {
     tk::Label lb(&f1, {{"font", ft}, {"text", "x"}}); CHECK(g_log.back()[3] == ft.name());
 
     // błąd Tcl -> TclError
-    bool errored = false; try { app.call({"bad"}); } catch (const tk::TclError& e) { errored = std::string(e.what()) == "boom \"quoted\""; } CHECK(errored);
+    bool errored = false; try { app.call({"bad"}); } catch (const tk::TclError& e) { errored = std::string(e.what()).rfind("boom \"quoted\"", 0) == 0; } CHECK(errored);
 
     // destroy: komendy i rejestr
     f1.destroy();

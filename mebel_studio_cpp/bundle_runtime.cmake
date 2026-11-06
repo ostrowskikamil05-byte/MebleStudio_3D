@@ -1,5 +1,8 @@
 # Wywoływany po zbudowaniu: cmake -DEXE=... -DDEST=... -DSEARCH_DIRS=... -DTCL_DIR=... -DTK_DIR=... -DTCL8_DIR=... -P bundle_runtime.cmake
 # Kopiuje obok programu biblioteki DLL, których potrzebuje (g++, Tcl/Tk, OpenCASCADE...), oraz skrypty Tcl/Tk.
+if(POLICY CMP0207)
+    cmake_policy(SET CMP0207 NEW)
+endif()
 file(GET_RUNTIME_DEPENDENCIES
     EXECUTABLES "${EXE}"
     RESOLVED_DEPENDENCIES_VAR resolved
