@@ -73,3 +73,24 @@ W powłoce MSYS2 UCRT64, w folderze `mebel_studio_cpp`:
 
 Dodatkowo `pacman -S --needed mingw-w64-ucrt-x86_64-ccache` przyspiesza ponowne budowanie
 (CMake sam wykrywa ccache). Zmiana jednego pliku `.cpp` oznacza ponowną kompilację tylko tego pliku i linkowanie.
+
+## 5. Przebudowa bibliotek DLL (MebelNative3D.dll, MebelModel.dll)
+
+DLL-e w korzeniu repozytorium są w Git LFS i mogą być **starsze niż źródła** w `ZRODLA_PROGRAMU/native`
+(np. ciemne tło i brak podłogi/siatki w silniku natywnym). Świeże buduje się lokalnie, w powłoce UCRT64:
+
+```bash
+cd mebel_studio_cpp
+./dev.sh dll        # g++ -> native-dll/MebelNative3D.dll + native-dll/MebelModel.dll (poprzednie jako *.bak)
+./dev.sh run        # CMake kopiuje DLL z native-dll/ do build/bin (ma pierwszeństwo przed korzeniem repo)
+```
+
+Oficjalna ścieżka (LLVM-MinGW, razem z testami sceny), z PowerShella:
+
+```powershell
+ZRODLA_PROGRAMU\native\tools\build_embed.ps1 -Compiler 'C:\llvm-mingw\bin\clang++.exe' -RunTests
+ZRODLA_PROGRAMU\native\tools\build_model.ps1 -Compiler 'C:\llvm-mingw\bin\clang++.exe'
+```
+
+Zmienna `CXX=clang++ ./dev.sh dll` wybiera inny kompilator. Plik DLL poniżej 4 KB to wskaźnik LFS —
+program zgłasza to w logu zamiast ładować „pustą” bibliotekę.

@@ -4,6 +4,7 @@
 #   ./dev.sh run        jw. i od razu uruchom aplikację
 #   ./dev.sh fast       jak wyżej, ale kompilacja bez optymalizacji (-O0) w osobnym katalogu build-dev
 #   ./dev.sh test       sam self-test (bez budowania)
+#   ./dev.sh dll        przebuduj MebelNative3D.dll i MebelModel.dll ze źródeł (ZRODLA_PROGRAMU/native) do native-dll/
 #   ./dev.sh clean      usuń katalog build
 # Zmienna PULL=0 wyłącza git pull.
 set -euo pipefail
@@ -14,6 +15,31 @@ dir=build
 type=Release
 if [ "$mode" = "fast" ]; then dir=build-dev; type=Debug; fi
 if [ "$mode" = "clean" ]; then rm -rf build build-dev; echo "Usunięto katalogi build."; exit 0; fi
+
+build_dlls() {
+  local native="../ZRODLA_PROGRAMU/native" out="native-dll" cxx="${CXX:-g++}"
+  command -v "$cxx" >/dev/null || { echo "Brak kompilatora $cxx (powłoka MSYS2 UCRT64?)"; exit 1; }
+  mkdir -p "$out"
+  local flags=(-std=c++20 -O2 -Wall -Wextra -Wno-missing-field-initializers -static -static-libstdc++ -static-libgcc -DUNICODE -D_UNICODE)
+  echo "== kompilator: $cxx ($($cxx --version | head -1))"
+  for f in MebelNative3D.dll MebelModel.dll; do
+    [ -f "$out/$f" ] && cp -f "$out/$f" "$out/$f.bak"
+  done
+  echo "== MebelNative3D.dll (silnik D3D11/D3D12/Vulkan)"
+  "$cxx" "${flags[@]}" -shared -I"$native/third_party/vulkan/include" \
+    "$native/src/native_embed.cpp" "$native/src/scene.cpp" "$native/src/renderer_d3d11.cpp" \
+    "$native/src/renderer_d3d12.cpp" "$native/src/renderer_vulkan.cpp" \
+    -ld3d11 -ld3d12 -ldxgi -ld3dcompiler_47 -lgdi32 -lgdiplus -luser32 -lole32 -o "$out/MebelNative3D.dll"
+  echo "== MebelModel.dll (model obliczeniowy)"
+  local core="$native/core" srcs=()
+  for n in model_api core_model shapes construction services document layout layout_geometry worktop; do srcs+=("$core/$n.cpp"); done
+  "$cxx" "${flags[@]}" -shared "${srcs[@]}" -o "$out/MebelModel.dll"
+  echo "== gotowe:"; ls -l "$out"/*.dll; sha256sum "$out"/*.dll
+  for d in build build-dev; do [ -f "$d/build.ninja" ] && cmake -S . -B "$d" >/dev/null; done
+  echo "Teraz: ./dev.sh run   (CMake skopiuje DLL z native-dll/ do build/bin)"
+}
+
+if [ "$mode" = "dll" ]; then build_dlls; exit 0; fi
 
 exe() { ls "$dir"/bin/MebelStudio3D_cpp.exe "$dir"/MebelStudio3D_cpp.exe 2>/dev/null | head -1 || true; }
 

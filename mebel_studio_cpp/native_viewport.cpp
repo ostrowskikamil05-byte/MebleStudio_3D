@@ -122,6 +122,12 @@ Api& library() {
 #else
     auto path = py::executable_dir() / "MebelNative3D.dll";
     if (!std::filesystem::is_regular_file(path)) throw NativeUnavailable("Brak biblioteki MebelNative3D.dll w folderze programu.");
+    {
+        std::error_code ec;
+        auto size = std::filesystem::file_size(path, ec);
+        if (!ec && size < 4096)
+            throw NativeUnavailable("MebelNative3D.dll ma " + std::to_string(size) + " B — to wskaźnik Git LFS, nie biblioteka. Zbuduj ją poleceniem ./dev.sh dll.");
+    }
     HMODULE module = LoadLibraryExW(path.wstring().c_str(), nullptr, 0x00000100 | 0x00000800);
     if (!module) {
         DWORD code = GetLastError();
