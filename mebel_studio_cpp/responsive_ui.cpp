@@ -271,17 +271,29 @@ void UiLayout::reflow() {
     if (panel_selector != nullptr) {
         std::vector<std::string> tabs = app->inspector_tabs->tabs(), labels;
         for (const auto& tab : tabs) labels.push_back(app->inspector_tabs->tab(tab, "text"));
-        panel_selector->configure({{"values", labels}});
+        // Zmiana stylu lub wartości przebudowuje cały panel — robimy to tylko wtedy, gdy coś faktycznie się zmieniło.
+        static std::map<std::string, std::vector<std::string>> last_values;
+        auto& previous = last_values[panel_selector->path()];
+        if (previous != labels) {
+            panel_selector->configure({{"values", labels}});
+            previous = labels;
+        }
         std::string spec = ttk::Style(app).lookup("Inspector.TNotebook.Tab", "font");
-        tk::font::Font font(app, spec.empty() ? std::string("{Segoe UI} 9") : spec);
+        if (spec.empty()) spec = "{Segoe UI} 9";
+        static std::map<std::string, std::unique_ptr<tk::font::Font>> fonts;
+        auto& font = fonts[spec];
+        if (!font) font = std::make_unique<tk::font::Font>(app, spec);
         int needed = 0;
-        for (const auto& label : labels) needed += font.measure(label) + 24;
+        for (const auto& label : labels) needed += font->measure(label) + 24;
+        auto set_style = [&](const char* style) {
+            if (app->inspector_tabs->cget("style") != style) app->inspector_tabs->configure({{"style", style}});
+        };
         if (needed > app->inspector_frame->winfo_width() - 12) {
-            app->inspector_tabs->configure({{"style", "HiddenInspector.TNotebook"}});
+            set_style("HiddenInspector.TNotebook");
             if (panel_selector->winfo_manager().empty()) panel_selector->pack({{"fill", "x"}, {"padx", 5}, {"pady", 4}, {"before", app->inspector_tabs->path()}});
         } else {
-            panel_selector->pack_forget();
-            app->inspector_tabs->configure({{"style", "Inspector.TNotebook"}});
+            if (!panel_selector->winfo_manager().empty()) panel_selector->pack_forget();
+            set_style("Inspector.TNotebook");
         }
         sync_panel();
     }
