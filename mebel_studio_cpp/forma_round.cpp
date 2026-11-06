@@ -2,6 +2,7 @@
 // Obrazy RGBA są liczone w programie (bez plików); gdy Tk odrzuci któryś element, zostaje płaski wygląd z forma_theme.
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <vector>
@@ -72,7 +73,20 @@ std::vector<std::unique_ptr<tk::PhotoImage>>& keep() {
     return images;
 }
 
-std::string make_image(tk::Widget* root, int size, std::vector<std::uint8_t> pixels) {
+// Zamienia przezroczyste rogi na kolor tła panelu: obrazy z kanałem alfa wymuszają w Tk odczyt tła przy każdym
+// rysowaniu (na Windows bardzo wolny), a obrazy nieprzezroczyste rysują się od razu.
+void bake(std::vector<std::uint8_t>& pixels, const char* backdrop) {
+    Color b = parse(backdrop);
+    const double back[3] = {b.r, b.g, b.b};
+    for (size_t i = 0; i + 3 < pixels.size(); i += 4) {
+        double a = pixels[i + 3] / 255.0;
+        for (int c = 0; c < 3; ++c) pixels[i + c] = (std::uint8_t)std::lround(pixels[i + c] * a + 255 * back[c] * (1 - a));
+        pixels[i + 3] = 255;
+    }
+}
+
+std::string make_image(tk::Widget* root, int size, std::vector<std::uint8_t> pixels, const char* backdrop = PANEL) {
+    if (backdrop) bake(pixels, backdrop);
     keep().push_back(std::make_unique<tk::PhotoImage>(root, size, size, pixels));
     return keep().back()->name();
 }
@@ -105,6 +119,8 @@ void button_layout(const std::string& style, const std::string& element_name) {
 }  // namespace
 
 void install_round(tk::Widget* root) {
+    // FORMA_FLAT=1 wyłącza zaokrąglenia (porównanie wydajności / awaryjny płaski wygląd).
+    if (const char* flat = std::getenv("FORMA_FLAT"); flat != nullptr && flat[0] == '1') return;
     try {
         constexpr int R = 8;
         // Pola tekstowe, listy rozwijane, pola liczbowe.
@@ -112,7 +128,7 @@ void install_round(tk::Widget* root) {
         for (const char* name : {"Entry.field", "Combobox.field", "Spinbox.field"})
             element(name, field, {{"disabled", field_off}, {"focus", field_focus}}, R);
         int arrow_size = 22;
-        std::string arrow = make_image(root, arrow_size, chevron(arrow_size, MUTED));
+        std::string arrow = make_image(root, arrow_size, chevron(arrow_size, MUTED), CARD);
         tkcore::eval({"ttk::style", "element", "create", "Combobox.downarrow", "image", arrow, "-sticky", "e"});
 
         // Przyciski.
@@ -129,18 +145,7 @@ void install_round(tk::Widget* root) {
         std::string chip_on = box(root, CR, {ACCENT, ACCENT}), chip_on_hover = box(root, CR, {ACCENT_HOVER, ACCENT_HOVER});
         element("Forma.chipon", chip_on, {{"active", chip_on_hover}}, CR);
         button_layout("ChipOn.TButton", "Forma.chipon");
-        // Wiersze list i przyciski paska: bez ramki, zaokrąglone podświetlenie.
-        std::string flat = box(root, R, {nullptr, nullptr}), flat_hover = box(root, R, {HOVER, nullptr}), flat_press = box(root, R, {ACCENT_SOFT, nullptr});
-        element("Forma.flat", flat, {{"pressed", flat_press}, {"active", flat_hover}}, R);
-        for (const char* style : {"Ribbon.TButton", "Tool.TButton", "Section.TButton"}) button_layout(style, "Forma.flat");
-        std::string row_on = box(root, R, {ACCENT_SOFT, nullptr});
-        element("Forma.flaton", row_on, {{"pressed", row_on}, {"active", row_on}}, R);
-        button_layout("RibbonOn.TButton", "Forma.flaton");
-
-        // Zakładki dokumentów w dialogach: pastylki.
-        constexpr int TR = 12;
-        std::string tab_none = box(root, TR, {nullptr, nullptr}), tab_on = box(root, TR, {ACCENT, ACCENT}), tab_hover = box(root, TR, {HOVER, nullptr});
-        element("Notebook.tab", tab_none, {{"selected", tab_on}, {"active", tab_hover}}, TR);
+        // Wiersze list, przyciski paska i zakładki dialogów zostają płaskie (bez obrazów): to setki widgetów odświeżanych przy każdej zmianie strony.
     } catch (const std::exception&) {
         // Płaski wygląd z forma_theme::apply pozostaje.
     }
