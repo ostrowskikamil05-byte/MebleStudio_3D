@@ -33,6 +33,7 @@ public:
     void destroyed(tk::Event& event);
     void schedule();
     void reflow();
+    bool vertical = false;  // każdy element w osobnym wierszu na pełną szerokość (lista w panelu bocznym)
 
 private:
     std::optional<std::string> _job;

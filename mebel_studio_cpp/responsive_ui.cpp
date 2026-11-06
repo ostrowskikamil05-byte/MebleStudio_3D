@@ -76,7 +76,15 @@ void WrapToolbar::reflow() {
     std::pair<int, std::vector<std::tuple<std::string, int, int>>> key{width, items};
     if (_layout_key && *_layout_key == key) return;
     _layout_key = key;
-    auto [placements, height] = flow_layout(width, sizes);
+    std::pair<std::vector<std::array<int, 4>>, int> flowed;
+    if (vertical) {
+        int y = 0;
+        for (const auto& size : sizes) { flowed.first.push_back({0, y, width, (int)size.second}); y += (int)size.second + 2; }
+        flowed.second = y;
+    } else {
+        flowed = flow_layout(width, sizes);
+    }
+    auto& [placements, height] = flowed;
     for (size_t i = 0; i < children.size(); ++i) {
         auto [x, y, w, h] = placements[i];
         if (children[i]->winfo_manager() == "pack") children[i]->pack_forget();
@@ -86,12 +94,12 @@ void WrapToolbar::reflow() {
 }
 
 RibbonPage::RibbonPage(tk::Widget* parent) : ttk::Frame(parent) {
-    canvas = new tk::Canvas(this, {{"highlightthickness", 0}, {"bg", "#f6f3ee"}, {"height", 76}});
+    canvas = new tk::Canvas(this, {{"highlightthickness", 0}, {"bg", "#fbfaf7"}, {"height", 76}});
     auto* scrollbar = new ttk::Scrollbar(this, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     canvas->configure({{"yscrollcommand", scrollbar->path() + " set"}});
-    body = new WrapToolbar(canvas);
+    body = new WrapToolbar(canvas, {{"style", "Panel.TFrame"}});
     window = canvas->create_window(0, 0, {{"window", body->path()}, {"anchor", "nw"}});
     body->bind("<Configure>", [this](tk::Event&) { update_scrollregion(canvas); return std::string(); }, true);
     canvas->bind("<Configure>", [this](tk::Event& e) { canvas->itemconfigure(window, {{"width", e.width}}); return std::string(); });
@@ -195,6 +203,8 @@ std::array<long long, 4> fitted_geometry(const json& preferences, const std::arr
     return {w, h, std::max(left, std::min(x, right - w - frame[0])), std::max(top, std::min(y, bottom - h - frame[1]))};
 }
 
+constexpr int LIBRARY_WIDTH = 352;
+
 long long clamp_inspector(double width, long long total, double scale) {
     long long minimum = std::min(240LL, std::max(1LL, total - 320));
     long long maximum = std::max(minimum, total - std::max(320LL, (long long)(320 * std::min(scale, 1.25))) - 10);
@@ -233,20 +243,17 @@ void UiLayout::reflow() {
         auto panes = pane->panes();
         return std::find(panes.begin(), panes.end(), child->path()) != panes.end();
     };
-    if (py::truthy(prefs.at("show_inspector")) && panes_contain(app->main_pane, app->inspector_frame)) {
-        long long w = clamp_inspector((double)std::min(1200LL, prefs.at("inspector_width").get<long long>()), app->main_pane->winfo_width(), prefs.at("ui_scale").get<double>());
-        if (app->main_pane->sashpos(0) != w) app->main_pane->sashpos(0, (int)w);
-    }
-    if (app->workspace_pane != nullptr && py::truthy(prefs.at("show_ribbon")) && app->workspace_pane->panes().size() > 1) {
-        long long h = std::max(64LL, std::min({500LL, prefs.at("ribbon_height").get<long long>(), std::max(64LL, (long long)(app->workspace_pane->winfo_height() * .35))}));
-        if (app->canvas->winfo_ismapped()) {
-            // Extra fitting tools use space above the viewport. Reduce
-            // the effective ribbon first; keep the user's saved height
-            // so it returns when that tray closes.
-            long long available = app->canvas->winfo_height() + app->workspace_pane->sashpos(0);
-            h = std::max(64LL, std::min(h, available - 240));
-        }
-        if (app->workspace_pane->sashpos(0) != h) app->workspace_pane->sashpos(0, (int)h);
+    // Układ: [panel narzędzi] [widok 3D] [właściwości]. Uchwyty: 0 = narzędzia (jeśli są), ostatni = właściwości.
+    bool has_library = app->library_panel != nullptr && panes_contain(app->main_pane, app->library_panel);
+    bool has_inspector = py::truthy(prefs.at("show_inspector")) && panes_contain(app->main_pane, app->inspector_frame);
+    long long total = app->main_pane->winfo_width();
+    long long library_width = has_library ? (long long)(LIBRARY_WIDTH * std::min(1.5, prefs.at("ui_scale").get<double>())) : 0;
+    if (has_library && app->main_pane->sashpos(0) != library_width) app->main_pane->sashpos(0, (int)library_width);
+    if (has_inspector) {
+        long long w = clamp_inspector((double)std::min(1200LL, prefs.at("inspector_width").get<long long>()), total - library_width, prefs.at("ui_scale").get<double>());
+        int index = (int)app->main_pane->panes().size() - 2;
+        long long position = total - w;
+        if (index >= (has_library ? 1 : 0) && app->main_pane->sashpos(index) != position) app->main_pane->sashpos(index, (int)position);
     }
     for (auto* toolbar : app->responsive_toolbars) toolbar->schedule();
     if (panel_selector != nullptr) {
@@ -283,10 +290,12 @@ void UiLayout::sync_panel() {
 
 void UiLayout::sash_released() {
     if (suspended) return;
-    if (py::truthy(prefs.at("show_inspector")) && app->main_pane->panes().size() > 1)
-        prefs["inspector_width"] = std::max(240, std::min(1200, app->main_pane->sashpos(0)));
-    if (py::truthy(prefs.at("show_ribbon")) && app->workspace_pane != nullptr && app->workspace_pane->panes().size() > 1)
-        prefs["ribbon_height"] = std::max(64, std::min(500, app->workspace_pane->sashpos(0)));
+    auto panes = app->main_pane->panes();
+    bool has_library = app->library_panel != nullptr && std::find(panes.begin(), panes.end(), app->library_panel->path()) != panes.end();
+    if (py::truthy(prefs.at("show_inspector")) && panes.size() > (has_library ? 2u : 1u)) {
+        int index = (int)panes.size() - 2;
+        prefs["inspector_width"] = std::max(240, std::min(1200, app->main_pane->winfo_width() - app->main_pane->sashpos(index)));
+    }
     schedule();
     schedule_save();
 }
@@ -407,20 +416,20 @@ void UiLayout::show_inspector(bool visible, bool save) {
     ttk::Frame* child = app->inspector_frame;
     auto panes = pane->panes();
     bool present = std::find(panes.begin(), panes.end(), child->path()) != panes.end();
-    if (visible && !present) pane->insert(0, child, {{"weight", 0}});
+    if (visible && !present) pane->add(child, {{"weight", 0}});
     else if (!visible && present) pane->forget(child);
     prefs["show_inspector"] = visible;
     if (save) { schedule(); schedule_save(); }
 }
 
 void UiLayout::show_ribbon(bool visible, bool save) {
-    if (app->workspace_pane != nullptr) {
-        ttk::Panedwindow* pane = app->workspace_pane;
-        ttk::Notebook* child = app->ribbon;
+    // Dawna wstążka to teraz lewy panel narzędzi (pasek ikon + lista poleceń).
+    if (app->library_panel != nullptr) {
+        ttk::Panedwindow* pane = app->main_pane;
         auto panes = pane->panes();
-        bool present = std::find(panes.begin(), panes.end(), child->path()) != panes.end();
-        if (visible && !present) pane->insert(0, child, {{"weight", 0}});
-        else if (!visible && present) pane->forget(child);
+        bool present = std::find(panes.begin(), panes.end(), app->library_panel->path()) != panes.end();
+        if (visible && !present) pane->insert(0, app->library_panel, {{"weight", 0}});
+        else if (!visible && present) pane->forget(app->library_panel);
     }
     prefs["show_ribbon"] = visible;
     if (save) { schedule(); schedule_save(); }

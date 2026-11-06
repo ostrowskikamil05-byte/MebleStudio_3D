@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 #include "pyutil.h"
+#include "forma_shell.h"
 #include "forma_theme.h"
 #include "tk.h"            // tk::Tk, tk::StringVar, tk::DoubleVar, tk::BooleanVar, tk::Event, tk::Opts,
                            // tk::messagebox, tk::filedialog, tk::colorchooser
@@ -167,7 +168,7 @@ public:
     ttk::Notebook* inspector_tabs = nullptr;
     tk::Widget* design_page = nullptr;
     // quick_studio_ui::build: układ okna (nagłówek, wstążka, panele, paski narzędzi)
-    responsive_ui::WrapToolbar* header = nullptr;
+    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; ttk::Frame* library_panel = nullptr;
     ttk::Panedwindow* workspace_pane = nullptr; ttk::Notebook* ribbon = nullptr;
     std::map<std::string, responsive_ui::WrapToolbar*> ribbon_pages; std::vector<responsive_ui::WrapToolbar*> responsive_toolbars;
     ttk::Panedwindow* main_pane = nullptr; ttk::Frame* inspector_frame = nullptr; ttk::Frame* view_frame = nullptr;
@@ -251,6 +252,7 @@ public:
         visual_catalogue::install(this);
         responsive_ui::install(this);
         native_viewport::install(this);
+        forma_shell::finish(this);
         auto [configured, group] = furniture_configurator::configure(*project, furniture_configurator::default_config(0, *project));
         project = configured;
         _native_document = native_document::create_if_available(project);

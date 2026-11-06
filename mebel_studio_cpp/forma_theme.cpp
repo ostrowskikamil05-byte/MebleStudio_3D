@@ -25,7 +25,8 @@ void apply(tk::Widget* root) {
     s.configure("TButton", {{"padding", "10 6"}, {"background", CARD}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"borderwidth", 1}, {"relief", "flat"}, {"focuscolor", CARD}});
     s.map("TButton", "background", {{"disabled", BG}, {"pressed", ACCENT_SOFT}, {"active", HOVER}});
     s.map("TButton", "foreground", {{"disabled", MUTED}});
-    s.configure("Ribbon.TButton", {{"padding", "8 5"}});
+    s.configure("Ribbon.TButton", {{"padding", "12 8"}, {"anchor", "w"}, {"background", PANEL}, {"bordercolor", PANEL}});
+    s.map("Ribbon.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
     s.configure("Accent.TButton", {{"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}, {"font", bold}});
     s.map("Accent.TButton", "background", {{"disabled", "#a8b79c"}, {"pressed", "#3f5a33"}, {"active", ACCENT_HOVER}});
     s.map("Accent.TButton", "foreground", {{"disabled", "white"}});

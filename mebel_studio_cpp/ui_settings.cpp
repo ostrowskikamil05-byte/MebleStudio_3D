@@ -124,14 +124,13 @@ SettingsDialog* open_settings(App* app) {
     // 2. Panele
     auto* panels_box = section("Panele i paski");
     for (auto [key, label] : std::vector<std::pair<std::string, std::string>>{
-             {"show_inspector", "Pokaż boczny inspektor"}, {"show_ribbon", "Pokaż górną wstążkę"}, {"show_toolbars", "Pokaż paski skrótów nad 3D"}}) {
+             {"show_inspector", "Pokaż boczny inspektor"}, {"show_ribbon", "Pokaż lewy panel narzędzi"}, {"show_toolbars", "Pokaż paski skrótów nad 3D"}}) {
         auto inserted = sd->interface_flags.emplace(key, tk::BooleanVar(current.at(key).get<bool>()));
         sd->key_order.push_back(key);
         (new ttk::Checkbutton(panels_box, {{"text", label}, {"variable", inserted.first->second}}))->pack({{"anchor", "w"}, {"pady", 2}});
     }
     number(panels_box, "inspector_width", "Szerokość bocznego panelu [px]");
-    number(panels_box, "ribbon_height", "Wysokość wstążki [px]");
-    (new ttk::Label(panels_box, {{"text", "Szerokość i wysokość możesz też zmienić, przeciągając separator obok inspektora lub pod wstążką."},
+    (new ttk::Label(panels_box, {{"text", "Szerokość panelu właściwości możesz też zmienić, przeciągając separator."},
                                 {"wraplength", 540}, {"padding", "0 4 0 0"}}))->pack({{"fill", "x"}});
 
     // 3. Widok 3D
