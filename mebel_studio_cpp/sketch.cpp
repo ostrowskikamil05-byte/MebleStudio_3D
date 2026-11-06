@@ -215,7 +215,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     body->pack({{"fill", "both"}, {"expand", true}});
     auto* sidebar = new ttk::Frame(body);
     sidebar->pack({{"side", "right"}, {"fill", "y"}});
-    auto* viewport = new tk::Canvas(sidebar, {{"width", 305}, {"highlightthickness", 0}, {"bg", "#f6f8fa"}});
+    auto* viewport = new tk::Canvas(sidebar, {{"width", 305}, {"highlightthickness", 0}, {"bg", "#f6f3ee"}});
     auto* scrollbar = new ttk::Scrollbar(sidebar, {{"orient", "vertical"}, {"command", viewport->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     viewport->pack({{"side", "left"}, {"fill", "y"}, {"expand", true}});
@@ -224,7 +224,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     int side_window = viewport->create_window(0, 0, {{"window", side->path()}, {"anchor", "nw"}});
     side->bind("<Configure>", [viewport](tk::Event&) { responsive_ui::update_scrollregion(viewport); return std::string(); });
     viewport->bind("<Configure>", [viewport, side_window](tk::Event& e) { viewport->itemconfigure(side_window, {{"width", e.width}}); return std::string(); });
-    canvas = new tk::Canvas(body, {{"bg", "#f7fafc"}, {"highlightthickness", 0}, {"takefocus", true}});
+    canvas = new tk::Canvas(body, {{"bg", "#fbfaf7"}, {"highlightthickness", 0}, {"takefocus", true}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* sketch_tools = new ttk::Frame(this, {{"padding", "8 2"}});
     sketch_tools->pack({{"fill", "x"}, {"before", body->path()}});
@@ -846,7 +846,7 @@ void Sketch::label(double x, double y, const std::string& text, const std::strin
     int item = canvas->create_text(x, y, {{"text", text}, {"fill", color}, {"font", "{Segoe UI} 9 bold"}});
     auto box = canvas->bbox(item);
     if (box && box->size() == 4) {
-        int rect = canvas->create_rectangle((*box)[0], (*box)[1], (*box)[2], (*box)[3], {{"fill", "#f7fafc"}, {"outline", ""}});
+        int rect = canvas->create_rectangle((*box)[0], (*box)[1], (*box)[2], (*box)[3], {{"fill", "#fbfaf7"}, {"outline", ""}});
         canvas->tag_lower(rect, item);
     }
 }
@@ -867,8 +867,8 @@ void Sketch::draw() {
         long long count = std::max(0LL, (long long)(limit / step) + 2);
         for (long long i = 0; i < count; ++i) {
             double p = py::mod(axis_origin, step) + i * step;
-            if (screen_axis == 0) c->create_line({p, 0, p, (double)h}, {{"fill", "#e4eaf0"}});
-            else c->create_line({0, p, (double)w, p}, {{"fill", "#e4eaf0"}});
+            if (screen_axis == 0) c->create_line({p, 0, p, (double)h}, {{"fill", "#e8e4db"}});
+            else c->create_line({0, p, (double)w, p}, {{"fill", "#e8e4db"}});
         }
     }
     c->create_line({0, origin[1], (double)w, origin[1]}, {{"fill", "#a93f3f"}});
@@ -890,7 +890,7 @@ void Sketch::draw() {
     if (coords.size() >= 3 && filled) {
         std::vector<double> flat;
         for (auto& [x, y] : coords) { flat.push_back(x); flat.push_back(y); }
-        c->create_polygon(flat, {{"fill", "#d7e9ec"}, {"outline", "#176a78"}, {"width", 2}});
+        c->create_polygon(flat, {{"fill", "#dbe6cf"}, {"outline", "#4e6b3f"}, {"width", 2}});
     }
     using ScreenPair = std::pair<std::pair<double, double>, std::pair<double, double>>;
     std::vector<ScreenPair> pairs;
@@ -906,7 +906,7 @@ void Sketch::draw() {
     for (size_t i = 0; i < pairs.size(); ++i) {
         auto& [a, b] = pairs[i];
         auto& [pa, pb] = local_pairs[i];
-        c->create_line({a.first, a.second, b.first, b.second}, {{"fill", "#176a78"}, {"width", 2}});
+        c->create_line({a.first, a.second, b.first, b.second}, {{"fill", "#4e6b3f"}, {"width", 2}});
         if (!py::truthy(part.profile) && pts.size() <= 20 && std::hypot(a.first - b.first, a.second - b.second) >= 45)
             label((a.first + b.first) / 2, (a.second + b.second) / 2 - 12, std::format("{:.2f} mm", dist(pa, pb)));
     }
@@ -914,7 +914,7 @@ void Sketch::draw() {
     for (int index : listbox->curselection()) selected_points.insert(index);
     for (size_t i = 0; i < points.size(); ++i) {
         auto [x, y] = screen(points[i]);
-        c->create_oval(x - 4, y - 4, x + 4, y + 4, {{"fill", "#176a78"}, {"outline", "white"}});
+        c->create_oval(x - 4, y - 4, x + 4, y + 4, {{"fill", "#4e6b3f"}, {"outline", "white"}});
         if ((!py::truthy(part.profile) && points.size() <= 20) || selected_points.count((int)i))
             c->create_text(x + 9, y + 10, {{"text", std::to_string(i + 1)}, {"anchor", "w"}, {"fill", "#345"}});
     }

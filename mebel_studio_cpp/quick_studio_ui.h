@@ -77,7 +77,7 @@ public:
     std::vector<int> template_indices;
     json saved = json::object();
     std::optional<json> clipboard;
-    tk::StringVar note, groupvar, templatevar, presetvar, runner_note;
+    tk::StringVar note, groupvar, templatevar, presetvar, runner_note, card_title, card_sub;
     ttk::Combobox *groupcombo = nullptr, *templatecombo = nullptr, *presetcombo = nullptr;
     ttk::Button* apply_button = nullptr;
     ScrollPanel* scroll = nullptr;
@@ -121,5 +121,7 @@ void focus_section(App* app, const std::string& key);
 void build_production(App* app);
 // quick_studio_ui._button: przycisk wstążki (używany też przez workspace_controls).
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent = false);
+// Podpis grupy na wstążce (np. "WYPOSAŻENIE"); kolejne przyciski należą do tej grupy.
+ttk::Label* _group(tk::Widget* parent, const std::string& title);
 
 }  // namespace quick_studio_ui

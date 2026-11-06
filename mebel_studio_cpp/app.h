@@ -22,6 +22,10 @@
 #include <utility>
 #include <vector>
 #include "pyutil.h"
+#include "forma_shell.h"
+#include "library_panel.h"
+#include "viewport_hud.h"
+#include "forma_theme.h"
 #include "tk.h"            // tk::Tk, tk::StringVar, tk::DoubleVar, tk::BooleanVar, tk::Event, tk::Opts,
                            // tk::messagebox, tk::filedialog, tk::colorchooser
 #include "ttk.h"           // ttk::Style, ttk::Button, ttk::Label, ttk::Combobox, ttk::Entry, ttk::Frame, ...
@@ -166,7 +170,7 @@ public:
     ttk::Notebook* inspector_tabs = nullptr;
     tk::Widget* design_page = nullptr;
     // quick_studio_ui::build: układ okna (nagłówek, wstążka, panele, paski narzędzi)
-    responsive_ui::WrapToolbar* header = nullptr;
+    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; tk::StringVar status_right; ttk::Frame* library_panel = nullptr;
     ttk::Panedwindow* workspace_pane = nullptr; ttk::Notebook* ribbon = nullptr;
     std::map<std::string, responsive_ui::WrapToolbar*> ribbon_pages; std::vector<responsive_ui::WrapToolbar*> responsive_toolbars;
     ttk::Panedwindow* main_pane = nullptr; ttk::Frame* inspector_frame = nullptr; ttk::Frame* view_frame = nullptr;
@@ -196,6 +200,7 @@ public:
     visual_catalogue::VisualCatalogue* _visual_catalogue_panel = nullptr;
     std::map<std::string, ttk::Button*> catalogue_buttons;
     bool _catalogue_buttons_installed = false;
+    library_panel::LibraryPanel* library = nullptr; std::function<void(const std::string&)> select_tool_page;  // biblioteka w lewym panelu; przełączanie stron panelu narzędzi
     std::function<std::optional<json>(double, double)> pick_attachment_target;  // hasattr(app, 'pick_attachment_target')
     std::function<void()> layout_dialog;                // furniture_layout_ui.install
     std::function<void()> print_project;                // furniture_layout_ui.install
@@ -227,7 +232,7 @@ public:
     App() : tk::Tk() {
         title("Mebel Studio 3D · projektowanie i produkcja");
         geometry(std::format("{}x{}+10+10", std::min(1440, winfo_screenwidth() - 40), std::min(900, winfo_screenheight() - 100))); minsize(1180, 600);
-        configure({{"bg", "#eff2f6"}});
+        configure({{"bg", "#f1eee8"}});
         _native_document = nullptr; _native_pending = false;
         project_generation = 0;
         project = std::make_shared<Project>();
@@ -243,21 +248,14 @@ public:
         edit_mode = tk::StringVar("camera"); handles = {}; edge_handles = {}; drag_edit.reset();
         layout_magnet = tk::BooleanVar(true); layout_tolerance = tk::DoubleVar(80); layout_drag = nullptr;
         status = tk::StringVar("Gotowy · wszystkie wymiary w milimetrach");
-        ttk::Style style(this); style.theme_use("clam");
-        style.configure(".", {{"font", "{Segoe UI} 10"}, {"background", "#f6f8fa"}, {"foreground", "#243144"}});
-        style.configure("TButton", {{"padding", "10 7"}, {"background", "#e6ebf1"}});
-        style.map("TButton", "background", {{"active", "#d7e0eb"}});
-        style.configure("Accent.TButton", {{"background", "#176a78"}, {"foreground", "white"}});
-        style.configure("TNotebook.Tab", {{"padding", "16 9"}, {"font", "{Segoe UI} 10 bold"}});
-        style.configure("Treeview", {{"rowheight", 29}, {"background", "white"}, {"fieldbackground", "white"}});
-        style.configure("Treeview.Heading", {{"font", "{Segoe UI} 10 bold"}, {"padding", 7}});
-        style.configure("Title.TLabel", {{"font", "{Segoe UI} 13 bold"}});
+        forma_theme::apply(this);
         ui();
         developer_logs::install(this); workspace_controls::install(this); studio_interaction::install(this);
         view_modes_ui::install(this);
         visual_catalogue::install(this);
         responsive_ui::install(this);
         native_viewport::install(this);
+        forma_shell::finish(this);
         auto [configured, group] = furniture_configurator::configure(*project, furniture_configurator::default_config(0, *project));
         project = configured;
         _native_document = native_document::create_if_available(project);
@@ -560,7 +558,7 @@ public:
         auto& s = sheets[index]; int w = std::max(c->winfo_width(), 200); int h = std::max(c->winfo_height(), 200);
         double su = s["u"], sv = s["v"];
         double scale = std::min((w - 50) / su, (h - 50) / sv); double ox = (w - su * scale) / 2; double oy = (h - sv * scale) / 2;
-        c->create_rectangle(ox, oy, ox + su * scale, oy + sv * scale, {{"fill", "#eef1f5"}, {"outline", "#536277"}});
+        c->create_rectangle(ox, oy, ox + su * scale, oy + sv * scale, {{"fill", "#f1eee8"}, {"outline", "#6b7266"}});
         for (size_t n = 0; n < s["pieces"].size(); ++n) {
             auto& r = s["pieces"][n];
             Part* p = nullptr; for (auto& q : project->parts) if (json(q.id) == r["id"]) { p = &q; break; }
@@ -646,8 +644,9 @@ public:
             return camera.project({position[0] + shift[0], position[1] + shift[1], position[2] + shift[2]}, w, h);
         };
         viewport_annotations::paint(this, display);
-        c->create_text(18, 20, {{"text", std::format("{} elementów   /   {}", project->parts.size(), project->name)}, {"anchor", "w"}, {"font", "{Segoe UI} 11"}, {"fill", "#637285"}});
+        c->create_text(18, 20, {{"text", std::format("{} elementów   /   {}", project->parts.size(), project->name)}, {"anchor", "w"}, {"font", "{Segoe UI} 11"}, {"fill", "#6b7266"}});
         viewport_scene::paint_overlay(c, camera, {w, h}, background["spacing"]);
+        viewport_hud::paint(this, w, h, background["spacing"]);
         handles = {}; edge_handles = {};
         bool any_open = false; for (auto& [k, v] : open_amounts) if (v) any_open = true;
         if (p && !any_open && (edit_mode.get() == "resize" || edit_mode.get() == "furniture") && !py::truthy(py::get(p->assembly, "generated_by"))) {
@@ -663,8 +662,8 @@ public:
                             auto unit = point; unit[index] += 1; auto a = camera.project(core::layout_point(*p, unit), w, h); std::array<double, 2> vector{a[0] - x, a[1] - y};
                             if (std::hypot(vector[0], vector[1]) < .01) continue;
                             handles.push_back(Handle{std::string{axis, end}, x, y, vector, p->group});
-                            c->create_rectangle(x - 6, y - 6, x + 6, y + 6, {{"fill", "#176a78"}, {"outline", "white"}, {"width", 2}});
-                            c->create_text(x + 10, y - 12, {{"text", std::string{(char)std::toupper(axis), end}}, {"fill", "#176a78"}, {"anchor", "w"}});
+                            c->create_rectangle(x - 6, y - 6, x + 6, y + 6, {{"fill", "#4e6b3f"}, {"outline", "white"}, {"width", 2}});
+                            c->create_text(x + 10, y - 12, {{"text", std::string{(char)std::toupper(axis), end}}, {"fill", "#4e6b3f"}, {"anchor", "w"}});
                         }
                     }
                 } catch (const ValueError& e) { status.set(e.what()); }

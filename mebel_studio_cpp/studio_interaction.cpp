@@ -1,4 +1,5 @@
 #include "studio_interaction.h"
+#include "viewport_hud.h"
 
 #include <chrono>
 #include <cmath>
@@ -302,6 +303,7 @@ void install(App* app) {
     app->canvas->bind("<Alt-ButtonRelease-1>", release);
 
     app->canvas->bind("<B1-Motion>", [app, request_finish](tk::Event& event) -> std::string {
+        if (viewport_hud::captured()) return "break";
         if (app->hardware_drag && app->hardware_drag->active()) return app->hardware_drag->move(event).value_or("");
         if (app->scene_drag) {
             room_scene_drag::move(app, event);
@@ -313,6 +315,7 @@ void install(App* app) {
         return "";
     });
     app->canvas->bind("<ButtonPress-1>", [app, st](tk::Event& event) -> std::string {
+        if (viewport_hud::press(app, event)) return "break";
         if (!app->flush_parameter_drafts()) return "break";
         if (app->hardware_drag && app->hardware_drag->active()) {
             st->hardware_click = true;
@@ -330,6 +333,7 @@ void install(App* app) {
         return "";
     });
     app->canvas->bind("<ButtonRelease-1>", [app, st, finish](tk::Event& event) -> std::string {
+        if (viewport_hud::release()) return "break";
         if (st->hardware_click) {
             st->hardware_click = false;
             return "break";

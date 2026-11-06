@@ -1089,7 +1089,7 @@ void VisualizationDocument::draw(bool force_cpu) {
             } else {
                 for (auto& [a, b, text] : std::vector<std::tuple<Point3, Point3, std::string>>{{{0, 0, 0}, {part.u, 0, 0}, std::format("U {:g}", part.u)}, {{part.u, 0, 0}, {part.u, part.v, 0}, std::format("V {:g}", part.v)}, {{part.u, part.v, 0}, {part.u, part.v, part.t}, std::format("T {:g}", part.t)}}) {
                     Point3 qa = position(a), qb = position(b);
-                    c->create_line(std::vector<double>{qa[0], qa[1], qb[0], qb[1]}, {{"fill", "#176a78"}, {"width", 2}, {"tags", "dimensions"}});
+                    c->create_line(std::vector<double>{qa[0], qa[1], qb[0], qb[1]}, {{"fill", "#4e6b3f"}, {"width", 2}, {"tags", "dimensions"}});
                     c->create_text((qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2 - 12, {{"text", text + " mm"}, {"fill", "#123c49"}, {"font", "{Segoe UI} 9 bold"}, {"tags", "dimensions"}});
                 }
             }

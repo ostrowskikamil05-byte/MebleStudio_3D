@@ -198,6 +198,7 @@ void install(App* app) {
         app->workspace->select(app->design_page);
         app->inspector_tabs->select(panel);
     };
+    quick_studio_ui::_group(app->ribbon_pages.at("Scena"), "POMIESZCZENIE");
     quick_studio_ui::_button(app->ribbon_pages.at("Scena"), "Wyposażenie i oświetlenie", show_scene);
     auto set_brightness = [app, panel](double value) {
         if (py::get(app->project->scene, "brightness", 1) == json(value)) return;
@@ -206,6 +207,7 @@ void install(App* app) {
         panel->refresh();
         app->draw();
     };
+    quick_studio_ui::_group(app->ribbon_pages.at("Scena"), "ŚWIATŁO");
     for (auto [label, value] : std::vector<std::pair<std::string, double>>{{"Jasne pomieszczenie", 1.25}, {"Dzienne", 1.0}, {"Ciemne", .35}})
         quick_studio_ui::_button(app->ribbon_pages.at("Scena"), label, [set_brightness, v = value] { set_brightness(v); });
     auto toggle = [app, panel](const std::string& key) {
@@ -214,10 +216,10 @@ void install(App* app) {
         panel->refresh();
         app->draw();
     };
+    quick_studio_ui::_group(app->ribbon_pages.at("Scena"), "LED I LAMPY");
     quick_studio_ui::_button(app->ribbon_pages.at("Scena"), "LED wł. / wył.", [toggle] { toggle("led_enabled"); });
     quick_studio_ui::_button(app->ribbon_pages.at("Scena"), "Lampy wł. / wył.", [toggle] { toggle("lights_enabled"); });
     Cmd logs = [app] { app->open_developer_logs(); };
-    quick_studio_ui::_button(app->ribbon_pages.at("Scena"), "Logi", logs);
     quick_studio_ui::_button(app->ribbon_pages.at("Produkcja"), "Logi", logs);
     auto* menu = dynamic_cast<tk::Menu*>(app->nametowidget(app->cget("menu")));
     if (menu == nullptr) throw tk::TclError("bad menu entry: " + app->cget("menu"));

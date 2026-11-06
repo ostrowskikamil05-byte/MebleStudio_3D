@@ -597,6 +597,23 @@ void Menu::add_command(const Opts& opts) {
     run(words);
 }
 void Menu::add_separator() { run({path_, "add", "separator"}); }
+std::vector<Menu::Entry> Menu::entries() {
+    std::vector<Entry> out;
+    std::string last = run({path_, "index", "end"});
+    if (last.empty() || last == "none") return out;
+    int count = std::stoi(last);
+    for (int i = 0; i <= count; ++i) {
+        std::string index = std::to_string(i);
+        Entry entry;
+        entry.type = run({path_, "type", index});
+        if (entry.type != "separator" && entry.type != "tearoff") {
+            entry.label = run({path_, "entrycget", index, "-label"});
+            if (entry.type == "cascade") entry.menu = run({path_, "entrycget", index, "-menu"});
+        }
+        out.push_back(std::move(entry));
+    }
+    return out;
+}
 void Menu::unpost() { run({path_, "unpost"}); }
 void Menu::tk_popup(int x, int y) { run({"tk_popup", path_, std::to_string(x), std::to_string(y)}); }
 void Menu::grab_release() { run({"grab", "release", path_}); }

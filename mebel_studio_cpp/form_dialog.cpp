@@ -29,7 +29,7 @@ FormDocument::FormDocument(App* app_, const std::string& title_, const std::stri
     title(title_); geometry(size + "+30+30");
     footer = new ttk::Frame(this); footer->pack({{"side", "bottom"}, {"fill", "x"}});
     body = new ttk::Frame(this); body->pack({{"fill", "both"}, {"expand", true}});
-    viewport = new tk::Canvas(body, {{"highlightthickness", 0}, {"bg", "#f6f8fa"}});
+    viewport = new tk::Canvas(body, {{"highlightthickness", 0}, {"bg", "#f6f3ee"}});
     viewport->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* scrollbar = new ttk::Scrollbar(body, {{"command", viewport->path() + " yview"}}); scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     viewport->configure({{"yscrollcommand", scrollbar->path() + " set"}});

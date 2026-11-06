@@ -262,6 +262,8 @@ public:
     void add_cascade(const Opts&);
     void add_command(const Opts&);
     void add_separator();
+    struct Entry { std::string type, label, menu; };
+    std::vector<Entry> entries();  // typ, etykieta i (dla cascade) ścieżka podmenu
     void unpost();
     void tk_popup(int x, int y);
     void grab_release();

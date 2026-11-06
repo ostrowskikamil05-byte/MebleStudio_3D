@@ -288,7 +288,7 @@ FittingsDialog::FittingsDialog(App* app_) : dock_workspace::DockDocument(app_), 
     (new ttk::Button(footer, {{"text", "Dokumentacja źródłowa"}, {"command", Cmd([this] { source(); })}}))->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", 8}});
     auto* scrollbody = new ttk::Frame(catalog);
     scrollbody->pack({{"fill", "both"}, {"expand", true}});
-    auto* formcanvas = new tk::Canvas(scrollbody, {{"bg", "#f6f8fa"}, {"highlightthickness", 0}});
+    auto* formcanvas = new tk::Canvas(scrollbody, {{"bg", "#f6f3ee"}, {"highlightthickness", 0}});
     formcanvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* formsb = new ttk::Scrollbar(scrollbody, {{"command", formcanvas->path() + " yview"}});
     formsb->pack({{"side", "right"}, {"fill", "y"}});
@@ -383,7 +383,7 @@ void FittingsDialog::scroll_pages() {
         footer->pack({{"side", "bottom"}, {"fill", "x"}});
         auto* body = new ttk::Frame(page);
         body->pack({{"fill", "both"}, {"expand", true}});
-        auto* viewport = new tk::Canvas(body, {{"highlightthickness", 0}, {"bg", "#f6f8fa"}});
+        auto* viewport = new tk::Canvas(body, {{"highlightthickness", 0}, {"bg", "#f6f3ee"}});
         viewport->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
         auto* scrollbar = new ttk::Scrollbar(body, {{"command", viewport->path() + " yview"}});
         scrollbar->pack({{"side", "right"}, {"fill", "y"}});

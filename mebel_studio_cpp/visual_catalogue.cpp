@@ -7,6 +7,8 @@
 #include <set>
 
 #include "app.h"
+#include "library_panel.h"
+#include "quick_studio_ui.h"
 #include "catalogue_previews.h"
 #include "corner_furniture.h"
 #include "drag_hardware.h"
@@ -452,7 +454,7 @@ VisualCatalogue::VisualCatalogue(form_dialog::Form* parent, App* app_, const std
     count = tk::StringVar();
     auto* head = new ttk::Frame(this);
     head->pack({{"fill", "x"}, {"pady", "0 7"}});
-    (new ttk::Label(head, {{"text", "KATALOG GRAFICZNY"}, {"font", "{Segoe UI} 12 bold"}, {"foreground", "#176a78"}}))->pack({{"side", "left"}});
+    (new ttk::Label(head, {{"text", "KATALOG GRAFICZNY"}, {"font", "{Segoe UI} 12 bold"}, {"foreground", "#4e6b3f"}}))->pack({{"side", "left"}});
     std::vector<std::string> labels;
     for (auto& [key, label] : KINDS) labels.push_back(label);
     kindcombo = new ttk::Combobox(head, {{"textvariable", kindvar}, {"values", labels}, {"state", "readonly"}, {"width", 22}});
@@ -471,7 +473,7 @@ VisualCatalogue::VisualCatalogue(form_dialog::Form* parent, App* app_, const std
     categorycombo->pack({{"side", "right"}});
     categorycombo->bind("<<ComboboxSelected>>", [this](tk::Event&) { render(); return std::string(); });
     query.trace_add("write", [this] { schedule(); });
-    (new ttk::Label(this, {{"textvariable", count}, {"foreground", "#68788a"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(this, {{"textvariable", count}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     auto* bottom = new ttk::Frame(this);
     bottom->pack({{"side", "bottom"}, {"fill", "x"}, {"pady", "7 0"}});
     choosebutton = new ttk::Button(bottom, {{"text", "Zastosuj wybrane"}, {"command", std::function<void()>([this] { activate_selected(); })}, {"state", "disabled"}});
@@ -481,7 +483,7 @@ VisualCatalogue::VisualCatalogue(form_dialog::Form* parent, App* app_, const std
     (new ttk::Label(bottom, {{"textvariable", note}, {"wraplength", 650}}))->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}});
     auto* content = new ttk::Frame(this);
     content->pack({{"fill", "both"}, {"expand", true}});
-    canvas = new tk::Canvas(content, {{"height", 410}, {"highlightthickness", 0}, {"bg", "#f2f5f6"}});
+    canvas = new tk::Canvas(content, {{"height", 410}, {"highlightthickness", 0}, {"bg", "#f3f0ea"}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* sb = new ttk::Scrollbar(content, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     sb->pack({{"side", "right"}, {"fill", "y"}});
@@ -559,13 +561,13 @@ void VisualCatalogue::render() {
         auto* card = new ttk::Frame(gridbody, {{"padding", 7}, {"relief", "ridge"}});
         card->grid({{"row", index / cols}, {"column", index % cols}, {"padx", 4}, {"pady", 4}, {"sticky", "nsew"}});
         gridbody->columnconfigure(index % cols, {{"weight", 1}});
-        auto* image = new tk::Canvas(card, {{"width", 190}, {"height", 118}, {"bg", "#fafbf9"}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+        auto* image = new tk::Canvas(card, {{"width", 190}, {"height", 118}, {"bg", "#fbfaf7"}, {"highlightthickness", 0}, {"cursor", "hand2"}});
         image->pack({{"fill", "x"}});
         catalogue_previews::draw_preview(image, item, 190, 118);
         auto* title = new ttk::Label(card, {{"text", item.at("title").get<std::string>()}, {"wraplength", 185}, {"font", "{Segoe UI} 9 bold"}});
         title->pack({{"fill", "x"}, {"pady", "3 0"}});
-        (new ttk::Label(card, {{"text", dimension_text(item)}, {"wraplength", 185}, {"foreground", "#596c78"}}))->pack({{"fill", "x"}});
-        (new ttk::Label(card, {{"text", item.at("category").get<std::string>()}, {"wraplength", 185}, {"foreground", "#176a78"}, {"font", "{Segoe UI} 8"}}))->pack({{"fill", "x"}});
+        (new ttk::Label(card, {{"text", dimension_text(item)}, {"wraplength", 185}, {"foreground", "#6b7266"}}))->pack({{"fill", "x"}});
+        (new ttk::Label(card, {{"text", item.at("category").get<std::string>()}, {"wraplength", 185}, {"foreground", "#4e6b3f"}, {"font", "{Segoe UI} 8"}}))->pack({{"fill", "x"}});
         json copy = item;
         (new ttk::Button(card, {{"text", "Wybierz"}, {"command", std::function<void()>([this, copy] { activate(copy); })}}))->pack({{"fill", "x"}, {"pady", "5 0"}});
         image->bind("<ButtonRelease-1>", [this, copy](tk::Event&) { activate(copy); return std::string(); });
@@ -650,15 +652,21 @@ VisualCatalogue* show(App* app, const std::string& kind_in, OnSelect on_select) 
 }
 
 void install(App* app) {
-    app->visual_catalogue_open = [app](const std::string& kind, OnSelect on_select) { return show(app, kind, on_select); };
+    app->visual_catalogue_open = [app](const std::string& kind, OnSelect on_select) -> VisualCatalogue* {
+        // Bez własnej akcji wyboru katalog otwiera się w lewym panelu (biblioteka); z akcją — jako zakładka.
+        if (!on_select && app->library != nullptr) { app->library->show_kind(kind); return nullptr; }
+        return show(app, kind, on_select);
+    };
     if (app->_catalogue_buttons_installed) return;
     app->catalogue_buttons.clear();
+    std::set<std::string> captioned;
     struct Entry { const char* kind; const char* label; const char* page; };
     for (const Entry& entry : {Entry{"furniture", "Katalog mebli", "Mebel"}, Entry{"hinge", "Katalog okuć", "Mebel"}, Entry{"material", "Katalog materiałów", "Mebel"},
                                Entry{"appliance", "Katalog AGD", "Scena"}}) {
         auto parent = app->ribbon_pages.find(entry.page);
         if (parent == app->ribbon_pages.end() || parent->second == nullptr) continue;
         std::string kind = entry.kind;
+        if (captioned.insert(entry.page).second) quick_studio_ui::_group(parent->second, "KATALOGI");
         auto* button = new ttk::Button(parent->second, {{"text", entry.label}, {"command", std::function<void()>([app, kind] { app->visual_catalogue_open(kind, nullptr); })},
                                                         {"style", "Ribbon.TButton"}, {"padding", "7 4"}});
         button->pack({{"side", "left"}, {"padx", 2}, {"pady", 3}});
