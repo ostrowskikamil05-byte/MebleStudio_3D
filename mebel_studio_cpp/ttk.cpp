@@ -151,6 +151,11 @@ void Treeview::heading(const std::string& column, const Opts& opts) {
     add_opts(words, opts, this);
     run(words);
 }
+void Treeview::tag_configure(const std::string& tag, const Opts& opts) {
+    Args words{path(), "tag", "configure", tag};
+    add_opts(words, opts, this);
+    run(words);
+}
 void Treeview::column(const std::string& column, const Opts& opts) {
     Args words{path(), "column", column};
     add_opts(words, opts, this);

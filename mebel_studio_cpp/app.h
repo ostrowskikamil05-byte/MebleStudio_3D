@@ -538,13 +538,14 @@ public:
     void refresh_production() {
         perf::Scope perf_scope("App::refresh_production");
         auto* table = tables["parts"]; table->delete_(table->get_children());
+        int zebra = 0;  // naprzemienne tło wierszy (tagi "odd"/"even" z build_production)
         for (auto& p : project->parts) {
             auto [a, b] = p.blank(project->edge_t);
-            table->insert("", "end", {{"values", std::vector<std::string>{p.group, p.name, project->mat(p.material).name, std::format("{:g}", p.u), std::format("{:g}", p.v), std::format("{:g}", p.t), std::format("{:g}", a), std::format("{:g}", b), std::format("{:.2f}", p.edge_m()), p.contour.empty() ? "" : "Tak"}}});
+            table->insert("", "end", {{"values", std::vector<std::string>{p.group, p.name, project->mat(p.material).name, std::format("{:g}", p.u), std::format("{:g}", p.v), std::format("{:g}", p.t), std::format("{:g}", a), std::format("{:g}", b), std::format("{:.2f}", p.edge_m()), p.contour.empty() ? "" : "Tak"}}, {"tags", (zebra++ % 2) ? "odd" : "even"}});
         }
-        auto c = project->costs(); table = tables["costs"]; table->delete_(table->get_children());
+        auto c = project->costs(); table = tables["costs"]; table->delete_(table->get_children()); zebra = 0;
         for (auto& [label, key] : std::vector<std::pair<std::string, std::string>>{{"Materiał · powierzchnia netto", "panels"}, {"Obrzeża", "edges"}, {"Akcesoria", "hardware"}, {"Robocizna", "labor"}, {"Koszt bazowy", "base"}, {std::format("Cena z narzutem {:g}%", project->markup), "total"}})
-            table->insert("", "end", {{"values", std::vector<std::string>{label, std::format("{:.2f}", c.at(key))}}});
+            table->insert("", "end", {{"values", std::vector<std::string>{label, std::format("{:.2f}", c.at(key))}}, {"tags", key == "total" ? "total" : key == "base" ? "subtotal" : (zebra++ % 2) ? "odd" : "even"}});
         auto [sheets_, bad] = cut_plan(*project); sheets = sheets_;
         double stock = 0;
         for (auto& s : sheets) { Part blank; blank.u = s["u"]; blank.v = s["v"]; blank.t = s["thickness"]; stock += project->mat(s["material"].get<std::string>()).cost(blank); }

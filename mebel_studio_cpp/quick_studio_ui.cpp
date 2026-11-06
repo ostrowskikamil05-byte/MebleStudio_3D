@@ -1341,41 +1341,59 @@ void focus_section(App* app, const std::string& key) {
 
 void build_production(App* app) {
     app->tables.clear();
-    struct Spec { std::string key, title; std::vector<std::string> cols; };
-    for (auto& [key, title, cols] : std::vector<Spec>{
-             {"parts", "Formatki", {"Grupa", "Element", "Materiał", "Gotowe U", "Gotowe V", "T", "Cięcie U", "Cięcie V", "Obrzeża m", "Kontur"}},
-             {"costs", "Kosztorys", {"Pozycja", "Wartość zł"}}}) {
-        auto* page = new ttk::Frame(app->tabs, {{"padding", 10}});
+    // Wspólny nagłówek karty: tytuł + opis (jasny motyw Forma).
+    auto header = [](tk::Widget* page, const std::string& title, const std::string& note) -> ttk::Label* {
+        (new ttk::Label(page, {{"text", title}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}});
+        auto* label = new ttk::Label(page, {{"text", note}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}, {"wraplength", 900}, {"justify", "left"}});
+        label->pack({{"anchor", "w"}, {"pady", "2 10"}});
+        return label;
+    };
+    struct Spec { std::string key, title; std::vector<std::string> cols; std::vector<int> widths; std::vector<std::string> anchors; };
+    for (auto& [key, title, cols, widths, anchors] : std::vector<Spec>{
+             {"parts", "Formatki", {"Grupa", "Element", "Materiał", "Gotowe U", "Gotowe V", "T", "Cięcie U", "Cięcie V", "Obrzeża m", "Kontur"},
+              {150, 200, 190, 90, 90, 60, 90, 90, 90, 80}, {"w", "w", "w", "e", "e", "e", "e", "e", "e", "center"}},
+             {"costs", "Kosztorys", {"Pozycja", "Wartość zł"}, {420, 160}, {"w", "e"}}}) {
+        auto* page = new ttk::Frame(app->tabs, {{"padding", "18 14"}});
         app->tabs->add(page, {{"text", title}});
         if (key == "parts") {
-            (new ttk::Label(page, {{"text", "Wymiary gotowe zawierają obrzeża; wymiary do cięcia odejmują ich grubość."}, {"padding", "0 0 0 8"}}))->pack({{"anchor", "w"}});
+            header(page, "Formatki", "Wymiary gotowe zawierają obrzeża; wymiary do cięcia odejmują ich grubość.");
         } else {
-            app->costnote = new ttk::Label(page, {{"text", ""}, {"padding", "0 0 0 8"}});
-            app->costnote->pack({{"anchor", "w"}});
-            (new ttk::Button(page, {{"text", "Zmień ceny, robociznę i narzut"}, {"command", Cmd([app] { app->settings(); })}}))->pack({{"anchor", "w"}});
+            app->costnote = header(page, "Kosztorys", "");
+            auto* change = new ttk::Button(page, {{"text", "Zmień ceny, robociznę i narzut"}, {"style", "Tool.TButton"}, {"command", Cmd([app] { app->settings(); })}});
+            change->pack({{"anchor", "w"}, {"pady", "0 10"}});
         }
-        auto* table = new ttk::Treeview(page, {{"columns", cols}, {"show", "headings"}});
-        for (auto& col : cols) {
-            table->heading(col, {{"text", col}});
-            table->column(col, {{"width", key == "parts" ? 90 : 250}, {"anchor", "w"}});
+        // Tabela w białej karcie z cienką ramką.
+        auto* card = new tk::Frame(page, {{"bg", forma_theme::BORDER}});
+        card->pack({{"fill", "both"}, {"expand", true}});
+        auto* inner = new tk::Frame(card, {{"bg", forma_theme::CARD}});
+        inner->pack({{"fill", "both"}, {"expand", true}, {"padx", 1}, {"pady", 1}});
+        auto* table = new ttk::Treeview(inner, {{"columns", cols}, {"show", "headings"}});
+        auto* vsb = new ttk::Scrollbar(inner, {{"orient", "vertical"}, {"command", table->path() + " yview"}});
+        auto* hsb = new ttk::Scrollbar(inner, {{"orient", "horizontal"}, {"command", table->path() + " xview"}});
+        vsb->pack({{"side", "right"}, {"fill", "y"}});
+        hsb->pack({{"side", "bottom"}, {"fill", "x"}});
+        table->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
+        table->configure({{"xscrollcommand", hsb->path() + " set"}, {"yscrollcommand", vsb->path() + " set"}});
+        for (size_t i = 0; i < cols.size(); ++i) {
+            table->heading(cols[i], {{"text", cols[i]}, {"anchor", anchors[i] == "e" ? "e" : "w"}});
+            table->column(cols[i], {{"width", widths[i]}, {"anchor", anchors[i]}, {"stretch", i + 1 == cols.size() && key == "costs"}});
         }
-        table->pack({{"fill", "both"}, {"expand", true}});
-        auto* sb = new ttk::Scrollbar(page, {{"orient", "horizontal"}, {"command", table->path() + " xview"}});
-        sb->pack({{"fill", "x"}});
-        table->configure({{"xscrollcommand", sb->path() + " set"}});
+        table->tag_configure("odd", {{"background", forma_theme::PANEL}});
+        table->tag_configure("even", {{"background", forma_theme::CARD}});
+        table->tag_configure("subtotal", {{"background", forma_theme::HOVER}, {"font", "{Segoe UI} 10 bold"}});
+        table->tag_configure("total", {{"background", forma_theme::ACCENT_SOFT}, {"foreground", forma_theme::ACCENT}, {"font", "{Segoe UI} 11 bold"}});
         app->tables[key] = table;
     }
-    auto* cut = new ttk::Frame(app->tabs, {{"padding", 10}});
+    auto* cut = new ttk::Frame(app->tabs, {{"padding", "18 14"}});
     app->tabs->add(cut, {{"text", "Rozkrój"}});
-    app->cutlabel = new ttk::Label(cut, {{"text", ""}});
-    app->cutlabel->pack({{"anchor", "w"}, {"pady", "0 8"}});
+    app->cutlabel = header(cut, "Rozkrój", "");
     app->sheetcombo = new ttk::Combobox(cut, {{"textvariable", app->sheetvar}, {"state", "readonly"}, {"width", 65}});
     app->sheetcombo->pack({{"anchor", "w"}});
     app->sheetcombo->bind("<<ComboboxSelected>>", plain([app](tk::Event&) { app->draw_cut(); }));
-    app->cutcanvas = new tk::Canvas(cut, {{"bg", "white"}, {"highlightthickness", 0}});
-    app->cutcanvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 8}});
+    app->cutcanvas = new tk::Canvas(cut, {{"bg", forma_theme::CARD}, {"highlightthickness", 1}, {"highlightbackground", forma_theme::BORDER}});
+    app->cutcanvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 10}});
     app->cutcanvas->bind("<Configure>", plain([app](tk::Event&) { app->draw_cut(); }));
-    (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony; nieregularne kontury używają prostokątnych półfabrykatów."}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony; nieregularne kontury używają prostokątnych półfabrykatów."}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}});
 }
 
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent) {
