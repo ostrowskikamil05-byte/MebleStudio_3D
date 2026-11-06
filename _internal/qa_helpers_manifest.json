@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "qa_only_helpers": [
+    {
+      "path": "_internal/PIL/ImageGrab.py",
+      "source_version": "Pillow 12.3.0",
+      "sha256": "b0df963537d02a3f90a20b6385edd5338efc7b6b28ee2248f30de562d1358530",
+      "bytes": 8475,
+      "purpose": "Existing Pillow screen-capture diagnostic helper"
+    },
+    {
+      "path": "_internal/unittest/mock.py",
+      "source_version": "CPython 3.13.14",
+      "sha256": "7627d3d7e17fc095d31994127f12be0f64fbc966f37a2b7268b82e5b2eb0299b",
+      "bytes": 114681,
+      "purpose": "Standard-library QA mock helper"
+    }
+  ],
+  "system_python_required": false,
+  "extra_dlls": false,
+  "unchanged_application_modules": true
+}

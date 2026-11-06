@@ -1,0 +1,23 @@
+#include <windows.h>
+1 RT_MANIFEST "host.manifest"
+1 VERSIONINFO
+FILEVERSION 0,15,0,0
+PRODUCTVERSION 0,15,0,0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+ BLOCK "StringFileInfo"
+ BEGIN
+  BLOCK "041504b0"
+  BEGIN
+   VALUE "FileDescription", "MebelStudio3D — host C++ z wbudowanym środowiskiem CAD\0"
+   VALUE "FileVersion", "0.15.0\0"
+   VALUE "ProductName", "MebelStudio3D\0"
+   VALUE "ProductVersion", "0.15.0\0"
+  END
+ END
+ BLOCK "VarFileInfo"
+ BEGIN
+  VALUE "Translation", 0x0415, 1200
+ END
+END

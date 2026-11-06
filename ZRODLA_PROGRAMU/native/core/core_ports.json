@@ -1,0 +1,32 @@
+{
+  "schema": "mebelstudio-native-core-ports-1",
+  "module": "core",
+  "scope": "Function and method ports; core.py and the complete CAD/project validator are not yet fully migrated.",
+  "ports": [
+    {"function":"finite","binding":"function","arguments":["x","lo=-100000","hi=100000"],"returns":"float"},
+    {"function":"polygon_area","binding":"function","arguments":["points"],"returns":"float"},
+    {"function":"validate_polygon","binding":"function","arguments":["points"],"returns":"list_tuple2"},
+    {"function":"inside","binding":"function","arguments":["q","p"],"returns":"bool"},
+    {"function":"rotate","binding":"function","arguments":["point","rx","ry","rz"],"returns":"tuple3"},
+    {"function":"local_world","binding":"function","arguments":["p:Part","u","v","w"],"returns":"tuple3"},
+    {"function":"layout_point","binding":"function","arguments":["p:Part","point"],"returns":"tuple3"},
+    {"function":"inverse_layout_point","binding":"function","arguments":["p:Part","point"],"returns":"tuple3"},
+    {"function":"world","binding":"function","arguments":["p:Part","u","v","w"],"returns":"tuple3"},
+    {"function":"shade","binding":"function","arguments":["color","factor"],"returns":"str"},
+    {"function":"cut_plan","binding":"function","arguments":["project:Project"],"returns":"cut_plan_tuple","prevalidate":"project.validate()","conversion":"tuple(result); each sheet.free item must become tuple4; sheets and unplaced remain lists"},
+    {"function":"explosion_shift","binding":"function","arguments":["p:Part","camera:Camera","explode"],"returns":"tuple3"},
+    {"function":"Part.points","binding":"method","aliases":["part_points"],"arguments":["self:Part"],"returns":"list_tuple2"},
+    {"function":"Part.area","binding":"method","aliases":["part_area"],"arguments":["self:Part"],"returns":"float","dependency":"shaped_furniture.profile_area"},
+    {"function":"Part.edge_m","binding":"method","aliases":["part_edge_m"],"arguments":["self:Part"],"returns":"float","dependency":"shaped_furniture.profile_perimeter"},
+    {"function":"Part.blank","binding":"method","aliases":["part_blank"],"arguments":["self:Part","edge_t"],"returns":"tuple2"},
+    {"function":"Material.cost","binding":"method","aliases":["material_cost"],"arguments":["self:Material","part:Part"],"returns":"float"},
+    {"function":"Project.costs","binding":"method","aliases":["project_costs"],"arguments":["self:Project"],"returns":"dict"},
+    {"function":"Camera._basis","binding":"method","aliases":["camera_basis"],"arguments":["self:Camera"],"returns":"tuple4"},
+    {"function":"Camera.view","binding":"method","aliases":["camera_view"],"arguments":["self:Camera","point"],"returns":"tuple3"},
+    {"function":"Camera.project","binding":"method","aliases":["camera_project"],"arguments":["self:Camera","point","width","height"],"returns":"tuple3"},
+    {"function":"part_metrics","binding":"native_operation","arguments":["part:Part","edge_t=1"],"returns":"dict","new_operation":true}
+  ],
+  "remaining_python_core": ["uid", "Part.validate", "Project.validate/from_data and persistence adapters (save/load I/O is native in services.cpp)", "faces/render_faces/svg_view", "Camera.fit", "add_template", "manufacturing_export/csv_export/dxf_export/report_export"],
+  "exception_contract": "std::invalid_argument for invalid native numeric/geometry data. Complete original CAD validation runs before cut_plan in the bridge.",
+  "algorithm_notes": ["Compensated summation matching Python 3.13", "Python ties-to-even colour rounding", "Stable descending cut-area ordering", "Exact original guillotine candidate order, 1e-8 tolerance, rotation/grain and material/thickness grouping"]
+}

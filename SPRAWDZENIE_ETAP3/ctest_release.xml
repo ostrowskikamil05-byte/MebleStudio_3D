@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Win32-ninja"
+	tests="5"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="DESKTOP-BQCM91S"
+	time="21"
+	timestamp="2026-10-30T20:10:54"
+	>
+	<testcase name="native_scene" classname="native_scene" time="1.57889" status="run">
+		<properties/>
+		<system-out>PASS Native ABI uses Vertex48 and Frame96
+PASS Saved demo parses panels fittings AGD and architecture
+PASS Paired fixture preserves 42 boards and millimetre bounds
+PASS Owners have distinct picking IDs and encompass their own triangles
+PASS Real triangles have finite unit normals aligned with winding
+PASS UTF8 Polish labels roundtrip through Windows conversion
+PASS Camera basis remains orthonormal through all octants
+PASS Fitted front projection contains all furniture and clip depth
+PASS Fitted top projection contains all furniture and clip depth
+PASS Fitted side projection contains all furniture and clip depth
+PASS Fitted isometric projection contains all furniture and clip depth
+PASS Column major matrix agrees with known front top and side axes
+PASS Camera fit ignores room by default and allows explicit room fit
+PASS Nearest front face wins ray picking regardless of triangle order
+PASS Projected near depth is smaller and panned ray matches the matrix
+PASS Architecture cutaway hides the near wall from pickin...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native_model" classname="native_model" time="16.3099" status="run">
+		<properties/>
+		<system-out>{"checks":[{"name":"Native DLL requires no Python runtime","ok":true},{"name":"Malformed JSON rejected without crossing the ABI","ok":true},{"name":"Invalid request shape rejected","ok":true},{"name":"Unmigrated function is an explicit error","ok":true},{"name":"Excessive nesting rejected","ok":true},{"name":"Null request rejected","ok":true},{"name":"Concave polygon area in millimetres","ok":true},{"name":"Interior of L contour is inside","ok":true},{"name":"Empty notch of L contour is outside","ok":true},{"name":"Self-intersecting production contour rejected","ok":true},{"name":"Concave view keeps exactly n minus 2 triangles","ok":true},{"name":"Toolbar wraps while all controls stay reachable","ok":true},{"name":"XY winding preserved","ok":true},{"name":"XZ swapped-axis winding preserved","ok":true},{"name":"YZ winding preserved","ok":true},{"name":"YZ construction plane uses the original coordinate order","ok":true},{"name":"Furniture layout yaw and room translation preserved","ok":true},{"name":"Invalid b...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native_document" classname="native_document" time="1.36314" status="run">
+		<properties/>
+		<system-out>{"checks":[{"name":"Full UTF8 serialized document retains every byte, nested order and metadata","ok":true},{"name":"Commit undo redo preserve complete snapshots and monotonic revisions","ok":true},{"name":"Noop commit preserves redo; real branch clears redo","ok":true},{"name":"Checkpoint supports existing pre-edit snapshot calls without an extra undo","ok":true},{"name":"Checkpoint adopts untracked mutable edits and clears old redo","ok":true},{"name":"History limit evicts the oldest state and permits disabled history","ok":true},{"name":"Stale and invalid commits preserve revision, complete data and both histories","ok":true},{"name":"Malformed checkpoint validates before recording history","ok":true},{"name":"Native document save holds revision check, file replacement and publication atomically","ok":true},{"name":"Serialized snapshot size and nesting limits reject without allocating a document","ok":true},{"name":"Concurrent same-revision writers yield exactly one commit","ok":true},{"name":"Clone has is...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native_layout" classname="native_layout" time="1.19002" status="run">
+		<properties/>
+		<system-out>{"checks":[{"name":"Native layout capability exposes exactly nine complete operations","ok":true},{"name":"Groups preserve first occurrence and lazy layout does not require geometry","ok":true},{"name":"All three construction planes retain their original coordinate order","ok":true},{"name":"Local and world bounds include owner tagged accessories and invert room placement only","ok":true},{"name":"Group layout consistency keeps the strict 1e-7 threshold","ok":true},{"name":"Rotation preserves the centre and Python yaw modulo for negative turns","ok":true},{"name":"Explicit snap covers every room-axis direction without changing local dimensions","ok":true},{"name":"Nearest magnet returns one complete batch proposal with tangent corrections","ok":true},{"name":"Concave notch is empty space and equal proposals keep the direction tie break","ok":true},{"name":"Unicode target tie break follows Python group ordering","ok":true},{"name":"Third cabinet blocks explicit and nearest snaps atomically","ok":true},{"name":...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native_worktop" classname="native_worktop" time="1.0109" status="run">
+		<properties/>
+		<system-out>{"checks":[{"name":"Worktop API exposes all four complete native operations","ok":true},{"name":"Distance distinguishes integer overlap zero from floating contact zero","ok":true},{"name":"Offset preserves zero winding and expands or contracts exact nominal edges","ok":true},{"name":"Union traces one lexicographically anchored CCW outline","ok":true},{"name":"Union rejects a hole and preserves negative rounded zeros","ok":true},{"name":"Geometry localizes contour, averages heights and retains ordered anchors","ok":true},{"name":"Geometry preserves height overlap connectivity and union error priority","ok":true},{"name":"Geometry retains the original final contour 128 vertex validator","ok":true},{"name":"Typed zero division and strict orientation arguments remain explicit","ok":true},{"name":"Decimal round matches bundled Python 3.13 exactly across binary ties and exponents","ok":true},{"name":"Native buffers and resident document ownership remain balanced","ok":true}],"count":11,"ok":true,"process_uses_pytho...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "name": "Przykład obróbek 0.6",
+  "parts": [
+    {
+      "id": "5726e19b036a",
+      "name": "Blat z fazą, kieszenią i rowkiem",
+      "group": "Mebel",
+      "u": 600.0,
+      "v": 400.0,
+      "t": 30.0,
+      "plane": "XY",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "9d9f9e1ab138",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 50,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 82,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 114,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 146,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 178,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 210,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 242,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 37,
+          "v": 274,
+          "diameter": 5,
+          "depth": 12,
+          "face": "top",
+          "batch": "a1449deff664",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 100,
+          "v": 15,
+          "diameter": 6,
+          "depth": 20,
+          "face": "u0",
+          "batch": "cf653928e6d0",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 200,
+          "v": 15,
+          "diameter": 6,
+          "depth": 20,
+          "face": "u0",
+          "batch": "cf653928e6d0",
+          "purpose": "szyk ręczny"
+        },
+        {
+          "type": "drill",
+          "u": 300,
+          "v": 15,
+          "diameter": 6,
+          "depth": 20,
+          "face": "u0",
+          "batch": "cf653928e6d0",
+          "purpose": "szyk ręczny"
+        }
+      ],
+      "fillets": [
+        {
+          "edge": "corner:2",
+          "radius": 15
+        }
+      ],
+      "chamfers": [
+        {
+          "edge": "top:0",
+          "distance": 3
+        }
+      ],
+      "machining": [
+        {
+          "type": "pocket",
+          "shape": "rect",
+          "u": 170,
+          "v": 200,
+          "length": 180,
+          "width": 100,
+          "depth": 8,
+          "face": "top",
+          "angle": 0
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "u": 430,
+          "v": 200,
+          "length": 280,
+          "width": 8,
+          "depth": 6,
+          "face": "top",
+          "angle": 90
+        },
+        {
+          "type": "cutout",
+          "shape": "slot",
+          "u": 320,
+          "v": 300,
+          "length": 100,
+          "width": 25,
+          "depth": 30,
+          "face": "top",
+          "angle": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "id": "9d9f9e1ab138",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "b012b933c8df",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "42e672a59a3d",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "8c47c60fc939",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "b1e9a6034a5b",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "9a2427d3a88f",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "e4984b6584b6",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [],
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

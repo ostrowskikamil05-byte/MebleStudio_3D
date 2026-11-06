@@ -1,0 +1,8 @@
+Dołączone licencje bibliotek wbudowanego silnika. Źródła aplikacji: ZRODLA_PROGRAMU.
+
+CAD: https://github.com/CadQuery/cadquery
+OCP: https://github.com/CadQuery/OCP
+OpenCascade: https://dev.opencascade.org/
+VTK: https://vtk.org/
+Python: https://www.python.org/
+PyInstaller: https://pyinstaller.org/

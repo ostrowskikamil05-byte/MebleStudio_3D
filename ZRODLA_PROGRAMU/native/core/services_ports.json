@@ -1,0 +1,10 @@
+{
+  "ports": [
+    {"module":"depth_raster","function":"triangulate","result":"tuple_of_tuples","integrate":true},
+    {"module":"responsive_ui","function":"flow_layout","result":"placements","integrate":true},
+    {"module":"responsive_ui","function":"clamp_inspector","result":"scalar","integrate":true},
+    {"module":"project_io","function":"read","result":"object","integrate":"Project.load"},
+    {"module":"project_io","function":"save","result":"null","integrate":"Project.save"},
+    {"module":"viewport_render","function":"transform","abi":"binary_batch","integrate":true}
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "module": "workspace_worktop",
+  "api_version": 1,
+  "operations": [
+    {
+      "function": "distance",
+      "python_module": "workspace_worktops",
+      "python_function": "_distance"
+    },
+    {
+      "function": "offset",
+      "python_module": "workspace_worktops",
+      "python_function": "_offset"
+    },
+    {
+      "function": "union",
+      "python_module": "workspace_worktops",
+      "python_function": "_union"
+    },
+    {
+      "function": "geometry",
+      "python_module": "workspace_worktops",
+      "python_function": "_geometry"
+    }
+  ],
+  "retained_python": "body/configuration extraction; Part creation, linked IDs/signatures/status lifecycle, exact CAD preflight"
+}

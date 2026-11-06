@@ -1,0 +1,1314 @@
+{
+  "version": 1,
+  "name": "Biurko z obłym blatem",
+  "parts": [
+    {
+      "id": "8f3c6ec61383",
+      "name": "Blat obły",
+      "group": "Biurko z obłym blatem",
+      "u": 1300.0,
+      "v": 650.0,
+      "t": 28.0,
+      "plane": "XY",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 732.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          0.0,
+          65.0
+        ],
+        [
+          0.556084011,
+          56.515797506
+        ],
+        [
+          2.214821291,
+          48.176762068
+        ],
+        [
+          4.947830387,
+          40.125576896
+        ],
+        [
+          8.708348754,
+          32.5
+        ],
+        [
+          13.432032881,
+          25.430507114
+        ],
+        [
+          19.038059223,
+          19.038059223
+        ],
+        [
+          25.430507114,
+          13.432032881
+        ],
+        [
+          32.5,
+          8.708348754
+        ],
+        [
+          40.125576896,
+          4.947830387
+        ],
+        [
+          48.176762068,
+          2.214821291
+        ],
+        [
+          56.515797506,
+          0.556084011
+        ],
+        [
+          65.0,
+          0.0
+        ],
+        [
+          1235.0,
+          0.0
+        ],
+        [
+          1243.484202494,
+          0.556084011
+        ],
+        [
+          1251.823237932,
+          2.214821291
+        ],
+        [
+          1259.874423104,
+          4.947830387
+        ],
+        [
+          1267.5,
+          8.708348754
+        ],
+        [
+          1274.569492886,
+          13.432032881
+        ],
+        [
+          1280.961940777,
+          19.038059223
+        ],
+        [
+          1286.567967119,
+          25.430507114
+        ],
+        [
+          1291.291651246,
+          32.5
+        ],
+        [
+          1295.052169613,
+          40.125576896
+        ],
+        [
+          1297.785178709,
+          48.176762068
+        ],
+        [
+          1299.443915989,
+          56.515797506
+        ],
+        [
+          1300.0,
+          65.0
+        ],
+        [
+          1300.0,
+          585.0
+        ],
+        [
+          1299.443915989,
+          593.484202494
+        ],
+        [
+          1297.785178709,
+          601.823237932
+        ],
+        [
+          1295.052169613,
+          609.874423104
+        ],
+        [
+          1291.291651246,
+          617.5
+        ],
+        [
+          1286.567967119,
+          624.569492886
+        ],
+        [
+          1280.961940777,
+          630.961940777
+        ],
+        [
+          1274.569492886,
+          636.567967119
+        ],
+        [
+          1267.5,
+          641.291651246
+        ],
+        [
+          1259.874423104,
+          645.052169613
+        ],
+        [
+          1251.823237932,
+          647.785178709
+        ],
+        [
+          1243.484202494,
+          649.443915989
+        ],
+        [
+          1235.0,
+          650.0
+        ],
+        [
+          65.0,
+          650.0
+        ],
+        [
+          56.515797506,
+          649.443915989
+        ],
+        [
+          48.176762068,
+          647.785178709
+        ],
+        [
+          40.125576896,
+          645.052169613
+        ],
+        [
+          32.5,
+          641.291651246
+        ],
+        [
+          25.430507114,
+          636.567967119
+        ],
+        [
+          19.038059223,
+          630.961940777
+        ],
+        [
+          13.432032881,
+          624.569492886
+        ],
+        [
+          8.708348754,
+          617.5
+        ],
+        [
+          4.947830387,
+          609.874423104
+        ],
+        [
+          2.214821291,
+          601.823237932
+        ],
+        [
+          0.556084011,
+          593.484202494
+        ],
+        [
+          0.0,
+          585.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {
+        "kind": "rounded",
+        "radii": [
+          65.0,
+          65.0,
+          65.0,
+          65.0
+        ],
+        "segments": 12,
+        "arch_rise": 216.66666666666666,
+        "taper": 10.0
+      },
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Blat obły",
+        "signature": "6ca1bb6dcb549d34f164864d93b59185ea2a83269bf750b0c5bfe9c8c70356fc"
+      }
+    },
+    {
+      "id": "463d2723ce07",
+      "name": "Noga zwężana 1",
+      "group": "Biurko z obłym blatem",
+      "u": 60.0,
+      "v": 732.0,
+      "t": 60.0,
+      "plane": "XZ",
+      "x": 70.0,
+      "y": 70.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          10.8,
+          0.0
+        ],
+        [
+          49.2,
+          0.0
+        ],
+        [
+          60.0,
+          732.0
+        ],
+        [
+          0.0,
+          732.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {
+        "kind": "taper",
+        "radii": [
+          30.0,
+          30.0,
+          30.0,
+          30.0
+        ],
+        "segments": 12,
+        "arch_rise": 30.0,
+        "taper": 10.799999999999999
+      },
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Noga zwężana 1",
+        "signature": "85aeeb1dbc9af62f2d93fedd5de17b226400651f6ca33f645d933380a42d4a9d"
+      }
+    },
+    {
+      "id": "3edfc30baef1",
+      "name": "Noga zwężana 2",
+      "group": "Biurko z obłym blatem",
+      "u": 60.0,
+      "v": 732.0,
+      "t": 60.0,
+      "plane": "XZ",
+      "x": 1170.0,
+      "y": 70.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          10.8,
+          0.0
+        ],
+        [
+          49.2,
+          0.0
+        ],
+        [
+          60.0,
+          732.0
+        ],
+        [
+          0.0,
+          732.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {
+        "kind": "taper",
+        "radii": [
+          30.0,
+          30.0,
+          30.0,
+          30.0
+        ],
+        "segments": 12,
+        "arch_rise": 30.0,
+        "taper": 10.799999999999999
+      },
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Noga zwężana 2",
+        "signature": "2c98ad119e0c2f0530329561f74828079aa4d29ad5323ec5eb3b29a62a8a950b"
+      }
+    },
+    {
+      "id": "7b38d9e172a7",
+      "name": "Noga zwężana 3",
+      "group": "Biurko z obłym blatem",
+      "u": 60.0,
+      "v": 732.0,
+      "t": 60.0,
+      "plane": "XZ",
+      "x": 70.0,
+      "y": 520.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          10.8,
+          0.0
+        ],
+        [
+          49.2,
+          0.0
+        ],
+        [
+          60.0,
+          732.0
+        ],
+        [
+          0.0,
+          732.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {
+        "kind": "taper",
+        "radii": [
+          30.0,
+          30.0,
+          30.0,
+          30.0
+        ],
+        "segments": 12,
+        "arch_rise": 30.0,
+        "taper": 10.799999999999999
+      },
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Noga zwężana 3",
+        "signature": "35bff974bcec0b52121087ad227adff0ef8d54ff82b21436d301aeb68a65c666"
+      }
+    },
+    {
+      "id": "20371c0982c1",
+      "name": "Noga zwężana 4",
+      "group": "Biurko z obłym blatem",
+      "u": 60.0,
+      "v": 732.0,
+      "t": 60.0,
+      "plane": "XZ",
+      "x": 1170.0,
+      "y": 520.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          10.8,
+          0.0
+        ],
+        [
+          49.2,
+          0.0
+        ],
+        [
+          60.0,
+          732.0
+        ],
+        [
+          0.0,
+          732.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {
+        "kind": "taper",
+        "radii": [
+          30.0,
+          30.0,
+          30.0,
+          30.0
+        ],
+        "segments": 12,
+        "arch_rise": 30.0,
+        "taper": 10.799999999999999
+      },
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Noga zwężana 4",
+        "signature": "6fb5e6b69384511b5435c630359facebc5b6422680e1fdd7a8c83521711b708b"
+      }
+    },
+    {
+      "id": "28ecb8d3305a",
+      "name": "Rama przednia",
+      "group": "Biurko z obłym blatem",
+      "u": 1100.0,
+      "v": 60.0,
+      "t": 25.0,
+      "plane": "XZ",
+      "x": 100.0,
+      "y": 87.5,
+      "z": 672.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Rama przednia",
+        "signature": "61d0634189498baababf04b849eeb5ac8537349db4013a18705439bb2ca3608f"
+      }
+    },
+    {
+      "id": "711223126d99",
+      "name": "Rama tylna",
+      "group": "Biurko z obłym blatem",
+      "u": 1100.0,
+      "v": 60.0,
+      "t": 25.0,
+      "plane": "XZ",
+      "x": 100.0,
+      "y": 537.5,
+      "z": 672.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Rama tylna",
+        "signature": "5577de06c6807c8cdc9f9ed8ac9bb9c06daaf5e775d54a3ac50425503955410c"
+      }
+    },
+    {
+      "id": "f0bc3738c0c5",
+      "name": "Rama lewa",
+      "group": "Biurko z obłym blatem",
+      "u": 450.0,
+      "v": 60.0,
+      "t": 25.0,
+      "plane": "YZ",
+      "x": 87.5,
+      "y": 100.0,
+      "z": 672.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Rama lewa",
+        "signature": "76be37850d5055f33c767e14e26b3dbbb65a31ee571183f9af7bc93175b2a5f1"
+      }
+    },
+    {
+      "id": "f1f356d11e20",
+      "name": "Rama prawa",
+      "group": "Biurko z obłym blatem",
+      "u": 450.0,
+      "v": 60.0,
+      "t": 25.0,
+      "plane": "YZ",
+      "x": 1187.5,
+      "y": 100.0,
+      "z": 672.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3cbb9324c1e2",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 2,
+        "width": 1300.0,
+        "height": 760.0,
+        "depth": 650.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "3cbb9324c1e2",
+        "front_material": "3cbb9324c1e2",
+        "label": "Rama prawa",
+        "signature": "d7364fb0b62cbe9d306854c55c61d333999f361853cdaace652e8efb2b27e70b"
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "7d23c9cabe8a",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "c057baa62cea",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "53ea1b58fed8",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "f85c8faf94c3",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "6426a5e417d4",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "3cbb9324c1e2",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "83d335fbf061",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d39299c38fbf",
+      "name": "Dekor — Biel śnieżna",
+      "color": "#f5f5f0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c3d568be52de",
+      "name": "Dekor — Biel ciepła",
+      "color": "#eee9dd",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "08529bec7d80",
+      "name": "Dekor — Krem",
+      "color": "#e5dcc4",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "721162d4ba4c",
+      "name": "Dekor — Beż piaskowy",
+      "color": "#cbb99e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "08af9cf3cbb9",
+      "name": "Dekor — Kaszmir",
+      "color": "#b8aaa0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e27a4f6016cb",
+      "name": "Dekor — Taupe",
+      "color": "#94867b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c5883a6c04e0",
+      "name": "Dekor — Szary jasny",
+      "color": "#bec2c3",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "96ddffeab008",
+      "name": "Dekor — Szary kamienny",
+      "color": "#909493",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "f0cd71654f6f",
+      "name": "Dekor — Grafit",
+      "color": "#4f5661",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "6d9b334383a3",
+      "name": "Dekor — Antracyt",
+      "color": "#333a3e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "b797fe3c458e",
+      "name": "Dekor — Czerń mat",
+      "color": "#222425",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "3f603c4d7a36",
+      "name": "Dekor — Granat",
+      "color": "#243b53",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "87fbff34be72",
+      "name": "Dekor — Niebieski",
+      "color": "#477d9f",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d644f1f77421",
+      "name": "Dekor — Błękit",
+      "color": "#a5cad8",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "8147d3d0f3b7",
+      "name": "Dekor — Zieleń szałwia",
+      "color": "#a5b29c",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "436250242df2",
+      "name": "Dekor — Oliwka",
+      "color": "#7a8061",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c78f0c381a7c",
+      "name": "Dekor — Zieleń butelkowa",
+      "color": "#244b40",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "be430d0de7be",
+      "name": "Dekor — Mięta",
+      "color": "#b5cfc0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "655771b076b8",
+      "name": "Dekor — Bordo",
+      "color": "#673d44",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "b01f0156b54d",
+      "name": "Dekor — Ceglany",
+      "color": "#a5604b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "3026222fd067",
+      "name": "Dekor — Terakota",
+      "color": "#bb795b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1d944232b079",
+      "name": "Dekor — Pudrowy róż",
+      "color": "#d5b2b0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1debc949b432",
+      "name": "Dekor — Musztarda",
+      "color": "#b29a50",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c905c77222b5",
+      "name": "Dekor — Żółty",
+      "color": "#d5be6e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "9575e1f9ac4f",
+      "name": "Dekor — Pomarańczowy",
+      "color": "#d28343",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "93ea7cb42586",
+      "name": "Dekor — Lawenda",
+      "color": "#ada2bc",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "17170c618136",
+      "name": "Dekor — Fiolet",
+      "color": "#755f83",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "22ca8157a5d3",
+      "name": "Dekor — Petrol",
+      "color": "#32676e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "9d0edc25709a",
+      "name": "Dekor — Dąb naturalny",
+      "color": "#c5a06b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "41725de72806",
+      "name": "Dekor — Dąb jasny",
+      "color": "#ddc498",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "99ee00f6444e",
+      "name": "Dekor — Dąb wędzony",
+      "color": "#80664e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "01a17ee5f44c",
+      "name": "Dekor — Orzech",
+      "color": "#856044",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "92f45a441e6a",
+      "name": "Dekor — Buk",
+      "color": "#cfaa80",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "aecee446c8e2",
+      "name": "Dekor — Jesion",
+      "color": "#d9c49d",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "282744214a1a",
+      "name": "Dekor — Sosna",
+      "color": "#e0c493",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "f1b98238e5e7",
+      "name": "Dekor — Brzoza",
+      "color": "#e8d5b2",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "90f440b5fcee",
+      "name": "Dekor — Wenge",
+      "color": "#483b34",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d82da3e35d41",
+      "name": "Dekor — Mahoń",
+      "color": "#8b5140",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1d154737e080",
+      "name": "Dekor — Beton jasny",
+      "color": "#b5b3ae",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "801bc4e0dd7e",
+      "name": "Dekor — Beton ciemny",
+      "color": "#767975",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "784124114ae8",
+      "name": "Dekor — Marmur biały",
+      "color": "#e6e4df",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "f15faacff81d",
+      "name": "Dekor — Marmur ciemny",
+      "color": "#3e4143",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [],
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

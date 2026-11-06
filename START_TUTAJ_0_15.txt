@@ -1,0 +1,9 @@
+MebelStudio3D 0.15
+
+Rozpakuj CAŁY ZIP do C:\MebelStudio3D_0_15 i uruchom MebelStudio3D.exe.
+Nie przenoś samego EXE i nie uruchamiaj z wnętrza ZIP. Nie potrzeba pip ani instalacji CAD.
+
+Instrukcja: INSTRUKCJA.html
+Stan migracji: Ustawienia > Silnik C++ i stan migracji
+To kolejny etap migracji, nie 100% C++.
+Raporty tego wydania: SPRAWDZENIE_0_15.json i SPRAWDZENIE.

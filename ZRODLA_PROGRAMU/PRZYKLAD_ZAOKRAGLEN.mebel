@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "name": "Przykład niezależnych zaokrągleń",
+  "parts": [
+    {
+      "id": "d5e83b8f6d6e",
+      "name": "Blat — górny kant R4 i narożnik R20",
+      "group": "Mebel",
+      "u": 600.0,
+      "v": 400.0,
+      "t": 30.0,
+      "plane": "XY",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "d31861265021",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [
+        {
+          "edge": "top:0",
+          "radius": 4
+        },
+        {
+          "edge": "corner:2",
+          "radius": 20
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "id": "d31861265021",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "1935c24f039c",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "961f5abf9a0a",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "cc6e027fd4a1",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "864c3d393182",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "0919ce526eee",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "739bb7d457d5",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [],
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

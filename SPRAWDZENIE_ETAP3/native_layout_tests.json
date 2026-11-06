@@ -1,0 +1,70 @@
+{
+  "checks": [
+    {
+      "name": "Native layout capability exposes exactly nine complete operations",
+      "ok": true
+    },
+    {
+      "name": "Groups preserve first occurrence and lazy layout does not require geometry",
+      "ok": true
+    },
+    {
+      "name": "All three construction planes retain their original coordinate order",
+      "ok": true
+    },
+    {
+      "name": "Local and world bounds include owner tagged accessories and invert room placement only",
+      "ok": true
+    },
+    {
+      "name": "Group layout consistency keeps the strict 1e-7 threshold",
+      "ok": true
+    },
+    {
+      "name": "Rotation preserves the centre and Python yaw modulo for negative turns",
+      "ok": true
+    },
+    {
+      "name": "Explicit snap covers every room-axis direction without changing local dimensions",
+      "ok": true
+    },
+    {
+      "name": "Nearest magnet returns one complete batch proposal with tangent corrections",
+      "ok": true
+    },
+    {
+      "name": "Concave notch is empty space and equal proposals keep the direction tie break",
+      "ok": true
+    },
+    {
+      "name": "Unicode target tie break follows Python group ordering",
+      "ok": true
+    },
+    {
+      "name": "Third cabinet blocks explicit and nearest snaps atomically",
+      "ok": true
+    },
+    {
+      "name": "Nonorthogonal nearest source returns before unrelated inconsistent layouts",
+      "ok": true
+    },
+    {
+      "name": "Contact gap tolerance includes the exact boundary and excludes a larger gap",
+      "ok": true
+    },
+    {
+      "name": "Polygon overlap retains positive area, notch and degenerate legacy semantics",
+      "ok": true
+    },
+    {
+      "name": "Invalid public layout arguments report errors and native buffers are released",
+      "ok": true
+    }
+  ],
+  "count": 15,
+  "failed": 0,
+  "gpu": false,
+  "gui": false,
+  "ok": true,
+  "process_uses_python": false
+}

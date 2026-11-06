@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "dependency_modules": 2735,
+  "runtime_files": 0,
+  "source_exe_sha256": "cacd7b48621a1a2099d083e0569927436f75e40517c914ddd9aedeae33fcc493",
+  "destination": "C:\\Users\\Dariusz\\Documents\\Codex\\2026-10-03\\mebelstudio3d-projekt-zip-chatgpt-library-file-2\\outputs\\MebelStudio3D_0_14_Windows\\_internal",
+  "hardlinks": false,
+  "distribution": "0.14",
+  "bootstrap_module": "struct.pyc",
+  "immutable_013_runtime": true
+}

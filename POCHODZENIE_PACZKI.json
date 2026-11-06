@@ -1,0 +1,320 @@
+{
+  "schema": 1,
+  "assembled_utc": "2026-10-30T19:12:08.362383+00:00",
+  "package_type": "hybrid_cpp_python",
+  "source": "C:\\Users\\kamil\\Desktop\\MebleStudio\\MebelStudio3D_Migracja_Cpp_Etap3\\ZRODLA_PROGRAMU",
+  "build_dir": "C:\\Users\\kamil\\Desktop\\MebleStudio\\MebelStudio3D_Migracja_Cpp_Etap3\\build-native\\bin",
+  "runtime": "C:\\Users\\kamil\\Desktop\\MebleStudio\\MebelStudio3D_Migracja_Cpp_Etap3\\_internal",
+  "resources": "C:\\Users\\kamil\\Desktop\\MebleStudio\\MebelStudio3D_Migracja_Cpp_Etap3",
+  "include_sources": true,
+  "copied_files": 6026,
+  "copied_bytes": 923289905,
+  "copy_method": "independent file copies; no hardlinks",
+  "native_binaries": {
+    "MebelStudio3D.exe": {
+      "bytes": 3151387,
+      "sha256": "c5ac6e3091824286f320e3ff4de9330c6e6adfb02fe9629935ad9423ba33f3e1"
+    },
+    "MebelModel.dll": {
+      "bytes": 4308803,
+      "sha256": "e7a680e782207edd2158158c9b23cf1151c56364507cb069b1cb523b93dfd372"
+    },
+    "MebelNative3D.dll": {
+      "bytes": 3308900,
+      "sha256": "4893fa90af7a91309a073b2f37690ab0e56ead4e53f42e44841950adb9fb2720"
+    }
+  },
+  "app_modules": {
+    "advanced_ui.py": {
+      "bytes": 4359,
+      "sha256": "02179a6da3d87295e0a8ced7910128f8603446b24eb9832c7e4579e4f25df183"
+    },
+    "app.py": {
+      "bytes": 56252,
+      "sha256": "283e976c2a2f2ec38bf2ef2932267e4937f3f86de4b4951f2d550939eea8bac8"
+    },
+    "assembly.py": {
+      "bytes": 24362,
+      "sha256": "1403a927b20702a48e4845673a595ed4f97c449af5d9a7e42d3063e7280ecf41"
+    },
+    "attachment_picker.py": {
+      "bytes": 3300,
+      "sha256": "a326ef90b984035cd6752080c40abc4bb6325c2d9abfd60ed6332e5121bea800"
+    },
+    "cad_geometry.py": {
+      "bytes": 15695,
+      "sha256": "fd00209412abc52d7d421719b14310178e9c7e16b8e4e811f33a1edc22e453ed"
+    },
+    "catalogue_previews.py": {
+      "bytes": 7499,
+      "sha256": "9d2216c8f41d10371d7121bc5daa724e459ffc77185be1b889184403de417db7"
+    },
+    "configurator_accessories.py": {
+      "bytes": 30896,
+      "sha256": "4bbd37e226a75fb81ae62127abd43f2e7ad4d051dc9bcfbb9002d32e3e479130"
+    },
+    "configurator_presets.py": {
+      "bytes": 2104,
+      "sha256": "7ee1654f454e139ffb5ec3db4bdcc38e7eac7d02b1fe3b062c7d49d4f21fadcf"
+    },
+    "core.py": {
+      "bytes": 33916,
+      "sha256": "cce2e42af094b2c9a5658f579a8a015f7e8518f9b7251e988ad7fc0317eb6beb"
+    },
+    "corner_furniture.py": {
+      "bytes": 30846,
+      "sha256": "78d8e2e81c85bd891c1fdd5dda99194ddb815e598548564ba843905bdfba256d"
+    },
+    "corner_quick_ui.py": {
+      "bytes": 10311,
+      "sha256": "0a3b2d053f6abca2fe47d7f0f8bd07eba8b7c114efba87737abc2178bcb84b81"
+    },
+    "depth_raster.py": {
+      "bytes": 11174,
+      "sha256": "02ed87acad956c7bcde8d09bdba399d96aebd930822fcdbe905e325a6e816f54"
+    },
+    "developer_logs.py": {
+      "bytes": 7415,
+      "sha256": "519245e96b27b7a01c9755f71fd0909944e3477128c9d435628d6222470520c0"
+    },
+    "dimension_model.py": {
+      "bytes": 4652,
+      "sha256": "162d84971d36b197b4cfc46255340e939e5c98d70359036211bce7c93d2cf0b4"
+    },
+    "direct_edit.py": {
+      "bytes": 9692,
+      "sha256": "37e0c2a87ca4a94eafca87d4e5bb34bd1f1b5772fa0634ad2c51be32dea45e8e"
+    },
+    "dock_workspace.py": {
+      "bytes": 40140,
+      "sha256": "09c5c41a9667bf75039c563f9b9921e814ca349817f7ff5d680048c7a296249b"
+    },
+    "drag_hardware.py": {
+      "bytes": 21241,
+      "sha256": "47074d03fb4a389dfd03276ad151d179e66d315f5173a060a87652d8212b7807"
+    },
+    "edge_editor.py": {
+      "bytes": 6258,
+      "sha256": "63f4cf7979fdc0971d5efa2f49e5f49f569436986699ae524ec8c6b1bd8a2842"
+    },
+    "features.py": {
+      "bytes": 4714,
+      "sha256": "a09ba77bac94c0993b879a5a6c74f99bf0463065fd9d6edf5ce8d6f319069691"
+    },
+    "fitting_visuals.py": {
+      "bytes": 6819,
+      "sha256": "7b5cca77ddd30d9a54eb54bd918290833563be12c5407680ed93e82e8ddbdaa5"
+    },
+    "fittings.py": {
+      "bytes": 11047,
+      "sha256": "bae7f733825a77f076caec0a28d702c6b6ff87ba9186b79110b3c86690baaa1d"
+    },
+    "form_dialog.py": {
+      "bytes": 2932,
+      "sha256": "5011acc3ccad5c1a35efef3b8b3325cf8e1fe17fa0a64b573a7c277bcc8e9eeb"
+    },
+    "furniture_configurator.py": {
+      "bytes": 30306,
+      "sha256": "dc69a110f851d2ddd12b0f1a46b36d54b87c1c54a31d9a5ad3f97d707e0e3645"
+    },
+    "furniture_layout.py": {
+      "bytes": 13007,
+      "sha256": "f2b207b2bb9e60372313e599ff0d283f31e31da70aeb323bb5259811d2c45db9"
+    },
+    "furniture_layout_ui.py": {
+      "bytes": 12380,
+      "sha256": "7913e5e8aa0c5c5664db15b2aff320ba4558357b8bafcbaf5ea6c1cc03644fb5"
+    },
+    "furniture_library.py": {
+      "bytes": 10220,
+      "sha256": "83729e75d0242e3d3028251ed49b49625607a0eb737246586b0fe435b27a742a"
+    },
+    "gpu_scene.py": {
+      "bytes": 10026,
+      "sha256": "ef3a3dc12453d66f82912c0ba4eb9323f261844322d6b9ddf955328a5d5e5efa"
+    },
+    "gpu_viewport.py": {
+      "bytes": 23104,
+      "sha256": "6c090d7d6da2d70678dbd18b690d1b121dfa1c274bce5e4490b26191a3ba4a54"
+    },
+    "hardware_placement_ui.py": {
+      "bytes": 6073,
+      "sha256": "d74fc33db45d2c6429e7ee9c9c135da801298c437f3be6d0fd78b424bbd062a1"
+    },
+    "hardware_report.py": {
+      "bytes": 3142,
+      "sha256": "58829b44ff9ad8ed77e36caeab7edd149e495fce962e05531b9a4848d5f2e9ff"
+    },
+    "hardware_ui.py": {
+      "bytes": 15037,
+      "sha256": "c5d3a53665c23a29eb6e59d8ddcea24395559986014a64bde33ec5117d9cecbe"
+    },
+    "launcher.py": {
+      "bytes": 15046,
+      "sha256": "d05006cd3a5eb159d246af3d5c74515c5fda4ec47765579f235e9158f70f633a"
+    },
+    "machining_editor.py": {
+      "bytes": 9043,
+      "sha256": "4437cc35ed3e6b142494dbf457da9b7b22cfc1330c5649a824b1b4e396d1e275"
+    },
+    "material_presets.py": {
+      "bytes": 2600,
+      "sha256": "70c13b4b9fdd001b91c26909e50e51d420468b73747357fecf5a358c9773ec2f"
+    },
+    "mechanisms.py": {
+      "bytes": 6675,
+      "sha256": "520f68a16a1ae994c44499f86c152c3eea430dff26269a4f1a09c77e9cd5a9f3"
+    },
+    "migration_status.py": {
+      "bytes": 4244,
+      "sha256": "533021009296d6eb9692118079a72a54b94287b58fa170cd39585a4ba8843505"
+    },
+    "native_document.py": {
+      "bytes": 5649,
+      "sha256": "80f4399b67363322cd05f50a0afceac2befe9c7cb7e718c48491b0284bdc364d"
+    },
+    "native_layout.py": {
+      "bytes": 5745,
+      "sha256": "9bc6e002b220091a916801fb182a45e0a22430a5f377a3d2d04b3a3a51198f47"
+    },
+    "native_model.py": {
+      "bytes": 15667,
+      "sha256": "3a9c3a8f5a270eb3e965d98ae2bea9a0407cdd022385f6ed9ba169dbcb9dccde"
+    },
+    "native_scene_export.py": {
+      "bytes": 8516,
+      "sha256": "010f0b74ec6cee36a82ca3ab82974ccb4b09225c2599e1edb4836cb3f30eec53"
+    },
+    "native_viewport.py": {
+      "bytes": 14424,
+      "sha256": "1cd3ae7c9bdbb6c2255ad1b39df4629ddb0d7bc99c9ce18dee2f17e7972b2a89"
+    },
+    "native_worktops.py": {
+      "bytes": 2558,
+      "sha256": "9c5647f5527fff070734c89d000c8b4aef1f0a7f3fcd58aa64ba5a2fba42a554"
+    },
+    "opening_options.py": {
+      "bytes": 8372,
+      "sha256": "71b686d6ab04ba5653b1153ec3ec04d11978725967e08897e396fc8eecbc5a50"
+    },
+    "palette.py": {
+      "bytes": 1630,
+      "sha256": "62f46b4fe733a984e526325d31cfefdb35e8aca974a59d370e656e27464ddc5d"
+    },
+    "production_docs.py": {
+      "bytes": 6240,
+      "sha256": "312d531affb0c18c274345de09996a61a68da7fc4bb77b0f5089b2376ddde3e6"
+    },
+    "productivity.py": {
+      "bytes": 12974,
+      "sha256": "b5a2b449a8ddd6f2b6cdbdcc5caa5426c08ca9ae87265bfaa4241528b30595a1"
+    },
+    "project_print.py": {
+      "bytes": 23790,
+      "sha256": "f91aa8c81ad72718aa352dde3ae07521a64c36ff87bd09076b4bbf44a3ff54e7"
+    },
+    "quick_studio_ui.py": {
+      "bytes": 43741,
+      "sha256": "1bf05c1216e8f22e287b32f80e76d34761a353453585bc188d63d87024b5ab2b"
+    },
+    "responsive_ui.py": {
+      "bytes": 17889,
+      "sha256": "94343e7b1802354a1cc6d24606ea41683be37602dc59e07d78858ea90e9dadb3"
+    },
+    "room_architecture.py": {
+      "bytes": 3077,
+      "sha256": "8ee998aceb7248b4748a41db3201155647b2a9441fb5162eba885b0d56fc367e"
+    },
+    "room_objects.py": {
+      "bytes": 18117,
+      "sha256": "f3af8c93d97bb6677a6edc7d0795f393be96ed3624c866f115f3138a60fd3528"
+    },
+    "room_scene_drag.py": {
+      "bytes": 3704,
+      "sha256": "1ce04c2f7eaadf6e1aa05bf727cd28604b3bb349a47414cd455eaa6551fc3a3a"
+    },
+    "room_scene_ui.py": {
+      "bytes": 14887,
+      "sha256": "dd37b8b696ff36d73facca545526b7be2d9f2f5528f31b48b0f276629f60e018"
+    },
+    "runner_installation.py": {
+      "bytes": 4000,
+      "sha256": "85da7eea2d2331909f26acd70e7a386a009ea49750f4668b591ea39f1b92ad71"
+    },
+    "runners_catalog.py": {
+      "bytes": 22953,
+      "sha256": "a94e4d11fc1258e8d88073ef4167d893061c9e1b4473af115ad9fbf8613f197a"
+    },
+    "shaped_furniture.py": {
+      "bytes": 26521,
+      "sha256": "ece76a85e57fb7942791455abbf332107de3e0fffa4c09d5b51179992b06006e"
+    },
+    "sketch.py": {
+      "bytes": 37198,
+      "sha256": "602793693eee4bd40a423acfaf5aa1f91c28e35f3f92e0877152200e1596b232"
+    },
+    "sketch_live.py": {
+      "bytes": 6199,
+      "sha256": "23eb5ecec4d790afedbd76a692d4e6ca055bf38c6334bf4d5aeb99716ec97723"
+    },
+    "studio_interaction.py": {
+      "bytes": 12260,
+      "sha256": "2b2c02ceb782877619180b04320e07e9c087c01a8e95a2609e8e0dcc8bc24e0e"
+    },
+    "studio_ui.py": {
+      "bytes": 19802,
+      "sha256": "fa58f4116c0848b1f8198d1af29463d78ae157fff2bfd20e7a8b6f35e6a6a8f1"
+    },
+    "style_ui.py": {
+      "bytes": 15044,
+      "sha256": "a563b9caf02ad0b4639ce729bf0aebe51dce92b365a990e81100eb0fcc54143f"
+    },
+    "ui_preferences.py": {
+      "bytes": 3839,
+      "sha256": "74159b727e03685d68ad6cdd260ef90d6a62cd6be4e396bdca699ebf6601c9f3"
+    },
+    "ui_settings.py": {
+      "bytes": 5234,
+      "sha256": "f8a0850e9cfb183855d590f61b3c1c073fd8a7035a175bed5b3ef588656611ee"
+    },
+    "view_modes_ui.py": {
+      "bytes": 923,
+      "sha256": "e09916316e7d6fc7aa63ee0ede1b88e86489869c6a6be6b02d1df74d93532e47"
+    },
+    "viewport_annotations.py": {
+      "bytes": 10610,
+      "sha256": "254f902ea28567dd929c594703599eabe542236c1d8216bebb667d5a51249ec8"
+    },
+    "viewport_modes.py": {
+      "bytes": 899,
+      "sha256": "ab0e168660a7f7a85c79e3eb68c7b5a5fff2a6f1ff3e29e20925c13d08ba09bf"
+    },
+    "viewport_render.py": {
+      "bytes": 28840,
+      "sha256": "3d8b08fa59c9a5b38e39ee5a212684ebd1b2de25872994706f360b9670ce0941"
+    },
+    "viewport_scene.py": {
+      "bytes": 24655,
+      "sha256": "a944c6d066959c88cab9bb77284c2ba6c783e0999bfd6e6eb71070c8bfe9a805"
+    },
+    "visual_catalogue.py": {
+      "bytes": 22768,
+      "sha256": "cf4387e5f121a81b16b48a91abbfe570b0a54bd777308f287ab9f509b89dd090"
+    },
+    "workspace_controls.py": {
+      "bytes": 7468,
+      "sha256": "8206b2cd283fc95a5900c98bfc86dc65a68b6d6c9ac9125df44adeacc978d81a"
+    },
+    "workspace_worktops.py": {
+      "bytes": 14813,
+      "sha256": "3c34a443997977698a34f2a89ce060309427fed6a04e5fb200e51408e781b835"
+    }
+  },
+  "validation": {
+    "executed_during_assembly": false,
+    "status": "verified_after_assembly",
+    "verified_utc": "2026-10-30T19:15:18.548709+00:00",
+    "report": "SPRAWDZENIE_ETAP3/WYNIK_KONCOWY.json"
+  },
+  "historical_test_reports_included": false
+}

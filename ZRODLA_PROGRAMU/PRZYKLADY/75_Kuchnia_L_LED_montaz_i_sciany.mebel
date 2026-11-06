@@ -1,0 +1,3078 @@
+{
+  "version": 1,
+  "name": "Kuchnia L — montaż LED i ściany",
+  "parts": [
+    {
+      "id": "231502854d29",
+      "name": "Dno narożne",
+      "group": "Narożnik L",
+      "u": 1000.0,
+      "v": 1000.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1000.0,
+          0.0
+        ],
+        [
+          1000.0,
+          560.0
+        ],
+        [
+          560.0,
+          560.0
+        ],
+        [
+          560.0,
+          1000.0
+        ],
+        [
+          0.0,
+          1000.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "bottom",
+          "config": {
+            "name": "Narożnik L",
+            "furniture_type": "cabinet",
+            "width": 1000.0,
+            "depth": 1000.0,
+            "height": 820.0,
+            "arm_depth": 560.0,
+            "arm_depth_y": 560.0,
+            "thickness": 18.0,
+            "shape": "L",
+            "side": "left",
+            "radius": 100.0,
+            "segments": 12,
+            "shelves": 1,
+            "top_mode": "rails",
+            "rail_width": 80.0,
+            "origin": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "diagonal_angle": 45.0,
+            "fronts": "orthogonal",
+            "front_thickness": 18.0,
+            "gap": 2.0,
+            "hinge_pattern": "hinge45",
+            "hinge_count": 2,
+            "opening_angle": 100.0,
+            "handle_mode": "handle",
+            "handle_spacing": 128.0,
+            "front_style": "smooth",
+            "leg_height": 100.0,
+            "leg_count": 6,
+            "leg_diameter": 40.0,
+            "leg_setback": 60.0,
+            "leg_color": "#242628",
+            "leg_price": 0.0,
+            "material": "996a5df6f856",
+            "front_material": "06a987d0de83"
+          },
+          "manifest": {
+            "bottom": {
+              "id": "231502854d29",
+              "signature": "986ccaaa3dc7c5ced650fcb2903f0de02da39eb9692966341abe9b71e0f77d5d"
+            },
+            "back_x": {
+              "id": "7740256e8b98",
+              "signature": "7746c7397a14e17276e36c14174c8ef49a02c22b85093005ea1ed0b56260030f"
+            },
+            "back_y": {
+              "id": "cd0e5b5e1b2b",
+              "signature": "a57925450bb565adb7fef2e262d7f69a0aef165133dd9ff49369de02a071f441"
+            },
+            "end_x": {
+              "id": "7563094564f0",
+              "signature": "2c1ec4fdf0e3fe9e938f49d2be8db0202a357ce26efcf84598ed59d0dc2a261f"
+            },
+            "end_y": {
+              "id": "b3f6a5276a65",
+              "signature": "f642c332aada7b480b021c88429d23245c73756109262c79e8f371f69428bef8"
+            },
+            "rail_x": {
+              "id": "2fe7f01e6721",
+              "signature": "d14aab87d7f11a6fd6aff259e863292b53335645bd1877298aa60209c636a73c"
+            },
+            "rail_y": {
+              "id": "2d992d95c547",
+              "signature": "bb0d6e701aa95064c68cadffa187bc43f16190826b1fe4e61491714820c0276e"
+            },
+            "shelf.0": {
+              "id": "e64377f0e4cb",
+              "signature": "1f45402e21c34d9671113408fe0103aed48aa0beb306f973d58de71934a5a2cd"
+            },
+            "post_x": {
+              "id": "f6984dfb9c78",
+              "signature": "f4aa72976eeb3da607683ed9ffad2afaaab555b11ada0e7510c10e54e8d39f33"
+            },
+            "post_y": {
+              "id": "bc818680117c",
+              "signature": "49e53fb9931641237f7a747aaf142624ce424619db3177cf653356cf8130fff1"
+            },
+            "front.x": {
+              "id": "4a3e2b4aa87b",
+              "signature": "96f647fffa5d5ee36514aeed20a850bb685c971fc2646f954ac81822d3a62da1"
+            },
+            "front.y": {
+              "id": "457a38f0a3b0",
+              "signature": "3b41fabb3de7833798b78987bd15a16548f5d6db6d172611a0f10e7f15d55ab5"
+            }
+          }
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": true,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "7740256e8b98",
+      "name": "Bok tylny X",
+      "group": "Narożnik L",
+      "u": 982.0,
+      "v": 684.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 118.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "partition",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "back_x"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "cd0e5b5e1b2b",
+      "name": "Bok tylny Y",
+      "group": "Narożnik L",
+      "u": 1000.0,
+      "v": 684.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 118.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "back_y"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "7563094564f0",
+      "name": "Bok końcowy X",
+      "group": "Narożnik L",
+      "u": 542.0,
+      "v": 684.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 982.0,
+      "y": 18.0,
+      "z": 118.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "end_x"
+        }
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 68.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "f8634eeaaa30",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 100.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "016e15301bb2",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 584.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "9c7d4524fcc8",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 616.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "c991b98ce81b",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "b3f6a5276a65",
+      "name": "Bok końcowy Y",
+      "group": "Narożnik L",
+      "u": 542.0,
+      "v": 684.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 18.0,
+      "y": 982.0,
+      "z": 118.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "partition",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "end_y"
+        }
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 68.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "4e79f15dc7f7",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 100.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "c774f715688e",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 584.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "f97c6ac6e1dd",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 505.0,
+          "v": 616.0,
+          "diameter": 3,
+          "depth": 10,
+          "face": "bottom",
+          "batch": "51890b748767",
+          "purpose": "prowadnik zawiasu — wzorzec roboczy",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "2fe7f01e6721",
+      "name": "Listwa narożna X",
+      "group": "Narożnik L",
+      "u": 982.0,
+      "v": 80.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 802.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "rail_x"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "2d992d95c547",
+      "name": "Listwa narożna Y",
+      "group": "Narożnik L",
+      "u": 80.0,
+      "v": 920.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 0.0,
+      "y": 80.0,
+      "z": 802.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "rail_y"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "e64377f0e4cb",
+      "name": "Półka narożna 1",
+      "group": "Narożnik L",
+      "u": 960.0,
+      "v": 960.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 20.0,
+      "z": 451.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          960.0,
+          0.0
+        ],
+        [
+          960.0,
+          520.0
+        ],
+        [
+          520.0,
+          520.0
+        ],
+        [
+          520.0,
+          960.0
+        ],
+        [
+          0.0,
+          960.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "shelf.0"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": true,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "f6984dfb9c78",
+      "name": "Słupek narożny X",
+      "group": "Narożnik L",
+      "u": 70.0,
+      "v": 684.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 542.0,
+      "y": 490.0,
+      "z": 118.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "partition",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "post_x"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "bc818680117c",
+      "name": "Słupek narożny Y",
+      "group": "Narożnik L",
+      "u": 70.0,
+      "v": 684.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 560.0,
+      "y": 542.0,
+      "z": 118.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "partition",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "post_y"
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    },
+    {
+      "id": "4a3e2b4aa87b",
+      "name": "Front ramienia X",
+      "group": "Narożnik L",
+      "u": 416.0,
+      "v": 716.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 998.0,
+      "y": 580.0,
+      "z": 102.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 180.0,
+      "material": "06a987d0de83",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "door",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "front.x"
+        },
+        "group": "Narożnik L",
+        "role": "door",
+        "config": {
+          "corner_bay": {
+            "support_id": "7563094564f0",
+            "opposite_id": "f6984dfb9c78",
+            "support_face": "bottom",
+            "support_u": 505.0,
+            "cup_face": "top",
+            "hinge_point": [
+              998.0,
+              562.0
+            ],
+            "opening_sign": 1
+          },
+          "gap": 2.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_pattern": "hinge45",
+          "cup_edge": 5,
+          "cup_diameter": 35,
+          "cup_depth": 12.5
+        }
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 100.0,
+          "diameter": 35,
+          "depth": 12.5,
+          "face": "top",
+          "batch": "31575104be5b",
+          "purpose": "puszka zawiasu",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 77.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "bdea9a32ba7f",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 122.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "c44796c6462b",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 616.0,
+          "diameter": 35,
+          "depth": 12.5,
+          "face": "top",
+          "batch": "1120dbd351ef",
+          "purpose": "puszka zawiasu",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 593.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "d37122206695",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 638.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "3dbc18f6792d",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "4a3e2b4aa87b",
+          "corner_hinge_owner": "4a3e2b4aa87b",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 381.0,
+          "v": 294.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "cd666f1258cc",
+          "purpose": "Przelot M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 381.0,
+          "v": 422.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "9c60046dc397",
+          "purpose": "Przelot M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true,
+          "corner_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "hinge_left",
+        "angle": 100.0,
+        "travel": 0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "457a38f0a3b0",
+      "name": "Front ramienia Y",
+      "group": "Narożnik L",
+      "u": 436.0,
+      "v": 716.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 580.0,
+      "y": 998.0,
+      "z": 102.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 180.0,
+      "material": "06a987d0de83",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "door",
+      "assembly": {
+        "corner_source": {
+          "schema": 1,
+          "key": "front.y"
+        },
+        "group": "Narożnik L",
+        "role": "door",
+        "config": {
+          "corner_bay": {
+            "support_id": "b3f6a5276a65",
+            "opposite_id": "bc818680117c",
+            "support_face": "bottom",
+            "support_u": 505.0,
+            "cup_face": "top",
+            "hinge_point": [
+              562.0,
+              998.0
+            ],
+            "opening_sign": 1
+          },
+          "gap": 2.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_pattern": "hinge45",
+          "cup_edge": 5,
+          "cup_diameter": 35,
+          "cup_depth": 12.5
+        }
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 100.0,
+          "diameter": 35,
+          "depth": 12.5,
+          "face": "top",
+          "batch": "0734f8b561b2",
+          "purpose": "puszka zawiasu",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 77.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "5b4aa8ba651c",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 122.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "b57e8ed63bb4",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 616.0,
+          "diameter": 35,
+          "depth": 12.5,
+          "face": "top",
+          "batch": "fd3c2f4a33ec",
+          "purpose": "puszka zawiasu",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 593.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "11cd0c6269a3",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 638.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "batch": "b85b5c4f3b59",
+          "purpose": "mocowanie puszki zawiasu",
+          "owner_id": "457a38f0a3b0",
+          "corner_hinge_owner": "457a38f0a3b0",
+          "recipe_id": "hinge45",
+          "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+          "requires_review": true,
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 401.0,
+          "v": 294.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "6728b01b7d2a",
+          "purpose": "Przelot M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true,
+          "corner_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 401.0,
+          "v": 422.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "f97a39dfe5b8",
+          "purpose": "Przelot M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true,
+          "corner_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "hinge_left",
+        "angle": 100.0,
+        "travel": 0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "a94345f9f815",
+      "name": "Bok lewy",
+      "group": "Szafka obok narożnika",
+      "u": 560.0,
+      "v": 720.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 1000.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 348.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "d26f7dd2e117",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 518.0,
+          "v": 348.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "d26f7dd2e117",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 86.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 118.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 602.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 634.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 0,
+          "name": "Szafka obok narożnika",
+          "width": 600.0,
+          "height": 820.0,
+          "depth": 560.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "996a5df6f856",
+          "front_material": "06a987d0de83",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": false,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "rails",
+          "rail_width": 80.0,
+          "leg_height": 100.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            1000.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 720.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "a94345f9f815",
+            "signature": "c4e482b5087b368a406c4787cc7c71acec5e04180887196643e6ec00338f067c"
+          },
+          "carcass.right": {
+            "id": "0e91e099d6a6",
+            "signature": "38c9d15aa22d65070e52a21952e2357d22aca42613a7c2fc9127f019887c44fc"
+          },
+          "carcass.bottom": {
+            "id": "135231711556",
+            "signature": "99a05a94b0f3ff04ad0d53a8ec0d79f20f798c22ebf4de7f836bc4ae31961ffb"
+          },
+          "carcass.top": {
+            "id": "2c307d86d1bf",
+            "signature": "a90bf8122c7a6d6fb884170e6d74b3bb0686b03f028646f6d8c267363c07cd52"
+          },
+          "carcass.rail_back": {
+            "id": "63ddd9d0adf8",
+            "signature": "a63b5ec2d6240df7ff38957df17f0a81df1229ccfb3821f9219a104cea4c1c60"
+          },
+          "carcass.back": {
+            "id": "50e7333d063b",
+            "signature": "1c3bfa5d099aa27e442fc601dbc91de7b48bfc6aebeed45809a086c93052b9b1"
+          },
+          "main.bay.0.shelf.1": {
+            "id": "d26f7dd2e117",
+            "signature": "ddf785c960cfbaee9a38b9ea424708e7856176db80b0e754fa9f0a484b8172d9"
+          },
+          "main.bay.0.door.0": {
+            "id": "98b15bb68d3f",
+            "signature": "d287674e9985fa94c53353c1681b9bf9e0314fc81db00c4b58070a77804e3e95"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "0e91e099d6a6",
+      "name": "Bok prawy",
+      "group": "Szafka obok narożnika",
+      "u": 560.0,
+      "v": 720.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 1582.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 348.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "d26f7dd2e117",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 518.0,
+          "v": 348.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "d26f7dd2e117",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "135231711556",
+      "name": "Dno",
+      "group": "Szafka obok narożnika",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 1018.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "2c307d86d1bf",
+      "name": "Listwa górna przednia",
+      "group": "Szafka obok narożnika",
+      "u": 564.0,
+      "v": 80.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 1018.0,
+      "y": 0.0,
+      "z": 802.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "63ddd9d0adf8",
+      "name": "Listwa górna tylna",
+      "group": "Szafka obok narożnika",
+      "u": 564.0,
+      "v": 80.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 1018.0,
+      "y": 480.0,
+      "z": 802.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.rail_back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "50e7333d063b",
+      "name": "Plecy nakładane HDF",
+      "group": "Szafka obok narożnika",
+      "u": 600.0,
+      "v": 720.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 1000.0,
+      "y": 560.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "6960380024f4",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "d26f7dd2e117",
+      "name": "Półka — main 1.1",
+      "group": "Szafka obok narożnika",
+      "u": 560.0,
+      "v": 556.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 1020.0,
+      "y": 2.0,
+      "z": 451.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Szafka obok narożnika",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 351.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "a94345f9f815",
+            "right": "0e91e099d6a6",
+            "bottom": "135231711556",
+            "top": "2c307d86d1bf",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 1,
+          "bay_shelf_index": 1
+        },
+        "anchors": [
+          "a94345f9f815",
+          "0e91e099d6a6",
+          "135231711556",
+          "2c307d86d1bf"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.1"
+      },
+      "layout": {}
+    },
+    {
+      "id": "98b15bb68d3f",
+      "name": "Drzwi — main 1.1",
+      "group": "Szafka obok narożnika",
+      "u": 596.0,
+      "v": 716.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 1002.0,
+      "y": -20.0,
+      "z": 102.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "06a987d0de83",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "door",
+      "assembly": {
+        "group": "Szafka obok narożnika",
+        "role": "door",
+        "config": {
+          "gap": 2.0,
+          "level": 300.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "a94345f9f815",
+            "right": "0e91e099d6a6",
+            "bottom": "135231711556",
+            "top": "2c307d86d1bf",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_doors": 1
+        },
+        "anchors": [
+          "a94345f9f815",
+          "0e91e099d6a6",
+          "135231711556",
+          "2c307d86d1bf"
+        ],
+        "requires_review": true
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 100.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "puszka zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 77.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 122.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 616.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "puszka zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 593.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 638.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "98b15bb68d3f",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 561.0,
+          "v": 294.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "ecfad48d4fa1",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 561.0,
+          "v": 422.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "64be467af4d9",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "hinge_left",
+        "angle": 100.0,
+        "travel": 0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.door.0",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "55a992603cd6",
+      "name": "Wspólny blat",
+      "group": "Wspólny blat",
+      "u": 1640.0,
+      "v": 1040.0,
+      "t": 38.0,
+      "plane": "XY",
+      "x": -20.0,
+      "y": -20.0,
+      "z": 820.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "996a5df6f856",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1640.0,
+          0.0
+        ],
+        [
+          1640.0,
+          600.0
+        ],
+        [
+          600.0,
+          600.0
+        ],
+        [
+          600.0,
+          1040.0
+        ],
+        [
+          0.0,
+          1040.0
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "worktop",
+      "assembly": {
+        "shared_worktop": {
+          "schema": 1,
+          "anchors": [
+            "231502854d29",
+            "a94345f9f815"
+          ],
+          "config": {
+            "thickness": 38.0,
+            "overhang": 20.0
+          },
+          "signature": "7591213e0d4f4e5c4ab14e93f87b3d588d865d15b3289cc09bf0dd07ccfa563b",
+          "status": "ready",
+          "reason": ""
+        }
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": true,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {},
+      "layout": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": "996a5df6f856",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "038768b078bb",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "a862fa067e92",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "19d27501bc3f",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "748101a2b63e",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "3c117b45a3b5",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "6960380024f4",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    },
+    {
+      "id": "2015dd846f34",
+      "name": "Dekor — Biel śnieżna",
+      "color": "#f5f5f0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "2cdb3840b6d3",
+      "name": "Dekor — Biel ciepła",
+      "color": "#eee9dd",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "8ef14e2412de",
+      "name": "Dekor — Krem",
+      "color": "#e5dcc4",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "b10dd1973b13",
+      "name": "Dekor — Beż piaskowy",
+      "color": "#cbb99e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "19111adcfcb9",
+      "name": "Dekor — Kaszmir",
+      "color": "#b8aaa0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "2434cff43b9c",
+      "name": "Dekor — Taupe",
+      "color": "#94867b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "2f934af59b64",
+      "name": "Dekor — Szary jasny",
+      "color": "#bec2c3",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "4ab4e43b129b",
+      "name": "Dekor — Szary kamienny",
+      "color": "#909493",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c950db5b82aa",
+      "name": "Dekor — Grafit",
+      "color": "#4f5661",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "0e90fec784d9",
+      "name": "Dekor — Antracyt",
+      "color": "#333a3e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "ee9bba38b6f9",
+      "name": "Dekor — Czerń mat",
+      "color": "#222425",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "129813ee395c",
+      "name": "Dekor — Granat",
+      "color": "#243b53",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e14a4b3e6647",
+      "name": "Dekor — Niebieski",
+      "color": "#477d9f",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "6159afcf639e",
+      "name": "Dekor — Błękit",
+      "color": "#a5cad8",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c840d03114f5",
+      "name": "Dekor — Zieleń szałwia",
+      "color": "#a5b29c",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "a8581d0b6d53",
+      "name": "Dekor — Oliwka",
+      "color": "#7a8061",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "ef8470060c57",
+      "name": "Dekor — Zieleń butelkowa",
+      "color": "#244b40",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "40d07d4dcaf5",
+      "name": "Dekor — Mięta",
+      "color": "#b5cfc0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "a3ccc42a2ec6",
+      "name": "Dekor — Bordo",
+      "color": "#673d44",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "acdbb59ba51e",
+      "name": "Dekor — Ceglany",
+      "color": "#a5604b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "11a97a9196eb",
+      "name": "Dekor — Terakota",
+      "color": "#bb795b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "0dee10d443e5",
+      "name": "Dekor — Pudrowy róż",
+      "color": "#d5b2b0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1e89d557a78d",
+      "name": "Dekor — Musztarda",
+      "color": "#b29a50",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "834e1f8612ee",
+      "name": "Dekor — Żółty",
+      "color": "#d5be6e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1745aadeb68a",
+      "name": "Dekor — Pomarańczowy",
+      "color": "#d28343",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "19f01760e7af",
+      "name": "Dekor — Lawenda",
+      "color": "#ada2bc",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "5983bf90146b",
+      "name": "Dekor — Fiolet",
+      "color": "#755f83",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "576ad6234211",
+      "name": "Dekor — Petrol",
+      "color": "#32676e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1a36f62d23dd",
+      "name": "Dekor — Dąb naturalny",
+      "color": "#c5a06b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "05c55f70960e",
+      "name": "Dekor — Dąb jasny",
+      "color": "#ddc498",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "03b5236fbdee",
+      "name": "Dekor — Dąb wędzony",
+      "color": "#80664e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "93a2ef36b0d7",
+      "name": "Dekor — Orzech",
+      "color": "#856044",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "96ac46a902ad",
+      "name": "Dekor — Buk",
+      "color": "#cfaa80",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "3b2ccc308b98",
+      "name": "Dekor — Jesion",
+      "color": "#d9c49d",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "bab9e6335f28",
+      "name": "Dekor — Sosna",
+      "color": "#e0c493",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "4ccebd073883",
+      "name": "Dekor — Brzoza",
+      "color": "#e8d5b2",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "96420a03b19c",
+      "name": "Dekor — Wenge",
+      "color": "#483b34",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "fc9757ba970b",
+      "name": "Dekor — Mahoń",
+      "color": "#8b5140",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "b1c21b689319",
+      "name": "Dekor — Beton jasny",
+      "color": "#b5b3ae",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "8f8493c48a8e",
+      "name": "Dekor — Beton ciemny",
+      "color": "#767975",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "61bc2b809ae4",
+      "name": "Dekor — Marmur biały",
+      "color": "#e6e4df",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "3d583c42e8ca",
+      "name": "Dekor — Marmur ciemny",
+      "color": "#3e4143",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "06a987d0de83",
+      "name": "Dekor — Lazurowy intensywny",
+      "color": "#207be8",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c948ea9751db",
+      "name": "Dekor — Szmaragdowy",
+      "color": "#17a568",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "adb86f46528c",
+      "name": "Dekor — Turkus intensywny",
+      "color": "#13a8b1",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "4985f0fe6bbb",
+      "name": "Dekor — Pomarańcz soczysta",
+      "color": "#f98629",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "454bd851bd25",
+      "name": "Dekor — Żółty słoneczny",
+      "color": "#ffd33d",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "9148f552a0d9",
+      "name": "Dekor — Koral",
+      "color": "#ed6268",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "9d06ae2584a5",
+      "name": "Dekor — Fiolet intensywny",
+      "color": "#9865de",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "kind": "hinge",
+      "owner_id": "4a3e2b4aa87b",
+      "anchors": [
+        "7563094564f0"
+      ],
+      "name": "Puszka Ø35 — wzór mocowania 45 × 9,5 + prowadnik roboczy",
+      "qty": 2,
+      "price": 0.0,
+      "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+      "recipe_id": "hinge45",
+      "levels": [
+        100.0,
+        616.0
+      ],
+      "positions": [
+        {
+          "x": 975.5,
+          "y": 562.0,
+          "z": 202.0
+        },
+        {
+          "x": 975.5,
+          "y": 562.0,
+          "z": 718.0
+        }
+      ],
+      "mount_face": "top",
+      "color": "#aab0b6",
+      "requires_review": true,
+      "config_auto": true,
+      "corner_auto": true
+    },
+    {
+      "kind": "handle",
+      "owner_id": "4a3e2b4aa87b",
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "u": 381.0,
+      "v": 358.0,
+      "spacing": 128.0,
+      "vertical": true,
+      "color": "#242628",
+      "projection": 28,
+      "mount_face": "bottom",
+      "config_auto": true,
+      "corner_auto": true
+    },
+    {
+      "kind": "hinge",
+      "owner_id": "457a38f0a3b0",
+      "anchors": [
+        "b3f6a5276a65"
+      ],
+      "name": "Puszka Ø35 — wzór mocowania 45 × 9,5 + prowadnik roboczy",
+      "qty": 2,
+      "price": 0.0,
+      "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+      "recipe_id": "hinge45",
+      "levels": [
+        100.0,
+        616.0
+      ],
+      "positions": [
+        {
+          "x": 562.0,
+          "y": 975.5,
+          "z": 202.0
+        },
+        {
+          "x": 562.0,
+          "y": 975.5,
+          "z": 718.0
+        }
+      ],
+      "mount_face": "top",
+      "color": "#aab0b6",
+      "requires_review": true,
+      "config_auto": true,
+      "corner_auto": true
+    },
+    {
+      "kind": "handle",
+      "owner_id": "457a38f0a3b0",
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "u": 401.0,
+      "v": 358.0,
+      "spacing": 128.0,
+      "vertical": true,
+      "color": "#242628",
+      "projection": 28,
+      "mount_face": "bottom",
+      "config_auto": true,
+      "corner_auto": true
+    },
+    {
+      "kind": "leg",
+      "owner_id": "231502854d29",
+      "name": "Noga narożnika — własny model",
+      "qty": 6,
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "color": "#242628",
+      "positions": [
+        {
+          "x": 60.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 940.0,
+          "y": 280.0,
+          "z": 0.0
+        },
+        {
+          "x": 280.0,
+          "y": 940.0,
+          "z": 0.0
+        },
+        {
+          "x": 280.0,
+          "y": 280.0,
+          "z": 0.0
+        },
+        {
+          "x": 940.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 60.0,
+          "y": 940.0,
+          "z": 0.0
+        }
+      ],
+      "config_auto": true,
+      "corner_auto": true
+    },
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "d26f7dd2e117",
+      "anchors": [
+        "a94345f9f815",
+        "0e91e099d6a6"
+      ],
+      "positions": [
+        {
+          "x": 1018.0,
+          "y": 42.0,
+          "z": 448.5
+        },
+        {
+          "x": 1018.0,
+          "y": 518.0,
+          "z": 448.5
+        },
+        {
+          "x": 1582.0,
+          "y": 42.0,
+          "z": 448.5
+        },
+        {
+          "x": 1582.0,
+          "y": 518.0,
+          "z": 448.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    },
+    {
+      "name": "Puszka Ø35 — wzór mocowania 45 × 9,5 + prowadnik roboczy",
+      "qty": 2,
+      "price": 0.0,
+      "owner_id": "98b15bb68d3f",
+      "anchors": [
+        "a94345f9f815"
+      ],
+      "positions": [
+        {
+          "x": 1002.0,
+          "y": 0.0,
+          "z": 202.0
+        },
+        {
+          "x": 1002.0,
+          "y": 0.0,
+          "z": 718.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "hinge",
+      "levels": [
+        100.0,
+        616.0
+      ],
+      "color": "#aab0b6",
+      "closing_spring": "unknown",
+      "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "98b15bb68d3f",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 596.0,
+      "design_v": 716.0,
+      "u_anchor": "right",
+      "v_anchor": "center",
+      "u": 561.0,
+      "v": 358.0,
+      "spacing": 128.0,
+      "vertical": true,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "kind": "leg",
+      "owner_id": "135231711556",
+      "group": "Szafka obok narożnika",
+      "name": "Noga meblowa — własny model Ø40 × 100 mm",
+      "qty": 4,
+      "unit": "szt.",
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "setback": 60.0,
+      "positions": [
+        {
+          "x": 1060.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 1060.0,
+          "y": 500.0,
+          "z": 0.0
+        },
+        {
+          "x": 1540.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 1540.0,
+          "y": 500.0,
+          "z": 0.0
+        }
+      ],
+      "color": "#242628",
+      "foot_diameter": 46.0,
+      "config_auto": true,
+      "configure_feature": "legs",
+      "source": "",
+      "requires_review": true,
+      "note": "Model zakupowy, bez automatycznego wiercenia mocowań. Dobierz artykuł, nośność i sposób mocowania."
+    },
+    {
+      "face": "bottom",
+      "local_face": "bottom",
+      "u": 820.0,
+      "v": 520.0,
+      "axis": "u",
+      "length": 1580.0,
+      "width": 12.0,
+      "depth": 2.0,
+      "margin": 30.0,
+      "groove": false,
+      "local_center": [
+        820.0,
+        520.0,
+        0.0
+      ],
+      "local_tangent": [
+        1,
+        0,
+        0
+      ],
+      "local_cross": [
+        0,
+        1,
+        0
+      ],
+      "local_normal": [
+        0,
+        0,
+        -1
+      ],
+      "a_ratio": 0.5,
+      "b_ratio": 0.5,
+      "length_auto": true,
+      "requested_length": null,
+      "profile": true,
+      "diffuser": true,
+      "color": "#fff3bf",
+      "owner_id": "55a992603cd6",
+      "group": "Wspólny blat",
+      "attachment_id": "8d4a91d76f74",
+      "manual": true,
+      "config_auto": false,
+      "configure_feature": "manual_led",
+      "source": "",
+      "requires_review": true,
+      "kind": "led_strip",
+      "name": "Taśma LED — ręczne rozmieszczenie",
+      "qty": 1.58,
+      "unit": "m",
+      "price": 35.0,
+      "note": "Montaż powierzchniowy bez rowka; 1580 × 12 mm. Własny model; dobierz artykuł, moc i mocowanie.",
+      "default_note": "Montaż powierzchniowy bez rowka; 1580 × 12 mm. Własny model; dobierz artykuł, moc i mocowanie."
+    },
+    {
+      "face": "bottom",
+      "local_face": "bottom",
+      "u": 820.0,
+      "v": 520.0,
+      "axis": "u",
+      "length": 1580.0,
+      "width": 12.0,
+      "depth": 2.0,
+      "margin": 30.0,
+      "groove": false,
+      "local_center": [
+        820.0,
+        520.0,
+        0.0
+      ],
+      "local_tangent": [
+        1,
+        0,
+        0
+      ],
+      "local_cross": [
+        0,
+        1,
+        0
+      ],
+      "local_normal": [
+        0,
+        0,
+        -1
+      ],
+      "a_ratio": 0.5,
+      "b_ratio": 0.5,
+      "length_auto": true,
+      "requested_length": null,
+      "profile": true,
+      "diffuser": true,
+      "color": "#fff3bf",
+      "owner_id": "55a992603cd6",
+      "group": "Wspólny blat",
+      "attachment_id": "8d4a91d76f74",
+      "manual": true,
+      "config_auto": false,
+      "configure_feature": "manual_led",
+      "source": "",
+      "requires_review": true,
+      "kind": "led_profile",
+      "name": "Profil LED — ręczne rozmieszczenie",
+      "qty": 1.58,
+      "unit": "m",
+      "price": 0.0,
+      "note": "Montaż powierzchniowy bez rowka; 1580 × 12 mm. Własny model; dobierz artykuł, moc i mocowanie.",
+      "default_note": "Montaż powierzchniowy bez rowka; 1580 × 12 mm. Własny model; dobierz artykuł, moc i mocowanie."
+    },
+    {
+      "face": "bottom",
+      "local_face": "bottom",
+      "u": 820.0,
+      "v": 520.0,
+      "axis": "u",
+      "length": 1580.0,
+      "width": 12.0,
+      "depth": 2.0,
+      "margin": 30.0,
+      "groove": false,
+      "local_center": [
+        820.0,
+        520.0,
+        0.0
+      ],
+      "local_tangent": [
+        1,
+        0,
+        0
+      ],
+      "local_cross": [
+        0,
+        1,
+        0
+      ],
+      "local_normal": [
+        0,
+        0,
+        -1
+      ],
+      "a_ratio": 0.5,
+      "b_ratio": 0.5,
+      "length_auto": true,
+      "requested_length": null,
+      "profile": true,
+      "diffuser": true,
+      "color": "#fff3bf",
+      "owner_id": "55a992603cd6",
+      "group": "Wspólny blat",
+      "attachment_id": "8d4a91d76f74",
+      "manual": true,
+      "config_auto": false,
+      "configure_feature": "manual_led",
+      "source": "",
+      "requires_review": true,
+      "kind": "led_diffuser",
+      "name": "Dyfuzor LED — ręczne rozmieszczenie",
+      "qty": 1.58,
+      "unit": "m",
+      "price": 0.0,
+      "note": "Montaż powierzchniowy bez rowka; 1580 × 12 mm. Własny model; dobierz artykuł, moc i mocowanie.",
+      "default_note": "Montaż powierzchniowy bez rowka; 1580 × 12 mm. Własny model; dobierz artykuł, moc i mocowanie."
+    }
+  ],
+  "scene": {
+    "room": "kitchen",
+    "brightness": 0.7,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [
+      {
+        "name": "Lodówka",
+        "width": 600.0,
+        "depth": 650.0,
+        "height": 1850.0,
+        "color": "#b8c0c4",
+        "id": "54fd354115f5",
+        "type": "fridge",
+        "x": 1650.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 2400.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Pralka",
+        "width": 600.0,
+        "depth": 600.0,
+        "height": 850.0,
+        "color": "#f1f0eb",
+        "id": "c06f23327953",
+        "type": "washer",
+        "x": -650.0,
+        "y": 50.0,
+        "z": 0.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 1500.0,
+        "light_enabled": true
+      }
+    ],
+    "architecture": {
+      "enabled": true,
+      "width": 3600.0,
+      "depth": 2800.0,
+      "height": 2700.0,
+      "x": -900.0,
+      "y": -750.0,
+      "z": 0.0,
+      "wall_color": "#c8d8dd",
+      "floor_color": "#bc9567",
+      "cutaway": true,
+      "ceiling": false
+    }
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

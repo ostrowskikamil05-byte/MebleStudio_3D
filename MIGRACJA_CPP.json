@@ -1,0 +1,3107 @@
+{
+  "schema": 1,
+  "version": "0.19-migration",
+  "complete_cpp_rewrite": false,
+  "compiled_operations": 81,
+  "active_adapters": 57,
+  "whole_python_modules_replaced": 0,
+  "modules": [
+    {
+      "name": "advanced_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "app",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Dokument, historia i zapis zatwierdzonych zmian w C++; interfejs oraz obsługa formularzy i gestów pozostają w Pythonie."
+    },
+    {
+      "name": "assembly",
+      "cpp_operations": [
+        "recipe"
+      ],
+      "active_adapters": [
+        "recipe"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "attachment_picker",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "cad_geometry",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "catalogue_previews",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "configurator_accessories",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "configurator_presets",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "core",
+      "cpp_operations": [
+        "finite",
+        "polygon_area",
+        "validate_polygon",
+        "inside",
+        "rotate",
+        "local_world",
+        "layout_point",
+        "inverse_layout_point",
+        "world",
+        "shade",
+        "cut_plan",
+        "explosion_shift",
+        "Part.points",
+        "Part.area",
+        "Part.edge_m",
+        "Part.blank",
+        "Material.cost",
+        "Project.costs",
+        "Camera._basis",
+        "Camera.view",
+        "Camera.project",
+        "part_metrics"
+      ],
+      "active_adapters": [
+        "Project.costs",
+        "cut_plan",
+        "shade",
+        "validate_polygon",
+        "Project.load",
+        "Project.save"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "corner_furniture",
+      "cpp_operations": [
+        "corner_outline",
+        "normalize_corner_config"
+      ],
+      "active_adapters": [
+        "corner_outline",
+        "normalize_corner_config"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "corner_quick_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "depth_raster",
+      "cpp_operations": [
+        "triangulate"
+      ],
+      "active_adapters": [
+        "triangulate"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "developer_logs",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "dimension_model",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "direct_edit",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "dock_workspace",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "drag_hardware",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "edge_editor",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "features",
+      "cpp_operations": [
+        "validate_drill",
+        "drill_location",
+        "validate_cut",
+        "hole_array",
+        "shift_features"
+      ],
+      "active_adapters": [
+        "drill_location",
+        "hole_array",
+        "shift_features",
+        "validate_cut",
+        "validate_drill"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "fitting_visuals",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "fittings",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "form_dialog",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "furniture_configurator",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "furniture_layout",
+      "cpp_operations": [
+        "_overlap",
+        "_intersects",
+        "_translated",
+        "_flat_faces",
+        "groups",
+        "group_layout",
+        "group_bounds",
+        "local_group_bounds",
+        "move_group",
+        "rotate_group",
+        "snap_group",
+        "nearest_snap",
+        "contacts"
+      ],
+      "active_adapters": [
+        "groups",
+        "group_layout",
+        "group_bounds",
+        "local_group_bounds",
+        "move_group",
+        "rotate_group",
+        "snap_group",
+        "nearest_snap",
+        "contacts"
+      ],
+      "remaining": "Cały algorytm układu, magnesu i kolizji oraz solver wspólnych blatów w C++; adapter, kopie projektu, cykl życia powiązań i dokładna walidacja CAD pozostają w Pythonie."
+    },
+    {
+      "name": "furniture_layout_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "furniture_library",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "gpu_scene",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "gpu_viewport",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "hardware_placement_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "hardware_report",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "hardware_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "launcher",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "machining_editor",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "material_presets",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "mechanisms",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "migration_status",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "native_model",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "native_scene_export",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "native_viewport",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "opening_options",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "palette",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "production_docs",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "productivity",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "project_print",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "quick_studio_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "responsive_ui",
+      "cpp_operations": [
+        "flow_layout",
+        "clamp_inspector"
+      ],
+      "active_adapters": [
+        "clamp_inspector",
+        "flow_layout"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "room_architecture",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "room_objects",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "room_scene_drag",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "room_scene_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "runner_installation",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "runners_catalog",
+      "cpp_operations": [
+        "get_profile",
+        "available_lengths",
+        "calculate_runner"
+      ],
+      "active_adapters": [
+        "available_lengths",
+        "calculate_runner",
+        "get_profile"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "shaped_furniture",
+      "cpp_operations": [
+        "_resolution",
+        "_finish",
+        "contour",
+        "shape_definition",
+        "profile_area",
+        "_ellipse_perimeter",
+        "profile_perimeter",
+        "resize_profile",
+        "refresh_decor",
+        "remove_decor",
+        "styled_bounds"
+      ],
+      "active_adapters": [
+        "_ellipse_perimeter",
+        "_finish",
+        "_resolution",
+        "contour",
+        "profile_area",
+        "profile_perimeter",
+        "refresh_decor",
+        "remove_decor",
+        "resize_profile",
+        "shape_definition",
+        "styled_bounds"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "sketch",
+      "cpp_operations": [
+        "normalized_part",
+        "transform_points",
+        "constrain_points"
+      ],
+      "active_adapters": [
+        "Sketch.constrain_edge",
+        "normalized_part",
+        "Sketch.transform_sketch"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "sketch_live",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "studio_interaction",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "studio_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "style_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "ui_preferences",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "ui_settings",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "view_modes_ui",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "viewport_annotations",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "viewport_modes",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "viewport_render",
+      "cpp_operations": [
+        "transform"
+      ],
+      "active_adapters": [
+        "transform"
+      ],
+      "remaining": "Pozostałe funkcje/interfejs/pełna walidacja pozostają w Python"
+    },
+    {
+      "name": "viewport_scene",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "visual_catalogue",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "workspace_controls",
+      "cpp_operations": [],
+      "active_adapters": [],
+      "remaining": "Moduł zachowany; pozostaje do migracji"
+    },
+    {
+      "name": "workspace_worktops",
+      "cpp_operations": [
+        "polygons_overlap",
+        "_distance",
+        "_offset",
+        "_union",
+        "_geometry"
+      ],
+      "active_adapters": [
+        "polygons_overlap",
+        "_distance",
+        "_offset",
+        "_union",
+        "_geometry"
+      ],
+      "remaining": "C++ oblicza odległości, naddatki, sumę obrysów i pełną geometrię blatu. Pobieranie korpusów, tworzenie części, kotwy, sygnatury, status i dokładna walidacja CAD pozostają w zachowanych modułach."
+    },
+    {
+      "name": "project_io",
+      "cpp_operations": [
+        "read",
+        "save"
+      ],
+      "active_adapters": [
+        "Project.load",
+        "Project.save"
+      ],
+      "remaining": "Pełna walidacja projektu oraz rekonstrukcja modelu pozostają w Python"
+    },
+    {
+      "name": "native_document",
+      "cpp_operations": [
+        "create",
+        "read",
+        "commit",
+        "checkpoint",
+        "undo",
+        "redo",
+        "clone",
+        "info",
+        "destroy",
+        "save"
+      ],
+      "active_adapters": [
+        "create",
+        "read",
+        "commit",
+        "undo",
+        "redo",
+        "info",
+        "destroy",
+        "save"
+      ],
+      "remaining": "Edycja zależna, generatory, pełna walidacja CAD i GUI pozostają w Pythonie; C++ przechowuje pełny zatwierdzony dokument, historię i zapis."
+    }
+  ],
+  "details": {
+    "metadata": {
+      "core": {
+        "path": "native/core/core_ports.json",
+        "sha256": "d2233a0d8621fd742dbd8e317444ac8fc9e83640f2eae46af2eccc62f90e6f47"
+      },
+      "shapes": {
+        "path": "shapes_ports.json",
+        "sha256": "fdc682a7a06b44dfcc6f7d44cc714930fd5bb8488a39f78042c24395bd6370b3"
+      },
+      "construction": {
+        "path": "native/core/construction_ports.json",
+        "sha256": "c77c3a4107ef6d7460c7c6a4cf97338ca9b80c577c6556640cd2d34b04757fba"
+      },
+      "services": {
+        "path": "native/core/services_ports.json",
+        "sha256": "245a744ff688b8292827d84951a9b8177adc5001115958b017717682c0bb1819"
+      },
+      "worktop": {
+        "path": "native/core/worktop_ports.json",
+        "sha256": "fc33b6fce52929d9af47eadbe8ac7bdf9b204de2c636bba72e1c6715d1ba6470"
+      }
+    },
+    "compiled_counts": {
+      "core": 22,
+      "shapes": 19,
+      "construction": 10,
+      "services": 6,
+      "layout": 9,
+      "workspace_geometry": 1,
+      "worktop": 4,
+      "document": 10
+    },
+    "compiled_count": 81,
+    "compiled_operations": [
+      {
+        "family": "core",
+        "module": "core",
+        "function": "finite",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "finite",
+          "binding": "function",
+          "arguments": [
+            "x",
+            "lo=-100000",
+            "hi=100000"
+          ],
+          "returns": "float"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "polygon_area",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "polygon_area",
+          "binding": "function",
+          "arguments": [
+            "points"
+          ],
+          "returns": "float"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "validate_polygon",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "validate_polygon",
+          "binding": "function",
+          "arguments": [
+            "points"
+          ],
+          "returns": "list_tuple2"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "core",
+          "function": "validate_polygon",
+          "kind": "module binding",
+          "location": "native_model.py:150",
+          "python_module": "core",
+          "python_function": "validate_polygon",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "inside",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "inside",
+          "binding": "function",
+          "arguments": [
+            "q",
+            "p"
+          ],
+          "returns": "bool"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "rotate",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "rotate",
+          "binding": "function",
+          "arguments": [
+            "point",
+            "rx",
+            "ry",
+            "rz"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "local_world",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "local_world",
+          "binding": "function",
+          "arguments": [
+            "p:Part",
+            "u",
+            "v",
+            "w"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "layout_point",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "layout_point",
+          "binding": "function",
+          "arguments": [
+            "p:Part",
+            "point"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "inverse_layout_point",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "inverse_layout_point",
+          "binding": "function",
+          "arguments": [
+            "p:Part",
+            "point"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "world",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "world",
+          "binding": "function",
+          "arguments": [
+            "p:Part",
+            "u",
+            "v",
+            "w"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "shade",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "shade",
+          "binding": "function",
+          "arguments": [
+            "color",
+            "factor"
+          ],
+          "returns": "str"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "core",
+          "function": "shade",
+          "kind": "module binding",
+          "location": "native_model.py:150",
+          "python_module": "core",
+          "python_function": "shade",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "cut_plan",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "cut_plan",
+          "binding": "function",
+          "arguments": [
+            "project:Project"
+          ],
+          "returns": "cut_plan_tuple",
+          "prevalidate": "project.validate()",
+          "conversion": "tuple(result); each sheet.free item must become tuple4; sheets and unplaced remain lists"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "core",
+          "function": "cut_plan",
+          "kind": "validated compact snapshot wrapper",
+          "location": "native_model.py:167",
+          "python_module": "core",
+          "python_function": "cut_plan",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "explosion_shift",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "explosion_shift",
+          "binding": "function",
+          "arguments": [
+            "p:Part",
+            "camera:Camera",
+            "explode"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Part.points",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Part.points",
+          "binding": "method",
+          "aliases": [
+            "part_points"
+          ],
+          "arguments": [
+            "self:Part"
+          ],
+          "returns": "list_tuple2"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Part.area",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Part.area",
+          "binding": "method",
+          "aliases": [
+            "part_area"
+          ],
+          "arguments": [
+            "self:Part"
+          ],
+          "returns": "float",
+          "dependency": "shaped_furniture.profile_area"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Part.edge_m",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Part.edge_m",
+          "binding": "method",
+          "aliases": [
+            "part_edge_m"
+          ],
+          "arguments": [
+            "self:Part"
+          ],
+          "returns": "float",
+          "dependency": "shaped_furniture.profile_perimeter"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Part.blank",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Part.blank",
+          "binding": "method",
+          "aliases": [
+            "part_blank"
+          ],
+          "arguments": [
+            "self:Part",
+            "edge_t"
+          ],
+          "returns": "tuple2"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Material.cost",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Material.cost",
+          "binding": "method",
+          "aliases": [
+            "material_cost"
+          ],
+          "arguments": [
+            "self:Material",
+            "part:Part"
+          ],
+          "returns": "float"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Project.costs",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Project.costs",
+          "binding": "method",
+          "aliases": [
+            "project_costs"
+          ],
+          "arguments": [
+            "self:Project"
+          ],
+          "returns": "dict"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "core",
+          "function": "Project.costs",
+          "kind": "class method wrapper",
+          "location": "native_model.py:171",
+          "python_module": "core",
+          "python_function": "Project.costs",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Camera._basis",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Camera._basis",
+          "binding": "method",
+          "aliases": [
+            "camera_basis"
+          ],
+          "arguments": [
+            "self:Camera"
+          ],
+          "returns": "tuple4"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Camera.view",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Camera.view",
+          "binding": "method",
+          "aliases": [
+            "camera_view"
+          ],
+          "arguments": [
+            "self:Camera",
+            "point"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "Camera.project",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "Camera.project",
+          "binding": "method",
+          "aliases": [
+            "camera_project"
+          ],
+          "arguments": [
+            "self:Camera",
+            "point",
+            "width",
+            "height"
+          ],
+          "returns": "tuple3"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "core",
+        "module": "core",
+        "function": "part_metrics",
+        "metadata": "native/core/core_ports.json",
+        "details": {
+          "function": "part_metrics",
+          "binding": "native_operation",
+          "arguments": [
+            "part:Part",
+            "edge_t=1"
+          ],
+          "returns": "dict",
+          "new_operation": true
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "_resolution",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "_resolution",
+          "parameters": [
+            "value"
+          ],
+          "defaults": {},
+          "native_result": "integer",
+          "python_result": "int",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "_resolution",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "_resolution",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "_finish",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "_finish",
+          "parameters": [
+            "points",
+            "u",
+            "v"
+          ],
+          "defaults": {},
+          "native_result": "array of [x,y]",
+          "python_result": "list[tuple2]",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "_finish",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "_finish",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "contour",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "contour",
+          "parameters": [
+            "kind",
+            "u",
+            "v",
+            "radii",
+            "segments",
+            "arch_rise",
+            "taper"
+          ],
+          "defaults": {
+            "radii": [
+              30,
+              30,
+              30,
+              30
+            ],
+            "segments": 12,
+            "arch_rise": null,
+            "taper": 10
+          },
+          "native_result": "array of [x,y]",
+          "python_result": "list[tuple2]",
+          "mutation_fields": [],
+          "kinds": [
+            "rectangle",
+            "rounded",
+            "ellipse",
+            "circle",
+            "capsule",
+            "arch",
+            "taper",
+            "half_ellipse"
+          ]
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "contour",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "contour",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "shape_definition",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "shape_definition",
+          "parameters": [
+            "kind",
+            "u",
+            "v",
+            "radii",
+            "segments",
+            "arch_rise",
+            "taper"
+          ],
+          "defaults": {
+            "radii": [
+              30,
+              30,
+              30,
+              30
+            ],
+            "segments": 12,
+            "arch_rise": null,
+            "taper": 10
+          },
+          "native_result": "object",
+          "python_result": "dict",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "shape_definition",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "shape_definition",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "profile_area",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "profile_area",
+          "parameters": [
+            "profile",
+            "u",
+            "v"
+          ],
+          "defaults": {},
+          "native_result": "number",
+          "python_result": "float",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "profile_area",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "profile_area",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "_ellipse_perimeter",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "_ellipse_perimeter",
+          "parameters": [
+            "a",
+            "b"
+          ],
+          "defaults": {},
+          "native_result": "number",
+          "python_result": "float",
+          "mutation_fields": [],
+          "method": "512-interval Simpson quadrature, as in the oracle"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "_ellipse_perimeter",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "_ellipse_perimeter",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "profile_perimeter",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "profile_perimeter",
+          "parameters": [
+            "profile",
+            "u",
+            "v"
+          ],
+          "defaults": {},
+          "native_result": "number",
+          "python_result": "float",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "profile_perimeter",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "profile_perimeter",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "resize_profile",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "resize_profile",
+          "parameters": [
+            "part",
+            "u",
+            "v"
+          ],
+          "defaults": {},
+          "native_result": "Part dictionary",
+          "python_result": "None; mutate part",
+          "mutation_fields": [
+            "profile",
+            "contour"
+          ],
+          "retained_behavior": "Do not assign part.u/part.v here; the old caller assigns them afterward. Do not insert Part.validate() into this intermediate operation."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "resize_profile",
+          "kind": "atomic mutation wrapper",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "resize_profile",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+          "mutation_fields": [
+            "profile",
+            "contour"
+          ]
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "refresh_decor",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "refresh_decor",
+          "parameters": [
+            "part"
+          ],
+          "defaults": {},
+          "native_result": "Part dictionary",
+          "python_result": "None; mutate part",
+          "mutation_fields": [
+            "machining",
+            "decor"
+          ],
+          "retained_behavior": "Preserve manually created machining, including a null generated_decor tag. Limit total operations to 200."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "refresh_decor",
+          "kind": "atomic mutation wrapper",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "refresh_decor",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+          "mutation_fields": [
+            "machining",
+            "decor"
+          ]
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "remove_decor",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "remove_decor",
+          "parameters": [
+            "part"
+          ],
+          "defaults": {},
+          "native_result": "Part dictionary",
+          "python_result": "None; mutate part",
+          "mutation_fields": [
+            "machining",
+            "decor"
+          ]
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "remove_decor",
+          "kind": "atomic mutation wrapper",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "remove_decor",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+          "mutation_fields": [
+            "machining",
+            "decor"
+          ]
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "shaped_furniture",
+        "function": "styled_bounds",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "shaped_furniture",
+          "function": "styled_bounds",
+          "parameters": [
+            "project",
+            "group"
+          ],
+          "defaults": {},
+          "native_result": "{lower:[x,y,z],upper:[x,y,z]} or null",
+          "python_result": "dict containing tuple3 values or None",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "shaped_furniture",
+          "function": "styled_bounds",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "shaped_furniture",
+          "python_function": "styled_bounds",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "features",
+        "function": "validate_drill",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "features",
+          "function": "validate_drill",
+          "parameters": [
+            "part",
+            "op"
+          ],
+          "defaults": {},
+          "native_result": "null",
+          "python_result": "None",
+          "mutation_fields": [],
+          "retained_behavior": "Validate six faces, countersinks, drilling axis thickness and 72 contour samples on top/bottom."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "features",
+          "function": "validate_drill",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "features",
+          "python_function": "validate_drill",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "features",
+        "function": "drill_location",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "features",
+          "function": "drill_location",
+          "parameters": [
+            "part",
+            "op"
+          ],
+          "defaults": {},
+          "native_result": "[[x,y,z],[dx,dy,dz]]",
+          "python_result": "tuple[tuple3,tuple3]",
+          "mutation_fields": []
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "features",
+          "function": "drill_location",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "features",
+          "python_function": "drill_location",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "features",
+        "function": "validate_cut",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "features",
+          "function": "validate_cut",
+          "parameters": [
+            "part",
+            "cut"
+          ],
+          "defaults": {},
+          "native_result": "null",
+          "python_result": "None",
+          "mutation_fields": [],
+          "retained_behavior": "Validate pocket/cutout/groove; rect/circle/slot; top/bottom; rotated samples, depth and contour limits."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "features",
+          "function": "validate_cut",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "features",
+          "python_function": "validate_cut",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "features",
+        "function": "hole_array",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "features",
+          "function": "hole_array",
+          "parameters": [
+            "part",
+            "u",
+            "v",
+            "diameter",
+            "depth",
+            "nu",
+            "nv",
+            "du",
+            "dv",
+            "face"
+          ],
+          "defaults": {
+            "nu": 1,
+            "nv": 1,
+            "du": 32,
+            "dv": 32,
+            "face": "top"
+          },
+          "native_result": "array of operation objects",
+          "python_result": "list[dict]",
+          "mutation_fields": [],
+          "retained_behavior": "Integer truncation of finite counts 1..100; at most 500 holes; every operation validated before return."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "features",
+          "function": "hole_array",
+          "kind": "module binding",
+          "location": "native_model.py:257",
+          "python_module": "features",
+          "python_function": "hole_array",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "features",
+        "function": "shift_features",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "features",
+          "function": "shift_features",
+          "parameters": [
+            "part",
+            "du",
+            "dv",
+            "dt"
+          ],
+          "defaults": {
+            "du": 0,
+            "dv": 0,
+            "dt": 0
+          },
+          "native_result": "Part dictionary",
+          "python_result": "None; mutate part",
+          "mutation_fields": [
+            "operations",
+            "machining"
+          ],
+          "retained_behavior": "Shift local feature coordinates without introducing full Part validation during normalization."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "features",
+          "function": "shift_features",
+          "kind": "atomic mutation wrapper",
+          "location": "native_model.py:257",
+          "python_module": "features",
+          "python_function": "shift_features",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+          "mutation_fields": [
+            "operations",
+            "machining"
+          ]
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "sketch",
+        "function": "normalized_part",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "sketch",
+          "function": "normalized_part",
+          "parameters": [
+            "part",
+            "points"
+          ],
+          "defaults": {},
+          "native_result": "NEW Part dictionary; geometry and feature positions normalized",
+          "python_result": "NEW Part, after legacy Part.validate()",
+          "mutation_fields": [],
+          "requires_full_legacy_validation": true,
+          "retained_behavior": "Core polygon validation and local_world transform are native. Full CAD/fillet/chamfer, hardware and linked-feature validation remains at the adapter boundary."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "sketch",
+          "function": "normalized_part",
+          "kind": "new Part + full retained Part.validate",
+          "location": "native_model.py:257",
+          "python_module": "sketch",
+          "python_function": "normalized_part",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "sketch",
+        "function": "transform_points",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "sketch",
+          "function": "transform_points",
+          "parameters": [
+            "points",
+            "action"
+          ],
+          "defaults": {},
+          "native_result": "array of [x,y]",
+          "python_result": "list[tuple2]",
+          "mutation_fields": [],
+          "extracted_from": "Sketch.transform_sketch",
+          "retained_behavior": "mirror_u, mirror_v, otherwise rotate 90 degrees; preserve existing UI history, set_sketch_points guard and refresh."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "sketch",
+          "function": "transform_points",
+          "kind": "pure point kernel within retained UI method",
+          "location": "sketch.py:479",
+          "python_module": "sketch",
+          "python_function": "Sketch.transform_sketch",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "shapes",
+        "module": "sketch",
+        "function": "constrain_points",
+        "metadata": "shapes_ports.json",
+        "details": {
+          "module": "sketch",
+          "function": "constrain_points",
+          "parameters": [
+            "points",
+            "index",
+            "closed",
+            "kind",
+            "length"
+          ],
+          "defaults": {
+            "closed": true,
+            "length": null
+          },
+          "native_result": "array of [x,y] or null",
+          "python_result": "list[tuple2] or None when length is cancelled",
+          "mutation_fields": [],
+          "extracted_from": "Sketch.constrain_segment",
+          "retained_behavior": "horizontal/vertical/length; open-contour final edge and coincident-point guards. Length dialog, history and final sketch validation stay in UI."
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "sketch",
+          "function": "constrain_points",
+          "kind": "pure point kernel within retained UI method",
+          "location": "sketch.py:521",
+          "python_module": "sketch",
+          "python_function": "Sketch.constrain_edge",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "construction",
+        "module": "runners_catalog",
+        "function": "get_profile",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "runners_catalog",
+          "function": "get_profile"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "runners_catalog",
+          "function": "get_profile",
+          "kind": "module binding",
+          "location": "native_model.py:184",
+          "python_module": "runners_catalog",
+          "python_function": "get_profile",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "construction",
+        "module": "runners_catalog",
+        "function": "available_lengths",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "runners_catalog",
+          "function": "available_lengths"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "runners_catalog",
+          "function": "available_lengths",
+          "kind": "module binding",
+          "location": "native_model.py:184",
+          "python_module": "runners_catalog",
+          "python_function": "available_lengths",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "construction",
+        "module": "runners_catalog",
+        "function": "calculate_runner",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "runners_catalog",
+          "function": "calculate_runner"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "runners_catalog",
+          "function": "calculate_runner",
+          "kind": "module binding",
+          "location": "native_model.py:184",
+          "python_module": "runners_catalog",
+          "python_function": "calculate_runner",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "construction",
+        "module": "furniture_layout",
+        "function": "_overlap",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "furniture_layout",
+          "function": "_overlap"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "construction",
+        "module": "furniture_layout",
+        "function": "_intersects",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "furniture_layout",
+          "function": "_intersects"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "construction",
+        "module": "furniture_layout",
+        "function": "_translated",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "furniture_layout",
+          "function": "_translated"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "construction",
+        "module": "furniture_layout",
+        "function": "_flat_faces",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "furniture_layout",
+          "function": "_flat_faces"
+        },
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "construction",
+        "module": "corner_furniture",
+        "function": "corner_outline",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "corner_furniture",
+          "function": "corner_outline"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "corner_furniture",
+          "function": "corner_outline",
+          "kind": "module binding",
+          "location": "native_model.py:184",
+          "python_module": "corner_furniture",
+          "python_function": "corner_outline",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "construction",
+        "module": "corner_furniture",
+        "function": "normalize_corner_config",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "corner_furniture",
+          "function": "normalize_corner_config"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "corner_furniture",
+          "function": "normalize_corner_config",
+          "kind": "module binding",
+          "location": "native_model.py:184",
+          "python_module": "corner_furniture",
+          "python_function": "normalize_corner_config",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "construction",
+        "module": "assembly",
+        "function": "recipe",
+        "metadata": "native/core/construction_ports.json",
+        "details": {
+          "module": "assembly",
+          "function": "recipe"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "assembly",
+          "function": "recipe",
+          "kind": "module binding",
+          "location": "native_model.py:184",
+          "python_module": "assembly",
+          "python_function": "recipe",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "services",
+        "module": "depth_raster",
+        "function": "triangulate",
+        "metadata": "native/core/services_ports.json",
+        "details": {
+          "module": "depth_raster",
+          "function": "triangulate",
+          "result": "tuple_of_tuples",
+          "integrate": true
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "depth_raster",
+          "function": "triangulate",
+          "kind": "module binding",
+          "location": "native_model.py:255",
+          "python_module": "depth_raster",
+          "python_function": "triangulate",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "services",
+        "module": "responsive_ui",
+        "function": "flow_layout",
+        "metadata": "native/core/services_ports.json",
+        "details": {
+          "module": "responsive_ui",
+          "function": "flow_layout",
+          "result": "placements",
+          "integrate": true
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "responsive_ui",
+          "function": "flow_layout",
+          "kind": "module binding",
+          "location": "native_model.py:251",
+          "python_module": "responsive_ui",
+          "python_function": "flow_layout",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "services",
+        "module": "responsive_ui",
+        "function": "clamp_inspector",
+        "metadata": "native/core/services_ports.json",
+        "details": {
+          "module": "responsive_ui",
+          "function": "clamp_inspector",
+          "result": "scalar",
+          "integrate": true
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "responsive_ui",
+          "function": "clamp_inspector",
+          "kind": "module binding",
+          "location": "native_model.py:251",
+          "python_module": "responsive_ui",
+          "python_function": "clamp_inspector",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "services",
+        "module": "project_io",
+        "function": "read",
+        "metadata": "native/core/services_ports.json",
+        "details": {
+          "module": "project_io",
+          "function": "read",
+          "result": "object",
+          "integrate": "Project.load"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "project_io",
+          "function": "read",
+          "kind": "native I/O; retained Project validation/from_data",
+          "location": "native_model.py:144",
+          "python_module": "core",
+          "python_function": "Project.load",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "services",
+        "module": "project_io",
+        "function": "save",
+        "metadata": "native/core/services_ports.json",
+        "details": {
+          "module": "project_io",
+          "function": "save",
+          "result": "null",
+          "integrate": "Project.save"
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "project_io",
+          "function": "save",
+          "kind": "native I/O; retained Project validation/from_data",
+          "location": "native_model.py:141",
+          "python_module": "core",
+          "python_function": "Project.save",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "services",
+        "module": "viewport_render",
+        "function": "transform",
+        "metadata": "native/core/services_ports.json",
+        "details": {
+          "module": "viewport_render",
+          "function": "transform",
+          "abi": "binary_batch",
+          "integrate": true
+        },
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "viewport_render",
+          "function": "transform",
+          "kind": "binary batch C ABI",
+          "location": "native_model.py:104",
+          "python_module": "viewport_render",
+          "python_function": "transform",
+          "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "groups",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "groups",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "groups",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "groups",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "groups",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "group_layout",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "group_layout",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "group_layout",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "group_layout",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "group_layout",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "group_bounds",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "group_bounds",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "group_bounds",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "group_bounds",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "group_bounds",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "local_group_bounds",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "local_group_bounds",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "local_group_bounds",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "local_group_bounds",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "local_group_bounds",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "move_group",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "move_group",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "move_group",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "move_group",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "move_group",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "rotate_group",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "rotate_group",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "rotate_group",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "rotate_group",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "rotate_group",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "snap_group",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "snap_group",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "snap_group",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "snap_group",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "snap_group",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "nearest_snap",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "nearest_snap",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "nearest_snap",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "nearest_snap",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "nearest_snap",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "layout",
+        "module": "furniture_layout",
+        "function": "contacts",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "contacts",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "furniture_layout",
+          "function": "contacts",
+          "dispatcher_module": "layout",
+          "dispatcher_function": "contacts",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "furniture_layout",
+          "python_function": "contacts",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "workspace_geometry",
+        "module": "workspace_worktops",
+        "function": "polygons_overlap",
+        "dispatcher_module": "workspace_geometry",
+        "dispatcher_function": "polygons_overlap",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "workspace_worktops",
+          "function": "polygons_overlap",
+          "dispatcher_module": "workspace_geometry",
+          "dispatcher_function": "polygons_overlap",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "workspace_worktops",
+          "python_function": "polygons_overlap",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "worktop",
+        "module": "workspace_worktops",
+        "function": "_distance",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "distance",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "workspace_worktops",
+          "function": "_distance",
+          "dispatcher_module": "workspace_worktop",
+          "dispatcher_function": "distance",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "workspace_worktops",
+          "python_function": "_distance",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "worktop",
+        "module": "workspace_worktops",
+        "function": "_offset",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "offset",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "workspace_worktops",
+          "function": "_offset",
+          "dispatcher_module": "workspace_worktop",
+          "dispatcher_function": "offset",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "workspace_worktops",
+          "python_function": "_offset",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "worktop",
+        "module": "workspace_worktops",
+        "function": "_union",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "union",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "workspace_worktops",
+          "function": "_union",
+          "dispatcher_module": "workspace_worktop",
+          "dispatcher_function": "union",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "workspace_worktops",
+          "python_function": "_union",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "worktop",
+        "module": "workspace_worktops",
+        "function": "_geometry",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "geometry",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "workspace_worktops",
+          "function": "_geometry",
+          "dispatcher_module": "workspace_worktop",
+          "dispatcher_function": "geometry",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "workspace_worktops",
+          "python_function": "_geometry",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "create",
+        "dispatcher_module": "document",
+        "dispatcher_function": "create",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "create",
+          "dispatcher_module": "document",
+          "dispatcher_function": "create",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "create",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "read",
+        "dispatcher_module": "document",
+        "dispatcher_function": "read",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "read",
+          "dispatcher_module": "document",
+          "dispatcher_function": "read",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "read",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "commit",
+        "dispatcher_module": "document",
+        "dispatcher_function": "commit",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "commit",
+          "dispatcher_module": "document",
+          "dispatcher_function": "commit",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "commit",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "checkpoint",
+        "dispatcher_module": "document",
+        "dispatcher_function": "checkpoint",
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "undo",
+        "dispatcher_module": "document",
+        "dispatcher_function": "undo",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "undo",
+          "dispatcher_module": "document",
+          "dispatcher_function": "undo",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "undo",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "redo",
+        "dispatcher_module": "document",
+        "dispatcher_function": "redo",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "redo",
+          "dispatcher_module": "document",
+          "dispatcher_function": "redo",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "redo",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "clone",
+        "dispatcher_module": "document",
+        "dispatcher_function": "clone",
+        "active_python_adapter": false,
+        "adapter": null
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "info",
+        "dispatcher_module": "document",
+        "dispatcher_function": "info",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "info",
+          "dispatcher_module": "document",
+          "dispatcher_function": "info",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "info",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "destroy",
+        "dispatcher_module": "document",
+        "dispatcher_function": "destroy",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "destroy",
+          "dispatcher_module": "document",
+          "dispatcher_function": "destroy",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "destroy",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      },
+      {
+        "family": "document",
+        "module": "native_document",
+        "function": "save",
+        "dispatcher_module": "document",
+        "dispatcher_function": "save",
+        "active_python_adapter": true,
+        "adapter": {
+          "module": "native_document",
+          "function": "save",
+          "dispatcher_module": "document",
+          "dispatcher_function": "save",
+          "kind": "staged native operation with retained Python boundary",
+          "python_module": "native_document",
+          "python_function": "save",
+          "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+        }
+      }
+    ],
+    "active_count": 57,
+    "active_operations": [
+      {
+        "module": "assembly",
+        "function": "recipe",
+        "kind": "module binding",
+        "location": "native_model.py:184",
+        "python_module": "assembly",
+        "python_function": "recipe",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "core",
+        "function": "Project.costs",
+        "kind": "class method wrapper",
+        "location": "native_model.py:171",
+        "python_module": "core",
+        "python_function": "Project.costs",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "core",
+        "function": "cut_plan",
+        "kind": "validated compact snapshot wrapper",
+        "location": "native_model.py:167",
+        "python_module": "core",
+        "python_function": "cut_plan",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "core",
+        "function": "shade",
+        "kind": "module binding",
+        "location": "native_model.py:150",
+        "python_module": "core",
+        "python_function": "shade",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "core",
+        "function": "validate_polygon",
+        "kind": "module binding",
+        "location": "native_model.py:150",
+        "python_module": "core",
+        "python_function": "validate_polygon",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "corner_furniture",
+        "function": "corner_outline",
+        "kind": "module binding",
+        "location": "native_model.py:184",
+        "python_module": "corner_furniture",
+        "python_function": "corner_outline",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "corner_furniture",
+        "function": "normalize_corner_config",
+        "kind": "module binding",
+        "location": "native_model.py:184",
+        "python_module": "corner_furniture",
+        "python_function": "normalize_corner_config",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "depth_raster",
+        "function": "triangulate",
+        "kind": "module binding",
+        "location": "native_model.py:255",
+        "python_module": "depth_raster",
+        "python_function": "triangulate",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "features",
+        "function": "drill_location",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "features",
+        "python_function": "drill_location",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "features",
+        "function": "hole_array",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "features",
+        "python_function": "hole_array",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "features",
+        "function": "shift_features",
+        "kind": "atomic mutation wrapper",
+        "location": "native_model.py:257",
+        "python_module": "features",
+        "python_function": "shift_features",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+        "mutation_fields": [
+          "operations",
+          "machining"
+        ]
+      },
+      {
+        "module": "features",
+        "function": "validate_cut",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "features",
+        "python_function": "validate_cut",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "features",
+        "function": "validate_drill",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "features",
+        "python_function": "validate_drill",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "project_io",
+        "function": "read",
+        "kind": "native I/O; retained Project validation/from_data",
+        "location": "native_model.py:144",
+        "python_module": "core",
+        "python_function": "Project.load",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "project_io",
+        "function": "save",
+        "kind": "native I/O; retained Project validation/from_data",
+        "location": "native_model.py:141",
+        "python_module": "core",
+        "python_function": "Project.save",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "responsive_ui",
+        "function": "clamp_inspector",
+        "kind": "module binding",
+        "location": "native_model.py:251",
+        "python_module": "responsive_ui",
+        "python_function": "clamp_inspector",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "responsive_ui",
+        "function": "flow_layout",
+        "kind": "module binding",
+        "location": "native_model.py:251",
+        "python_module": "responsive_ui",
+        "python_function": "flow_layout",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "runners_catalog",
+        "function": "available_lengths",
+        "kind": "module binding",
+        "location": "native_model.py:184",
+        "python_module": "runners_catalog",
+        "python_function": "available_lengths",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "runners_catalog",
+        "function": "calculate_runner",
+        "kind": "module binding",
+        "location": "native_model.py:184",
+        "python_module": "runners_catalog",
+        "python_function": "calculate_runner",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "runners_catalog",
+        "function": "get_profile",
+        "kind": "module binding",
+        "location": "native_model.py:184",
+        "python_module": "runners_catalog",
+        "python_function": "get_profile",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "_ellipse_perimeter",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "_ellipse_perimeter",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "_finish",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "_finish",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "_resolution",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "_resolution",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "contour",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "contour",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "profile_area",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "profile_area",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "profile_perimeter",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "profile_perimeter",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "refresh_decor",
+        "kind": "atomic mutation wrapper",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "refresh_decor",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+        "mutation_fields": [
+          "machining",
+          "decor"
+        ]
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "remove_decor",
+        "kind": "atomic mutation wrapper",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "remove_decor",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+        "mutation_fields": [
+          "machining",
+          "decor"
+        ]
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "resize_profile",
+        "kind": "atomic mutation wrapper",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "resize_profile",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL",
+        "mutation_fields": [
+          "profile",
+          "contour"
+        ]
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "shape_definition",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "shape_definition",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "shaped_furniture",
+        "function": "styled_bounds",
+        "kind": "module binding",
+        "location": "native_model.py:257",
+        "python_module": "shaped_furniture",
+        "python_function": "styled_bounds",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "sketch",
+        "function": "constrain_points",
+        "kind": "pure point kernel within retained UI method",
+        "location": "sketch.py:521",
+        "python_module": "sketch",
+        "python_function": "Sketch.constrain_edge",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "sketch",
+        "function": "normalized_part",
+        "kind": "new Part + full retained Part.validate",
+        "location": "native_model.py:257",
+        "python_module": "sketch",
+        "python_function": "normalized_part",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "sketch",
+        "function": "transform_points",
+        "kind": "pure point kernel within retained UI method",
+        "location": "sketch.py:479",
+        "python_module": "sketch",
+        "python_function": "Sketch.transform_sketch",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "viewport_render",
+        "function": "transform",
+        "kind": "binary batch C ABI",
+        "location": "native_model.py:104",
+        "python_module": "viewport_render",
+        "python_function": "transform",
+        "active_if": "Windows with MebelModel.dll present; frozen release requires the DLL"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "groups",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "groups",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "groups",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "group_layout",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "group_layout",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "group_layout",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "group_bounds",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "group_bounds",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "group_bounds",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "local_group_bounds",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "local_group_bounds",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "local_group_bounds",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "move_group",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "move_group",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "move_group",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "rotate_group",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "rotate_group",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "rotate_group",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "snap_group",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "snap_group",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "snap_group",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "nearest_snap",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "nearest_snap",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "nearest_snap",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "furniture_layout",
+        "function": "contacts",
+        "dispatcher_module": "layout",
+        "dispatcher_function": "contacts",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "furniture_layout",
+        "python_function": "contacts",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "workspace_worktops",
+        "function": "polygons_overlap",
+        "dispatcher_module": "workspace_geometry",
+        "dispatcher_function": "polygons_overlap",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "workspace_worktops",
+        "python_function": "polygons_overlap",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "workspace_worktops",
+        "function": "_distance",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "distance",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "workspace_worktops",
+        "python_function": "_distance",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "workspace_worktops",
+        "function": "_offset",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "offset",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "workspace_worktops",
+        "python_function": "_offset",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "workspace_worktops",
+        "function": "_union",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "union",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "workspace_worktops",
+        "python_function": "_union",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "workspace_worktops",
+        "function": "_geometry",
+        "dispatcher_module": "workspace_worktop",
+        "dispatcher_function": "geometry",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "workspace_worktops",
+        "python_function": "_geometry",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "create",
+        "dispatcher_module": "document",
+        "dispatcher_function": "create",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "create",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "read",
+        "dispatcher_module": "document",
+        "dispatcher_function": "read",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "read",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "commit",
+        "dispatcher_module": "document",
+        "dispatcher_function": "commit",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "commit",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "undo",
+        "dispatcher_module": "document",
+        "dispatcher_function": "undo",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "undo",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "redo",
+        "dispatcher_module": "document",
+        "dispatcher_function": "redo",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "redo",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "info",
+        "dispatcher_module": "document",
+        "dispatcher_function": "info",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "info",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "destroy",
+        "dispatcher_module": "document",
+        "dispatcher_function": "destroy",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "destroy",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      },
+      {
+        "module": "native_document",
+        "function": "save",
+        "dispatcher_module": "document",
+        "dispatcher_function": "save",
+        "kind": "staged native operation with retained Python boundary",
+        "python_module": "native_document",
+        "python_function": "save",
+        "active_if": "Windows with matching MebelModel.dll present; release requires complete package"
+      }
+    ],
+    "compiled_not_routed": [
+      "core.finite",
+      "core.polygon_area",
+      "core.inside",
+      "core.rotate",
+      "core.local_world",
+      "core.layout_point",
+      "core.inverse_layout_point",
+      "core.world",
+      "core.explosion_shift",
+      "core.Part.points",
+      "core.Part.area",
+      "core.Part.edge_m",
+      "core.Part.blank",
+      "core.Material.cost",
+      "core.Camera._basis",
+      "core.Camera.view",
+      "core.Camera.project",
+      "core.part_metrics",
+      "furniture_layout._overlap",
+      "furniture_layout._intersects",
+      "furniture_layout._translated",
+      "furniture_layout._flat_faces",
+      "native_document.checkpoint",
+      "native_document.clone"
+    ],
+    "adapter_without_compiled_metadata": [],
+    "module_installation_hooks": {
+      "assembly": {
+        "installer": "install_construction",
+        "line": 361
+      },
+      "core": {
+        "installer": "install_core",
+        "line": 579
+      },
+      "corner_furniture": {
+        "installer": "install_construction",
+        "line": 384
+      },
+      "depth_raster": {
+        "installer": "install_services",
+        "line": 220
+      },
+      "features": {
+        "installer": "install_shapes",
+        "line": 77
+      },
+      "furniture_layout": {
+        "installer": "install_construction",
+        "line": 246
+      },
+      "responsive_ui": {
+        "installer": "install_services",
+        "line": 308
+      },
+      "runners_catalog": {
+        "installer": "install_construction",
+        "line": 344
+      },
+      "shaped_furniture": {
+        "installer": "install_shapes",
+        "line": 470
+      },
+      "sketch": {
+        "installer": "install_shapes",
+        "line": 542
+      },
+      "viewport_render": {
+        "installer": "install_viewport",
+        "line": 605
+      }
+    },
+    "whole_python_modules_fully_replaced": 0,
+    "limitation": "Static inventory reconciled through stage 3; active routes are additionally verified by runtime tests. Generators, GUI, lifecycle and exact CAD still retain Python."
+  },
+  "migration_stage": "native_shared_worktop_geometry",
+  "native_document": {
+    "api_version": 1,
+    "storage": "complete serialized editable project",
+    "history_limit": 60,
+    "authoritative_committed_state": "C++",
+    "editable_preview": "Python projection",
+    "exact_cad_validation": "existing Python/OpenCascade preflight retained",
+    "native_atomic_save": true
+  },
+  "previous_stage": "native_layout_magnet",
+  "native_layout": {
+    "api_version": 1,
+    "operations": [
+      "groups",
+      "group_layout",
+      "group_bounds",
+      "local_group_bounds",
+      "move_group",
+      "rotate_group",
+      "snap_group",
+      "nearest_snap",
+      "contacts"
+    ],
+    "native": "panel transforms, local/world bounds, irregular footprints, movement, rotation, full magnet/collision/contact loops",
+    "batch_boundary": "one scene request per layout operation; no per-comparison JSON calls",
+    "retained_python": "one accessory geometry extraction, immutable project projection, linked worktop lifecycle and exact CAD validation; worktop solver now C++"
+  },
+  "native_workspace_geometry": {
+    "api_version": 1,
+    "operations": [
+      "polygons_overlap"
+    ],
+    "python_numeric_compatibility": "original mixed integer/float winding retained once at adapter boundary",
+    "native": "all intersection tests; native layout uses compensated winding directly"
+  },
+  "native_worktop": {
+    "api_version": 1,
+    "operations": [
+      "distance",
+      "offset",
+      "union",
+      "geometry"
+    ],
+    "native": "distance, polygon offset/union, complete height/overlap/connectivity/contour geometry solver",
+    "batch_boundary": "one ordered body extraction and one native solver call; no per-edge Python callbacks",
+    "retained_python": "body/configuration extraction; Part creation, linked IDs/signatures/status lifecycle, exact CAD preflight",
+    "compatibility": "original Python numeric winding and exact binary-to-decimal ties-to-even round"
+  }
+}

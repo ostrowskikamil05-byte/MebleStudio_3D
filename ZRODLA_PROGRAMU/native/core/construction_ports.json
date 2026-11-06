@@ -1,0 +1,114 @@
+{
+  "ports": [
+    {
+      "module": "runners_catalog",
+      "function": "get_profile"
+    },
+    {
+      "module": "runners_catalog",
+      "function": "available_lengths"
+    },
+    {
+      "module": "runners_catalog",
+      "function": "calculate_runner"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_overlap"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_intersects"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_translated"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_flat_faces"
+    },
+    {
+      "module": "corner_furniture",
+      "function": "corner_outline"
+    },
+    {
+      "module": "corner_furniture",
+      "function": "normalize_corner_config"
+    },
+    {
+      "module": "assembly",
+      "function": "recipe"
+    }
+  ],
+  "catalog_profile_count": 12,
+  "catalog_checked_on": "2026-10-03",
+  "embedded_catalog": true,
+  "source_sha256": {
+    "runners_catalog.py": "d7fc90582bd65716e91a29ef0c5b043f36d73e5f5affdea9cb1912ec08e15dc7",
+    "furniture_layout.py": "7b9f86b61f385425494ff5274615f4786366de49b478cf7881d536ae6bc9fdf2",
+    "corner_furniture.py": "13a16f3b6f5c5cb541c19a6c9379e35872d64e1867837b30802c5d60b9006a0c",
+    "assembly.py": "2bf4e6cd67fd5193dab30472b5acacf530c0e820c564dd4b7eaa7489091dd100",
+    "configurator_accessories.py": "4bbd37e226a75fb81ae62127abd43f2e7ad4d051dc9bcfbb9002d32e3e479130",
+    "fittings.py": "bae7f733825a77f076caec0a28d702c6b6ff87ba9186b79110b3c86690baaa1d"
+  },
+  "tuple_conversions": {
+    "furniture_layout._translated": "tuple(tuple(point) for point in result)",
+    "furniture_layout._flat_faces": "[tuple(face) for face in result]",
+    "corner_furniture.corner_outline": "[tuple(point) for point in result]"
+  },
+  "profile_resolution": "get_profile accepts ID or complete dict; native embeds every original profile including integer-keyed maps serialized as decimal-string JSON keys",
+  "project_resolution": "normalize_corner_config optional project argument must be project.data() (materials list of dicts with id), or null",
+  "profile_key_conversions": {
+    "get_profile(string)": "restore decimal-string map keys to int for depth_by_length/article_by_length/source_by_length/load_by_length/travel_by_length",
+    "get_profile(dict)": "resolve missing id using original Python-key equality before JSON; restore each map key type according to input dict",
+    "calculate_runner(dict) and available_lengths(dict)": "resolve missing id before JSON; copy profile and keep only finite numeric int/float/bool keys in each *_by_length map; normalize bool to int; Python numeric lookup ignores string keys"
+  },
+  "active_python_bindings": [
+    {
+      "module": "runners_catalog",
+      "function": "get_profile"
+    },
+    {
+      "module": "runners_catalog",
+      "function": "available_lengths"
+    },
+    {
+      "module": "runners_catalog",
+      "function": "calculate_runner"
+    },
+    {
+      "module": "corner_furniture",
+      "function": "corner_outline"
+    },
+    {
+      "module": "corner_furniture",
+      "function": "normalize_corner_config"
+    },
+    {
+      "module": "assembly",
+      "function": "recipe"
+    }
+  ],
+  "retained_hot_loop_helpers": [
+    {
+      "module": "furniture_layout",
+      "function": "_overlap"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_intersects"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_translated"
+    },
+    {
+      "module": "furniture_layout",
+      "function": "_flat_faces"
+    }
+  ],
+  "retained_hot_loop_reason": "The existing nearest_snap loop retains its tiny Python helpers to avoid one JSON ABI call per overlap. Exact native implementations are available for a later resident C++ model and are parity-tested.",
+  "verified_parity_checks": 1803,
+  "verified_parity_reference": "original immutable MebelStudio3D_0_14"
+}

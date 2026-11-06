@@ -1,0 +1,982 @@
+{
+  "version": 1,
+  "name": "Szafka pralnicza — listwy i otwarte plecy",
+  "parts": [
+    {
+      "id": "1d752af6c1e6",
+      "name": "Bok lewy",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 650.0,
+      "v": 900.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "8d2f0c84194d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 438.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7d85817af098",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 608.0,
+          "v": 438.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7d85817af098",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 86.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 118.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 782.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 814.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 49,
+          "name": "Szafka pralnicza — listwy i otwarte plecy",
+          "width": 600.0,
+          "height": 1000.0,
+          "depth": 650.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "8d2f0c84194d",
+          "front_material": "91995a345f9e",
+          "back": false,
+          "back_thickness": 3.0,
+          "worktop": false,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "rails",
+          "rail_width": 80.0,
+          "leg_height": 100.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 900.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "1d752af6c1e6",
+            "signature": "b7fac8743ca0da0e65a30187aaff5c2083c4ec963676cf599bb04f0391e058c0"
+          },
+          "carcass.right": {
+            "id": "5d0b17fac57a",
+            "signature": "13f9055958536b9b4b0d4cf5c68cbd7f44406eda89ee913d6c0c2221385b513b"
+          },
+          "carcass.bottom": {
+            "id": "57d408bf6263",
+            "signature": "7c812422ff1c02d331dcfd36b3181d9189f27446923eb0e9e16ae7e2564dff32"
+          },
+          "carcass.top": {
+            "id": "e7e43e67455a",
+            "signature": "9013c1274b2fc54790821059d09dcc12bc8262b15bc9302cf56b46888e57fbb9"
+          },
+          "carcass.rail_back": {
+            "id": "c7011ce7c3e0",
+            "signature": "cbfcabc31469b209e374f9e89d7409dcbaef3ce128e2a9da13240cab32a84336"
+          },
+          "main.bay.0.shelf.1": {
+            "id": "7d85817af098",
+            "signature": "47e061383cdcc23dc99260d8fbd5e661016d3598a834eb7e39cac0a834bcda18"
+          },
+          "main.bay.0.door.0": {
+            "id": "26a0cc50763e",
+            "signature": "57630bb3a8188ba507f5fb368d7564cabaefd468540abc3c78e559642d841991"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "5d0b17fac57a",
+      "name": "Bok prawy",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 650.0,
+      "v": 900.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 582.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "8d2f0c84194d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 438.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7d85817af098",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 608.0,
+          "v": 438.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7d85817af098",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "57d408bf6263",
+      "name": "Dno",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 564.0,
+      "v": 650.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "8d2f0c84194d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "e7e43e67455a",
+      "name": "Listwa górna przednia",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 564.0,
+      "v": 80.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 982.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "8d2f0c84194d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "c7011ce7c3e0",
+      "name": "Listwa górna tylna",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 564.0,
+      "v": 80.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 570.0,
+      "z": 982.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "8d2f0c84194d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.rail_back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "7d85817af098",
+      "name": "Półka — main 1.1",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 560.0,
+      "v": 646.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 2.0,
+      "z": 541.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "8d2f0c84194d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Szafka pralnicza — listwy i otwarte plecy",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 441.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "1d752af6c1e6",
+            "right": "5d0b17fac57a",
+            "bottom": "57d408bf6263",
+            "top": "e7e43e67455a",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 1,
+          "bay_shelf_index": 1
+        },
+        "anchors": [
+          "1d752af6c1e6",
+          "5d0b17fac57a",
+          "57d408bf6263",
+          "e7e43e67455a"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.1"
+      },
+      "layout": {}
+    },
+    {
+      "id": "26a0cc50763e",
+      "name": "Drzwi — main 1.1",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "u": 596.0,
+      "v": 896.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 102.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "91995a345f9e",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "door",
+      "assembly": {
+        "group": "Szafka pralnicza — listwy i otwarte plecy",
+        "role": "door",
+        "config": {
+          "gap": 2.0,
+          "level": 300.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "1d752af6c1e6",
+            "right": "5d0b17fac57a",
+            "bottom": "57d408bf6263",
+            "top": "e7e43e67455a",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_doors": 1
+        },
+        "anchors": [
+          "1d752af6c1e6",
+          "5d0b17fac57a",
+          "57d408bf6263",
+          "e7e43e67455a"
+        ],
+        "requires_review": true
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 100.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "puszka zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 77.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 122.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 796.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "puszka zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 773.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 818.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "26a0cc50763e",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 561.0,
+          "v": 384.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "489655018e3e",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 561.0,
+          "v": 512.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "24a6b0727a5e",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "hinge_left",
+        "angle": 100.0,
+        "travel": 0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.door.0",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": "8d2f0c84194d",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "91995a345f9e",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "70ff2c6c9c5f",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "77b8110a6fc5",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "c1b93dd1e2da",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "110bbfcd211f",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "683e126e46d8",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "7d85817af098",
+      "anchors": [
+        "1d752af6c1e6",
+        "5d0b17fac57a"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 42.0,
+          "z": 538.5
+        },
+        {
+          "x": 18.0,
+          "y": 608.0,
+          "z": 538.5
+        },
+        {
+          "x": 582.0,
+          "y": 42.0,
+          "z": 538.5
+        },
+        {
+          "x": 582.0,
+          "y": 608.0,
+          "z": 538.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    },
+    {
+      "name": "Puszka Ø35 — wzór mocowania 45 × 9,5 + prowadnik roboczy",
+      "qty": 2,
+      "price": 0.0,
+      "owner_id": "26a0cc50763e",
+      "anchors": [
+        "1d752af6c1e6"
+      ],
+      "positions": [
+        {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 202.0
+        },
+        {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 898.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "hinge",
+      "levels": [
+        100.0,
+        796.0
+      ],
+      "color": "#aab0b6",
+      "closing_spring": "unknown",
+      "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "26a0cc50763e",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 596.0,
+      "design_v": 896.0,
+      "u_anchor": "right",
+      "v_anchor": "center",
+      "u": 561.0,
+      "v": 448.0,
+      "spacing": 128.0,
+      "vertical": true,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "kind": "leg",
+      "owner_id": "57d408bf6263",
+      "group": "Szafka pralnicza — listwy i otwarte plecy",
+      "name": "Noga meblowa — własny model Ø40 × 100 mm",
+      "qty": 4,
+      "unit": "szt.",
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "setback": 60.0,
+      "positions": [
+        {
+          "x": 60.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 60.0,
+          "y": 590.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 590.0,
+          "z": 0.0
+        }
+      ],
+      "color": "#242628",
+      "foot_diameter": 46.0,
+      "config_auto": true,
+      "configure_feature": "legs",
+      "source": "",
+      "requires_review": true,
+      "note": "Model zakupowy, bez automatycznego wiercenia mocowań. Dobierz artykuł, nośność i sposób mocowania."
+    }
+  ],
+  "scene": {
+    "room": "neutral",
+    "brightness": 1.0,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [],
+    "architecture": {
+      "enabled": false,
+      "width": 6000.0,
+      "depth": 4500.0,
+      "height": 2800.0,
+      "x": -600.0,
+      "y": -600.0,
+      "z": 0.0,
+      "wall_color": "#c8d8dd",
+      "floor_color": "#bc9567",
+      "cutaway": true,
+      "ceiling": false
+    }
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

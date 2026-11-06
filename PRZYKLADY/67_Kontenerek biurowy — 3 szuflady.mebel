@@ -1,0 +1,2061 @@
+{
+  "version": 1,
+  "name": "Kontenerek biurowy — 3 szuflady",
+  "parts": [
+    {
+      "id": "cf19448b4a64",
+      "name": "Bok lewy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 500.0,
+      "v": 600.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "2f64447b9813",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 240.33333333333334,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 240.33333333333334,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 439.6666666666667,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 439.6666666666667,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 44,
+          "name": "Kontenerek biurowy — 3 szuflady",
+          "width": 450.0,
+          "height": 600.0,
+          "depth": 500.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "2f64447b9813",
+          "front_material": "3f68cf53d53f",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": false,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 0.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 600.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 3
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "cf19448b4a64",
+            "signature": "443f50ce8dd297c2f4afb8bb05917af41ce55fa1915ac35aa8468019f4ac1827"
+          },
+          "carcass.right": {
+            "id": "ca2b1c53c00b",
+            "signature": "bc921fc84df4e1a48bcca2bf68175c354672a49091b78beff037cb780c799260"
+          },
+          "carcass.bottom": {
+            "id": "435f8835161a",
+            "signature": "457f080327a5161ce01dddedc02e7bf6dba92fbbb2b6f453cac89cea88f7f8d0"
+          },
+          "carcass.top": {
+            "id": "06788be3c350",
+            "signature": "34dc2643623f09cfc2a54560c91237f4297c991b25bc3bbd2393900763a1b9c0"
+          },
+          "carcass.back": {
+            "id": "e45504774f92",
+            "signature": "05200a4cc34560be77af84e0ff36f1901ecb2e43c76a34bb7152d95ddd374f5f"
+          },
+          "main.bay.0.drawer.0": {
+            "id": "7f0acf8eebf3",
+            "signature": "c2cc81b64e4a11d34d4ea56b65a328988983491aa96e3ce39e14ebe1873967ad"
+          },
+          "main.bay.0.drawer.0.box.bok lewy": {
+            "id": "0f64a8a2d45b",
+            "signature": "67713e3cc26f7d63855b6d0cea622a35eb9afe5a42b2ea8c43ad35e6502b0822"
+          },
+          "main.bay.0.drawer.0.box.bok prawy": {
+            "id": "5dcfbd00ec3a",
+            "signature": "9d84a6f87567e9125a09e0af1b55191edbd64538db0e37c06fa19afd44c50afe"
+          },
+          "main.bay.0.drawer.0.box.przód skrzynki": {
+            "id": "f285ec1ba08e",
+            "signature": "d214be06b65d31d5eb0a99968af39250d238f1e60b493e1a62b71033b019a6aa"
+          },
+          "main.bay.0.drawer.0.box.tył skrzynki": {
+            "id": "0f2d751ea643",
+            "signature": "de6fe5a5729f964daec3c436103f59007f96f296492a7c0a912b6dc98a80c437"
+          },
+          "main.bay.0.drawer.0.box.dno nakładane": {
+            "id": "378d04691595",
+            "signature": "6451a70ff8e9d0fc6cf5fffd1c64bd94f1d7c2a9f1b2df27876deb306c19e80b"
+          },
+          "main.bay.0.drawer.1": {
+            "id": "e1c608589f19",
+            "signature": "7e5cd6a67a3fb91e9e65bdfb5aed6a19c79174d2e938682a1585fab1d22d310d"
+          },
+          "main.bay.0.drawer.1.box.bok lewy": {
+            "id": "3f9496715704",
+            "signature": "51cc210fe0adf58592bc819a88b4c766b67260c3e50be99585ea4b3d936a8427"
+          },
+          "main.bay.0.drawer.1.box.bok prawy": {
+            "id": "3529b5d44e57",
+            "signature": "835324e42ed568e4014a847d2f080f7a1c77bd150c037d674093c9580fa7dd82"
+          },
+          "main.bay.0.drawer.1.box.przód skrzynki": {
+            "id": "07f015c4afde",
+            "signature": "a64c4d6b0cc6617de00af864a1b832e5c55eca3a257f5bd9e9aabd66eeb458b8"
+          },
+          "main.bay.0.drawer.1.box.tył skrzynki": {
+            "id": "32d0d1650e4a",
+            "signature": "77af5d22e026a69ff9c9690ed514645f71694076e60bc158b526a0297bae03e4"
+          },
+          "main.bay.0.drawer.1.box.dno nakładane": {
+            "id": "16c0f88c1106",
+            "signature": "66b58d625e4e2f7443ccb38ae34eb8995029025996d1fe88526c68c3fbd03e18"
+          },
+          "main.bay.0.drawer.2": {
+            "id": "aefccc813af2",
+            "signature": "df876631c0a11d9157c274a465f6635b2e62de38ad12b5f6af81c45a8a5c34ea"
+          },
+          "main.bay.0.drawer.2.box.bok lewy": {
+            "id": "c8cf88eb3368",
+            "signature": "dbf7ace6b13444b83f3a091e86a0ff82341c836acc77cff356094690f463ad6c"
+          },
+          "main.bay.0.drawer.2.box.bok prawy": {
+            "id": "d70063c475f0",
+            "signature": "03bcd1228a22247325d06ddefa237966e2ab0be280ec0584c62aa33fef5c3aec"
+          },
+          "main.bay.0.drawer.2.box.przód skrzynki": {
+            "id": "22cb51c465b9",
+            "signature": "4752801686487a54c02068b5d3b6d6d0104a874676f07c2932592a81266f51de"
+          },
+          "main.bay.0.drawer.2.box.tył skrzynki": {
+            "id": "4deef386245c",
+            "signature": "3d1e16ca22c494868b537c0a77b057133c527f2cf5875ea5b28d74bf884e88f8"
+          },
+          "main.bay.0.drawer.2.box.dno nakładane": {
+            "id": "db8b853c942c",
+            "signature": "4bd3189cc10168c4a795452bb2657816bddbaff5fa0c65e474aa9ba1a4093ded"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "ca2b1c53c00b",
+      "name": "Bok prawy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 500.0,
+      "v": 600.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 432.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "2f64447b9813",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 240.33333333333334,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 240.33333333333334,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 439.6666666666667,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 439.6666666666667,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "435f8835161a",
+      "name": "Dno",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 414.0,
+      "v": 500.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "2f64447b9813",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "06788be3c350",
+      "name": "Wieniec",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 414.0,
+      "v": 500.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 582.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "2f64447b9813",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "e45504774f92",
+      "name": "Plecy nakładane HDF",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 450.0,
+      "v": 600.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 500.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "cfa42d4f6796",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "7f0acf8eebf3",
+      "name": "Front szuflady — main 1.1",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 446.0,
+      "v": 197.33333333333334,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 2.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Kontenerek biurowy — 3 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 2.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 20.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "cf19448b4a64",
+            "right": "ca2b1c53c00b",
+            "bottom": "435f8835161a",
+            "top": "06788be3c350",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 3,
+          "bay_drawer_index": 0
+        },
+        "anchors": [
+          "cf19448b4a64",
+          "ca2b1c53c00b",
+          "435f8835161a",
+          "06788be3c350"
+        ],
+        "requires_review": true,
+        "children": [
+          "0f64a8a2d45b",
+          "5dcfbd00ec3a",
+          "f285ec1ba08e",
+          "0f2d751ea643",
+          "378d04691595"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 159.0,
+          "v": 98.66666666666667,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "8adbdd50ac0f",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 287.0,
+          "v": 98.66666666666667,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "593826ac3d84",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "0f64a8a2d45b",
+      "name": "Front szuflady — main 1.1 / bok lewy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "7f0acf8eebf3"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "5dcfbd00ec3a",
+      "name": "Front szuflady — main 1.1 / bok prawy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 403.3,
+      "y": 20.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "7f0acf8eebf3"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7f0acf8eebf3",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "f285ec1ba08e",
+      "name": "Front szuflady — main 1.1 / przód skrzynki",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 356.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "7f0acf8eebf3"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "0f2d751ea643",
+      "name": "Front szuflady — main 1.1 / tył skrzynki",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 356.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "7f0acf8eebf3"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "378d04691595",
+      "name": "Front szuflady — main 1.1 / dno nakładane",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 388.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 24.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "cfa42d4f6796",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "7f0acf8eebf3"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "e1c608589f19",
+      "name": "Front szuflady — main 1.2",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 446.0,
+      "v": 197.33333333333334,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 201.33333333333334,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Kontenerek biurowy — 3 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 201.33333333333334,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "cf19448b4a64",
+            "right": "ca2b1c53c00b",
+            "bottom": "435f8835161a",
+            "top": "06788be3c350",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 3,
+          "bay_drawer_index": 1
+        },
+        "anchors": [
+          "cf19448b4a64",
+          "ca2b1c53c00b",
+          "435f8835161a",
+          "06788be3c350"
+        ],
+        "requires_review": true,
+        "children": [
+          "3f9496715704",
+          "3529b5d44e57",
+          "07f015c4afde",
+          "32d0d1650e4a",
+          "16c0f88c1106"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 159.0,
+          "v": 98.66666666666667,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "5a29b56ea856",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 287.0,
+          "v": 98.66666666666667,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "768d729b22d2",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "3f9496715704",
+      "name": "Front szuflady — main 1.2 / bok lewy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 215.33333333333334,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "e1c608589f19"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "3529b5d44e57",
+      "name": "Front szuflady — main 1.2 / bok prawy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 403.3,
+      "y": 20.0,
+      "z": 215.33333333333334,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "e1c608589f19"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "e1c608589f19",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "07f015c4afde",
+      "name": "Front szuflady — main 1.2 / przód skrzynki",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 356.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 215.33333333333334,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "e1c608589f19"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "32d0d1650e4a",
+      "name": "Front szuflady — main 1.2 / tył skrzynki",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 356.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 215.33333333333334,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "e1c608589f19"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "16c0f88c1106",
+      "name": "Front szuflady — main 1.2 / dno nakładane",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 388.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 209.33333333333334,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "cfa42d4f6796",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "e1c608589f19"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "aefccc813af2",
+      "name": "Front szuflady — main 1.3",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 446.0,
+      "v": 197.33333333333334,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 400.6666666666667,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Kontenerek biurowy — 3 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 400.6666666666667,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "cf19448b4a64",
+            "right": "ca2b1c53c00b",
+            "bottom": "435f8835161a",
+            "top": "06788be3c350",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 3,
+          "bay_drawer_index": 2
+        },
+        "anchors": [
+          "cf19448b4a64",
+          "ca2b1c53c00b",
+          "435f8835161a",
+          "06788be3c350"
+        ],
+        "requires_review": true,
+        "children": [
+          "c8cf88eb3368",
+          "d70063c475f0",
+          "22cb51c465b9",
+          "4deef386245c",
+          "db8b853c942c"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 159.0,
+          "v": 98.66666666666667,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "c49bde493313",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 287.0,
+          "v": 98.66666666666667,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "2478924cd3ef",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "c8cf88eb3368",
+      "name": "Front szuflady — main 1.3 / bok lewy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 414.6666666666667,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "aefccc813af2"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "d70063c475f0",
+      "name": "Front szuflady — main 1.3 / bok prawy",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 403.3,
+      "y": 20.0,
+      "z": 414.6666666666667,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "aefccc813af2"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "aefccc813af2",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "22cb51c465b9",
+      "name": "Front szuflady — main 1.3 / przód skrzynki",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 356.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 414.6666666666667,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "aefccc813af2"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "4deef386245c",
+      "name": "Front szuflady — main 1.3 / tył skrzynki",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 356.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 414.6666666666667,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3f68cf53d53f",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "aefccc813af2"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "db8b853c942c",
+      "name": "Front szuflady — main 1.3 / dno nakładane",
+      "group": "Kontenerek biurowy — 3 szuflady",
+      "u": 388.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 408.6666666666667,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "cfa42d4f6796",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "aefccc813af2"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.dno nakładane"
+      },
+      "layout": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": "2f64447b9813",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "3f68cf53d53f",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "89c8dc1899b1",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "83ee698fb92d",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "62b4d1c531f1",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "0e9bcf22f780",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "cfa42d4f6796",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "7f0acf8eebf3",
+      "anchors": [
+        "cf19448b4a64",
+        "ca2b1c53c00b"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 55.0
+        },
+        {
+          "x": 432.0,
+          "y": 20.0,
+          "z": 55.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "7f0acf8eebf3",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 446.0,
+      "design_v": 197.33333333333334,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 223.0,
+      "v": 98.66666666666667,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "e1c608589f19",
+      "anchors": [
+        "cf19448b4a64",
+        "ca2b1c53c00b"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 240.33333333333334
+        },
+        {
+          "x": 432.0,
+          "y": 20.0,
+          "z": 240.33333333333334
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "e1c608589f19",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 446.0,
+      "design_v": 197.33333333333334,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 223.0,
+      "v": 98.66666666666667,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "aefccc813af2",
+      "anchors": [
+        "cf19448b4a64",
+        "ca2b1c53c00b"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 439.6666666666667
+        },
+        {
+          "x": 432.0,
+          "y": 20.0,
+          "z": 439.6666666666667
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "aefccc813af2",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 446.0,
+      "design_v": 197.33333333333334,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 223.0,
+      "v": 98.66666666666667,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    }
+  ],
+  "scene": {
+    "room": "neutral",
+    "brightness": 1.0,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [],
+    "architecture": {
+      "enabled": false,
+      "width": 6000.0,
+      "depth": 4500.0,
+      "height": 2800.0,
+      "x": -600.0,
+      "y": -600.0,
+      "z": 0.0,
+      "wall_color": "#c8d8dd",
+      "floor_color": "#bc9567",
+      "cutaway": true,
+      "ceiling": false
+    }
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

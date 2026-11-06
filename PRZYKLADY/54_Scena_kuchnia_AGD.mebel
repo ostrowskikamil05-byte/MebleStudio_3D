@@ -1,0 +1,2700 @@
+{
+  "version": 1,
+  "name": "Kuchnia — AGD i światła 0.11",
+  "parts": [
+    {
+      "id": "a2d19d17357b",
+      "name": "Bok lewy",
+      "group": "Szafka pod zlew",
+      "u": 560.0,
+      "v": 732.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 0,
+          "name": "Szafka pod zlew",
+          "width": 600.0,
+          "height": 860.0,
+          "depth": 560.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "514702c04198",
+          "front_material": "275be6d3b075",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": true,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 100.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 732.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "open",
+              "doors": 1,
+              "drawers": 2
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "a2d19d17357b",
+            "signature": "dadb05ad803635cb8303c5f668ef63185954c819e63411f7677b51bc5b12bb97"
+          },
+          "carcass.right": {
+            "id": "fea46f15e591",
+            "signature": "7a6bd73d15f6539906b30cd3330085b0083648eab49ce2fedd793f2ead80cdde"
+          },
+          "carcass.bottom": {
+            "id": "68c485396323",
+            "signature": "fc84badc656608f7f4fd7ee14d51b0a80b373748cb69e8d7e9b25d15dd229874"
+          },
+          "carcass.top": {
+            "id": "28fbebf0a3f5",
+            "signature": "d607f180dd8403c8fe56f6121ba0c21a87089c8cef87c359d42069cfa68b2d0e"
+          },
+          "carcass.back": {
+            "id": "ccceab2dc7ff",
+            "signature": "3352017341198b912f87c381339d634bcd96d04ed3084a9c2e2e3350babe7141"
+          },
+          "carcass.worktop": {
+            "id": "253eeaab8a20",
+            "signature": "bdd74bee216fb05f1604bea80f8fc23f902cdab5310d8e457d12a97df3d7d6e8"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "fea46f15e591",
+      "name": "Bok prawy",
+      "group": "Szafka pod zlew",
+      "u": 560.0,
+      "v": 732.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 582.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "68c485396323",
+      "name": "Dno",
+      "group": "Szafka pod zlew",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "28fbebf0a3f5",
+      "name": "Wieniec",
+      "group": "Szafka pod zlew",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 814.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "ccceab2dc7ff",
+      "name": "Plecy nakładane HDF",
+      "group": "Szafka pod zlew",
+      "u": 600.0,
+      "v": 732.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 560.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "c182146ff68c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "253eeaab8a20",
+      "name": "Blat",
+      "group": "Szafka pod zlew",
+      "u": 640.0,
+      "v": 600.0,
+      "t": 28.0,
+      "plane": "XY",
+      "x": -20.0,
+      "y": -20.0,
+      "z": 832.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "worktop",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.worktop"
+      },
+      "layout": {}
+    },
+    {
+      "id": "3824b1ad3df1",
+      "name": "Bok lewy",
+      "group": "Moduł 2 szuflady",
+      "u": 560.0,
+      "v": 732.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 406.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 406.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 3,
+          "name": "Moduł 2 szuflady",
+          "width": 600.0,
+          "height": 860.0,
+          "depth": 560.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "514702c04198",
+          "front_material": "275be6d3b075",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": true,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 100.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 732.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 2
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "3824b1ad3df1",
+            "signature": "dadb05ad803635cb8303c5f668ef63185954c819e63411f7677b51bc5b12bb97"
+          },
+          "carcass.right": {
+            "id": "c0b87ce934be",
+            "signature": "7a6bd73d15f6539906b30cd3330085b0083648eab49ce2fedd793f2ead80cdde"
+          },
+          "carcass.bottom": {
+            "id": "e27de141f4e7",
+            "signature": "fc84badc656608f7f4fd7ee14d51b0a80b373748cb69e8d7e9b25d15dd229874"
+          },
+          "carcass.top": {
+            "id": "0aa98ac8c879",
+            "signature": "d607f180dd8403c8fe56f6121ba0c21a87089c8cef87c359d42069cfa68b2d0e"
+          },
+          "carcass.back": {
+            "id": "2f778ad34704",
+            "signature": "3352017341198b912f87c381339d634bcd96d04ed3084a9c2e2e3350babe7141"
+          },
+          "carcass.worktop": {
+            "id": "a35e3f4882e5",
+            "signature": "bdd74bee216fb05f1604bea80f8fc23f902cdab5310d8e457d12a97df3d7d6e8"
+          },
+          "main.bay.0.drawer.0": {
+            "id": "6781c3409d60",
+            "signature": "d64946a7518c65d02a47bdfd96b05dd1745e60456d484b506312818be03da0fa"
+          },
+          "main.bay.0.drawer.0.box.bok lewy": {
+            "id": "82308c48f5eb",
+            "signature": "0a6ba43eab81f5c997679f23587fbdb6b8083b73ec92cb22b5a20b81b6b62b2c"
+          },
+          "main.bay.0.drawer.0.box.bok prawy": {
+            "id": "e4af92eaf71b",
+            "signature": "ae1836001293f9a5dec56ad5b9268cd7613f87339bf1eff61600dd46745ffbd1"
+          },
+          "main.bay.0.drawer.0.box.przód skrzynki": {
+            "id": "e6320a25f228",
+            "signature": "7d5602f9ad6c6b914a3f34cb02682a51f5c7d6142de19321623adcbe3e23575a"
+          },
+          "main.bay.0.drawer.0.box.tył skrzynki": {
+            "id": "55fd0f980425",
+            "signature": "4a407c71c2c019adffd1a4624443b5f400e60dd1f3cc99d1c1230fd7862a6219"
+          },
+          "main.bay.0.drawer.0.box.dno nakładane": {
+            "id": "fbf0e5b6c18f",
+            "signature": "c047af9ee34a7893e2a116b0c41498255aed1fc2440012dcbbaec9973cad80bb"
+          },
+          "main.bay.0.drawer.1": {
+            "id": "296f1ea8b301",
+            "signature": "f48ef3cbdf230340dc8bdcd21e364064c1f88e0cd8992794f28be87c0e14a12d"
+          },
+          "main.bay.0.drawer.1.box.bok lewy": {
+            "id": "f64aeaf7ce7b",
+            "signature": "fa11792b92765dfeb7001d2b9cc70c3c089c13c5a9de0d7bea8965a746e2d5b5"
+          },
+          "main.bay.0.drawer.1.box.bok prawy": {
+            "id": "ac38c6d61574",
+            "signature": "255d477b5cf869113a354db5ff8c851aba43dde0c843828531e5a0cec1232ed8"
+          },
+          "main.bay.0.drawer.1.box.przód skrzynki": {
+            "id": "06677319cdd0",
+            "signature": "de8e7dbf12c9bd72074242f68858866adf1c69a52083dfbdbeab84f15c0f3ae2"
+          },
+          "main.bay.0.drawer.1.box.tył skrzynki": {
+            "id": "6a8a275aaed1",
+            "signature": "c0edb966b6d335191491d038797ed0064479c63ecf4d8b7fb62964f171f0e761"
+          },
+          "main.bay.0.drawer.1.box.dno nakładane": {
+            "id": "9d67cd680b6b",
+            "signature": "094a432f8802633097faa5c3761961d23d963c302818acaca96529269c480bf8"
+          }
+        }
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "c0b87ce934be",
+      "name": "Bok prawy",
+      "group": "Moduł 2 szuflady",
+      "u": 560.0,
+      "v": 732.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 582.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 406.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 406.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "e27de141f4e7",
+      "name": "Dno",
+      "group": "Moduł 2 szuflady",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "0aa98ac8c879",
+      "name": "Wieniec",
+      "group": "Moduł 2 szuflady",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 814.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "2f778ad34704",
+      "name": "Plecy nakładane HDF",
+      "group": "Moduł 2 szuflady",
+      "u": 600.0,
+      "v": 732.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 560.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "c182146ff68c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "a35e3f4882e5",
+      "name": "Blat",
+      "group": "Moduł 2 szuflady",
+      "u": 640.0,
+      "v": 600.0,
+      "t": 28.0,
+      "plane": "XY",
+      "x": -20.0,
+      "y": -20.0,
+      "z": 832.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "worktop",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.worktop"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "6781c3409d60",
+      "name": "Front szuflady — main 1.1",
+      "group": "Moduł 2 szuflady",
+      "u": 596.0,
+      "v": 363.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 102.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Moduł 2 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 2.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 20.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "3824b1ad3df1",
+            "right": "c0b87ce934be",
+            "bottom": "e27de141f4e7",
+            "top": "0aa98ac8c879",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 2,
+          "bay_drawer_index": 0
+        },
+        "anchors": [
+          "3824b1ad3df1",
+          "c0b87ce934be",
+          "e27de141f4e7",
+          "0aa98ac8c879"
+        ],
+        "requires_review": true,
+        "children": [
+          "82308c48f5eb",
+          "e4af92eaf71b",
+          "e6320a25f228",
+          "55fd0f980425",
+          "fbf0e5b6c18f"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 234.0,
+          "v": 181.5,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "cba3e2fbe839",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 362.0,
+          "v": 181.5,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "a88777ebcd27",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "82308c48f5eb",
+      "name": "Front szuflady — main 1.1 / bok lewy",
+      "group": "Moduł 2 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "6781c3409d60"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok lewy"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "e4af92eaf71b",
+      "name": "Front szuflady — main 1.1 / bok prawy",
+      "group": "Moduł 2 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 553.3000000000001,
+      "y": 20.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "6781c3409d60"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "6781c3409d60",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok prawy"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "e6320a25f228",
+      "name": "Front szuflady — main 1.1 / przód skrzynki",
+      "group": "Moduł 2 szuflady",
+      "u": 506.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "6781c3409d60"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.przód skrzynki"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "55fd0f980425",
+      "name": "Front szuflady — main 1.1 / tył skrzynki",
+      "group": "Moduł 2 szuflady",
+      "u": 506.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "6781c3409d60"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.tył skrzynki"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "fbf0e5b6c18f",
+      "name": "Front szuflady — main 1.1 / dno nakładane",
+      "group": "Moduł 2 szuflady",
+      "u": 538.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 124.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "c182146ff68c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "6781c3409d60"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.dno nakładane"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "296f1ea8b301",
+      "name": "Front szuflady — main 1.2",
+      "group": "Moduł 2 szuflady",
+      "u": 596.0,
+      "v": 363.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 467.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Moduł 2 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 367.0,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "3824b1ad3df1",
+            "right": "c0b87ce934be",
+            "bottom": "e27de141f4e7",
+            "top": "0aa98ac8c879",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 2,
+          "bay_drawer_index": 1
+        },
+        "anchors": [
+          "3824b1ad3df1",
+          "c0b87ce934be",
+          "e27de141f4e7",
+          "0aa98ac8c879"
+        ],
+        "requires_review": true,
+        "children": [
+          "f64aeaf7ce7b",
+          "ac38c6d61574",
+          "06677319cdd0",
+          "6a8a275aaed1",
+          "9d67cd680b6b"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 234.0,
+          "v": 181.5,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "f405d55c3e8f",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 362.0,
+          "v": 181.5,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "95f4bfc35865",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "f64aeaf7ce7b",
+      "name": "Front szuflady — main 1.2 / bok lewy",
+      "group": "Moduł 2 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 481.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "296f1ea8b301"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok lewy"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "ac38c6d61574",
+      "name": "Front szuflady — main 1.2 / bok prawy",
+      "group": "Moduł 2 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 553.3000000000001,
+      "y": 20.0,
+      "z": 481.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "296f1ea8b301"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "296f1ea8b301",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok prawy"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "06677319cdd0",
+      "name": "Front szuflady — main 1.2 / przód skrzynki",
+      "group": "Moduł 2 szuflady",
+      "u": 506.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 481.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "296f1ea8b301"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.przód skrzynki"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "6a8a275aaed1",
+      "name": "Front szuflady — main 1.2 / tył skrzynki",
+      "group": "Moduł 2 szuflady",
+      "u": 506.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 481.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "275be6d3b075",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "296f1ea8b301"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.tył skrzynki"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "9d67cd680b6b",
+      "name": "Front szuflady — main 1.2 / dno nakładane",
+      "group": "Moduł 2 szuflady",
+      "u": 538.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 475.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "c182146ff68c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "296f1ea8b301"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.dno nakładane"
+      },
+      "layout": {
+        "x": 1350.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "72cffd6e9b44",
+      "name": "Bok lewy",
+      "group": "Moduł pod piekarnik i płytę",
+      "u": 560.0,
+      "v": 732.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 0,
+          "name": "Moduł pod piekarnik i płytę",
+          "width": 600.0,
+          "height": 860.0,
+          "depth": 560.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "514702c04198",
+          "front_material": "275be6d3b075",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": true,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 100.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 732.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "open",
+              "doors": 1,
+              "drawers": 2
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 1,
+              "front": "doors",
+              "doors": 1,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "72cffd6e9b44",
+            "signature": "dadb05ad803635cb8303c5f668ef63185954c819e63411f7677b51bc5b12bb97"
+          },
+          "carcass.right": {
+            "id": "1d3c5830deed",
+            "signature": "7a6bd73d15f6539906b30cd3330085b0083648eab49ce2fedd793f2ead80cdde"
+          },
+          "carcass.bottom": {
+            "id": "2d169bafe003",
+            "signature": "fc84badc656608f7f4fd7ee14d51b0a80b373748cb69e8d7e9b25d15dd229874"
+          },
+          "carcass.top": {
+            "id": "e1dca0ec4942",
+            "signature": "d607f180dd8403c8fe56f6121ba0c21a87089c8cef87c359d42069cfa68b2d0e"
+          },
+          "carcass.back": {
+            "id": "bf1116045101",
+            "signature": "3352017341198b912f87c381339d634bcd96d04ed3084a9c2e2e3350babe7141"
+          },
+          "carcass.worktop": {
+            "id": "6a5368c9ac3e",
+            "signature": "bdd74bee216fb05f1604bea80f8fc23f902cdab5310d8e457d12a97df3d7d6e8"
+          }
+        }
+      },
+      "layout": {
+        "x": 2700.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "1d3c5830deed",
+      "name": "Bok prawy",
+      "group": "Moduł pod piekarnik i płytę",
+      "u": 560.0,
+      "v": 732.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 582.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {
+        "x": 2700.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "2d169bafe003",
+      "name": "Dno",
+      "group": "Moduł pod piekarnik i płytę",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {
+        "x": 2700.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "e1dca0ec4942",
+      "name": "Wieniec",
+      "group": "Moduł pod piekarnik i płytę",
+      "u": 564.0,
+      "v": 560.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 814.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {
+        "x": 2700.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "bf1116045101",
+      "name": "Plecy nakładane HDF",
+      "group": "Moduł pod piekarnik i płytę",
+      "u": 600.0,
+      "v": 732.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 560.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "c182146ff68c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {
+        "x": 2700.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "id": "6a5368c9ac3e",
+      "name": "Blat",
+      "group": "Moduł pod piekarnik i płytę",
+      "u": 640.0,
+      "v": 600.0,
+      "t": 28.0,
+      "plane": "XY",
+      "x": -20.0,
+      "y": -20.0,
+      "z": 832.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "514702c04198",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "worktop",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.worktop"
+      },
+      "layout": {
+        "x": 2700.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "514702c04198",
+      "name": "Dąb ciepły — dekor przykładowy",
+      "color": "#bc9d73",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "275be6d3b075",
+      "name": "MDF kaszmir — kolor przykładowy",
+      "color": "#d6d0c6",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "37e21002669d",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "9d7020f0bf26",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1c3e6f87ec59",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "dfccdb31a06a",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "c182146ff68c",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "kind": "leg",
+      "owner_id": "68c485396323",
+      "group": "Szafka pod zlew",
+      "name": "Noga meblowa — własny model Ø40 × 100 mm",
+      "qty": 4,
+      "unit": "szt.",
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "setback": 60.0,
+      "positions": [
+        {
+          "x": 60.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 60.0,
+          "y": 500.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 500.0,
+          "z": 0.0
+        }
+      ],
+      "color": "#242628",
+      "foot_diameter": 46.0,
+      "config_auto": true,
+      "configure_feature": "legs",
+      "source": "",
+      "requires_review": true,
+      "note": "Model zakupowy, bez automatycznego wiercenia mocowań. Dobierz artykuł, nośność i sposób mocowania."
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "6781c3409d60",
+      "anchors": [
+        "3824b1ad3df1",
+        "c0b87ce934be"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 155.0
+        },
+        {
+          "x": 582.0,
+          "y": 20.0,
+          "z": 155.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "6781c3409d60",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 596.0,
+      "design_v": 363.0,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 298.0,
+      "v": 181.5,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "296f1ea8b301",
+      "anchors": [
+        "3824b1ad3df1",
+        "c0b87ce934be"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 506.0
+        },
+        {
+          "x": 582.0,
+          "y": 20.0,
+          "z": 506.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "296f1ea8b301",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 596.0,
+      "design_v": 363.0,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 298.0,
+      "v": 181.5,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "kind": "leg",
+      "owner_id": "e27de141f4e7",
+      "group": "Moduł 2 szuflady",
+      "name": "Noga meblowa — własny model Ø40 × 100 mm",
+      "qty": 4,
+      "unit": "szt.",
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "setback": 60.0,
+      "positions": [
+        {
+          "x": 60.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 60.0,
+          "y": 500.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 500.0,
+          "z": 0.0
+        }
+      ],
+      "color": "#242628",
+      "foot_diameter": 46.0,
+      "config_auto": true,
+      "configure_feature": "legs",
+      "source": "",
+      "requires_review": true,
+      "note": "Model zakupowy, bez automatycznego wiercenia mocowań. Dobierz artykuł, nośność i sposób mocowania."
+    },
+    {
+      "kind": "leg",
+      "owner_id": "2d169bafe003",
+      "group": "Moduł pod piekarnik i płytę",
+      "name": "Noga meblowa — własny model Ø40 × 100 mm",
+      "qty": 4,
+      "unit": "szt.",
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "setback": 60.0,
+      "positions": [
+        {
+          "x": 60.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 60.0,
+          "y": 500.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 540.0,
+          "y": 500.0,
+          "z": 0.0
+        }
+      ],
+      "color": "#242628",
+      "foot_diameter": 46.0,
+      "config_auto": true,
+      "configure_feature": "legs",
+      "source": "",
+      "requires_review": true,
+      "note": "Model zakupowy, bez automatycznego wiercenia mocowań. Dobierz artykuł, nośność i sposób mocowania."
+    }
+  ],
+  "scene": {
+    "room": "kitchen",
+    "brightness": 1.0,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [
+      {
+        "name": "Zlew",
+        "width": 540.0,
+        "depth": 500.0,
+        "height": 191.0,
+        "color": "#a9b2b6",
+        "z": 670.0,
+        "id": "064670ad03e8",
+        "type": "sink",
+        "x": 30.0,
+        "y": 30.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Kran",
+        "width": 140.0,
+        "depth": 200.0,
+        "height": 350.0,
+        "color": "#aab3b8",
+        "z": 860.0,
+        "id": "2945121b9e93",
+        "type": "faucet",
+        "x": 380.0,
+        "y": 315.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Lodówka",
+        "width": 600.0,
+        "depth": 650.0,
+        "height": 1850.0,
+        "color": "#b8c0c4",
+        "id": "0ebb690880f7",
+        "type": "fridge",
+        "x": 650.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Zmywarka",
+        "width": 600.0,
+        "depth": 570.0,
+        "height": 820.0,
+        "color": "#d7dadd",
+        "id": "a8c70ba2e51a",
+        "type": "dishwasher",
+        "x": 2050.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Piekarnik",
+        "width": 595.0,
+        "depth": 560.0,
+        "height": 595.0,
+        "color": "#373d43",
+        "z": 140.0,
+        "id": "4b72c19382de",
+        "type": "oven",
+        "x": 2702.5,
+        "y": 0.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Płyta grzewcza",
+        "width": 600.0,
+        "depth": 520.0,
+        "height": 50.0,
+        "color": "#242b30",
+        "z": 860.0,
+        "id": "2a65a612a135",
+        "type": "hob",
+        "x": 2700.0,
+        "y": 0.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Okap",
+        "width": 600.0,
+        "depth": 450.0,
+        "height": 650.0,
+        "color": "#b7bec2",
+        "z": 1450.0,
+        "id": "2ff6c2575055",
+        "type": "hood",
+        "x": 2700.0,
+        "y": 100.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Lampa wisząca",
+        "width": 300.0,
+        "depth": 300.0,
+        "height": 400.0,
+        "color": "#c5b497",
+        "z": 2100.0,
+        "id": "03d2117e9afc",
+        "type": "lamp",
+        "x": 1450.0,
+        "y": 180.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      },
+      {
+        "name": "Żarówka",
+        "width": 80.0,
+        "depth": 80.0,
+        "height": 120.0,
+        "color": "#fff0bc",
+        "z": 2150.0,
+        "id": "4bbf2342a757",
+        "type": "bulb",
+        "x": 2450.0,
+        "y": 240.0,
+        "yaw": 0.0,
+        "enabled": true,
+        "price": 0.0,
+        "light_enabled": true
+      }
+    ]
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

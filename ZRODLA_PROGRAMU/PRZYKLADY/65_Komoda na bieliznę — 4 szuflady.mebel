@@ -1,0 +1,2642 @@
+{
+  "version": 1,
+  "name": "Komoda na bieliznę — 4 szuflady",
+  "parts": [
+    {
+      "id": "8767ce5336b7",
+      "name": "Bok lewy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 450.0,
+      "v": 1400.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "35c3d2dc31bc",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 390.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 390.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 740.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 740.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 1089.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 1089.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 42,
+          "name": "Komoda na bieliznę — 4 szuflady",
+          "width": 800.0,
+          "height": 1500.0,
+          "depth": 450.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "35c3d2dc31bc",
+          "front_material": "be0a477fc66d",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": false,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 100.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 3,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 4
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 1400.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 4
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 4
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "8767ce5336b7",
+            "signature": "ad6cb8395e2771273b73da3daa4b226b5cdb705f6b0316bda231f11260e8682c"
+          },
+          "carcass.right": {
+            "id": "3f4cf09ec069",
+            "signature": "d57b1da387ec2e142be7d6aa72f7917aabb557ed5d5c4e2abbcd0d84346dad7d"
+          },
+          "carcass.bottom": {
+            "id": "7392df3763b8",
+            "signature": "fc302a3bc3434c9b2d6452fc5f878e742760c138420e624c6f0f56de80a0c486"
+          },
+          "carcass.top": {
+            "id": "b8418ac431a1",
+            "signature": "bcffe6cd49cdcc3b903ff8afc6e52a690dd50bc6b7d2a33cb2f32a6b7c5a629e"
+          },
+          "carcass.back": {
+            "id": "79e9f6badc3f",
+            "signature": "dacd93247e7e3960175186464997646869db179726b2b6afaf0078852f66545f"
+          },
+          "main.bay.0.drawer.0": {
+            "id": "b78de4915656",
+            "signature": "93fa79a9e66dddb35220336a9e06c2c6048dda73cabe202f071697f849f23453"
+          },
+          "main.bay.0.drawer.0.box.bok lewy": {
+            "id": "841771611a6e",
+            "signature": "0a6ba43eab81f5c997679f23587fbdb6b8083b73ec92cb22b5a20b81b6b62b2c"
+          },
+          "main.bay.0.drawer.0.box.bok prawy": {
+            "id": "2a84db076e40",
+            "signature": "2a20abdd52879aec7d9b9bf2677a0c627b7cef1088bf17cdbd08fa581a473254"
+          },
+          "main.bay.0.drawer.0.box.przód skrzynki": {
+            "id": "a36d56ca98d8",
+            "signature": "20df7fd65ee245534e8191abdb59bb8a7f3a1ea46c52e15fa5de6fa63ed2bcc8"
+          },
+          "main.bay.0.drawer.0.box.tył skrzynki": {
+            "id": "31ddf988d910",
+            "signature": "24776d5c44a4ce1f2316364634ea4f1f790df7f14f8d62c4a00c22dc4a871966"
+          },
+          "main.bay.0.drawer.0.box.dno nakładane": {
+            "id": "07587e3df8ea",
+            "signature": "3a65ac7b6381362905b5535f1176a26ad50d5d10a9df431ee4c57fc253bc1c12"
+          },
+          "main.bay.0.drawer.1": {
+            "id": "69279a14f44c",
+            "signature": "32b8e89acdedfa00ad2b0656456a33937661b578c40a48a8b418bbcb15fcb0ce"
+          },
+          "main.bay.0.drawer.1.box.bok lewy": {
+            "id": "02862062a03d",
+            "signature": "e1ca041e53e860c6ca1b95fbda8cddabb2b2799b513f34b7fcacba58a921cc4a"
+          },
+          "main.bay.0.drawer.1.box.bok prawy": {
+            "id": "7b33919acfde",
+            "signature": "a8ac2b39389401de9b1a06eac571c6c31f826053866815f4e101da81097da4e7"
+          },
+          "main.bay.0.drawer.1.box.przód skrzynki": {
+            "id": "3e91b76a0269",
+            "signature": "bf179bec427cd4eab2e367cccf46ec285fc96560644ec3638a6a2f845fabfba3"
+          },
+          "main.bay.0.drawer.1.box.tył skrzynki": {
+            "id": "c84796e2cb05",
+            "signature": "2899e163c84982c399effed8a4c3ac5b502538589f72c603cd20de797caa9393"
+          },
+          "main.bay.0.drawer.1.box.dno nakładane": {
+            "id": "d5c7fc4524a2",
+            "signature": "5336c9c2b770e563d447252d6c7e933e4d0125cebd65f0d6bde9bb4f85c7f03d"
+          },
+          "main.bay.0.drawer.2": {
+            "id": "a685d8a90576",
+            "signature": "741e8448b567eec2222bcd65b9bf0078acfe518828e4fb9f1c4ab6a0984447b5"
+          },
+          "main.bay.0.drawer.2.box.bok lewy": {
+            "id": "4ad2c25d7e00",
+            "signature": "8c18196aa7982e45d42d766301bf019e4cb1fe2d5b60e479273a377a4f431617"
+          },
+          "main.bay.0.drawer.2.box.bok prawy": {
+            "id": "3125539efc7c",
+            "signature": "cadea4bc5c24edea9b7e75b164edc9800e9e1c1278f06a620f89e621c982a848"
+          },
+          "main.bay.0.drawer.2.box.przód skrzynki": {
+            "id": "6206c3c8ddc7",
+            "signature": "92b3233d72c6ada05e94b3b97a7ecbf63adb83be7cf7e8a94ee580ed3fbdba87"
+          },
+          "main.bay.0.drawer.2.box.tył skrzynki": {
+            "id": "51db3ad075ef",
+            "signature": "4397577b8007a3e9fe8ede81a242db414d0807d4de3b5078668a524baebd652f"
+          },
+          "main.bay.0.drawer.2.box.dno nakładane": {
+            "id": "ff449d5025df",
+            "signature": "72bd31ee890c22510984eb1ab35dc3ad384da9d25dc1d788b05a89053ade0f43"
+          },
+          "main.bay.0.drawer.3": {
+            "id": "94afffa8f36c",
+            "signature": "7a4f7811998a7c666b36619bf5ca4c1a7ae9b56aa741652516c06167e27af883"
+          },
+          "main.bay.0.drawer.3.box.bok lewy": {
+            "id": "cf24938d8fb4",
+            "signature": "5a643e43222861ac2c2e881323f4ee601766b28d37de30465b7e007fdc581c78"
+          },
+          "main.bay.0.drawer.3.box.bok prawy": {
+            "id": "1028333e41a3",
+            "signature": "4f7901572d20cba8800ff048cf5a74404ed4769518321cd0a58083ac057f32a3"
+          },
+          "main.bay.0.drawer.3.box.przód skrzynki": {
+            "id": "9edcf71501a7",
+            "signature": "918188ae8fcb3df36e0d6fbf5159cb99693bab965e01953d0c01878ee20b7ee5"
+          },
+          "main.bay.0.drawer.3.box.tył skrzynki": {
+            "id": "c34d47616476",
+            "signature": "05fe94d2169fd043f2e08d85ef81931ebbf4eb8ab17bf08a1a9a115645fa23d8"
+          },
+          "main.bay.0.drawer.3.box.dno nakładane": {
+            "id": "9657a058aef7",
+            "signature": "1dd9f784f72d1307c91bf19ae530298afe617fee904d589fd2600feaf72ae65e"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "3f4cf09ec069",
+      "name": "Bok prawy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 450.0,
+      "v": 1400.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 782.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "35c3d2dc31bc",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 390.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 390.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 740.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 740.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 1089.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 1089.5,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "7392df3763b8",
+      "name": "Dno",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 764.0,
+      "v": 450.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "35c3d2dc31bc",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "b8418ac431a1",
+      "name": "Wieniec",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 764.0,
+      "v": 450.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 1482.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "35c3d2dc31bc",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "79e9f6badc3f",
+      "name": "Plecy nakładane HDF",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 800.0,
+      "v": 1400.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 450.0,
+      "z": 100.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3a81d9700541",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "b78de4915656",
+      "name": "Front szuflady — main 1.1",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 796.0,
+      "v": 347.5,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 102.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda na bieliznę — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 2.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 3,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 20.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8767ce5336b7",
+            "right": "3f4cf09ec069",
+            "bottom": "7392df3763b8",
+            "top": "b8418ac431a1",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 0
+        },
+        "anchors": [
+          "8767ce5336b7",
+          "3f4cf09ec069",
+          "7392df3763b8",
+          "b8418ac431a1"
+        ],
+        "requires_review": true,
+        "children": [
+          "841771611a6e",
+          "2a84db076e40",
+          "a36d56ca98d8",
+          "31ddf988d910",
+          "07587e3df8ea"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "bf9c65e2b4d7",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "1d553148f66b",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "841771611a6e",
+      "name": "Front szuflady — main 1.1 / bok lewy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "b78de4915656"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "2a84db076e40",
+      "name": "Front szuflady — main 1.1 / bok prawy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "b78de4915656"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "b78de4915656",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "a36d56ca98d8",
+      "name": "Front szuflady — main 1.1 / przód skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "b78de4915656"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "31ddf988d910",
+      "name": "Front szuflady — main 1.1 / tył skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 130.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "b78de4915656"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "07587e3df8ea",
+      "name": "Front szuflady — main 1.1 / dno nakładane",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 124.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3a81d9700541",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "b78de4915656"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "69279a14f44c",
+      "name": "Front szuflady — main 1.2",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 796.0,
+      "v": 347.5,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 451.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda na bieliznę — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 351.5,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 3,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8767ce5336b7",
+            "right": "3f4cf09ec069",
+            "bottom": "7392df3763b8",
+            "top": "b8418ac431a1",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 1
+        },
+        "anchors": [
+          "8767ce5336b7",
+          "3f4cf09ec069",
+          "7392df3763b8",
+          "b8418ac431a1"
+        ],
+        "requires_review": true,
+        "children": [
+          "02862062a03d",
+          "7b33919acfde",
+          "3e91b76a0269",
+          "c84796e2cb05",
+          "d5c7fc4524a2"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "6557f84bc313",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "77552e9fc48a",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "02862062a03d",
+      "name": "Front szuflady — main 1.2 / bok lewy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 465.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "69279a14f44c"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "7b33919acfde",
+      "name": "Front szuflady — main 1.2 / bok prawy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 465.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "69279a14f44c"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "69279a14f44c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "3e91b76a0269",
+      "name": "Front szuflady — main 1.2 / przód skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 465.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "69279a14f44c"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "c84796e2cb05",
+      "name": "Front szuflady — main 1.2 / tył skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 465.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "69279a14f44c"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "d5c7fc4524a2",
+      "name": "Front szuflady — main 1.2 / dno nakładane",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 459.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3a81d9700541",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "69279a14f44c"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "a685d8a90576",
+      "name": "Front szuflady — main 1.3",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 796.0,
+      "v": 347.5,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 801.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda na bieliznę — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 701.0,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 3,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8767ce5336b7",
+            "right": "3f4cf09ec069",
+            "bottom": "7392df3763b8",
+            "top": "b8418ac431a1",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 2
+        },
+        "anchors": [
+          "8767ce5336b7",
+          "3f4cf09ec069",
+          "7392df3763b8",
+          "b8418ac431a1"
+        ],
+        "requires_review": true,
+        "children": [
+          "4ad2c25d7e00",
+          "3125539efc7c",
+          "6206c3c8ddc7",
+          "51db3ad075ef",
+          "ff449d5025df"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "cad080c29f8d",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "468b54f7be07",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "4ad2c25d7e00",
+      "name": "Front szuflady — main 1.3 / bok lewy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 815.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "a685d8a90576"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "3125539efc7c",
+      "name": "Front szuflady — main 1.3 / bok prawy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 815.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "a685d8a90576"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "a685d8a90576",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "6206c3c8ddc7",
+      "name": "Front szuflady — main 1.3 / przód skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 815.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "a685d8a90576"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "51db3ad075ef",
+      "name": "Front szuflady — main 1.3 / tył skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 815.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "a685d8a90576"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "ff449d5025df",
+      "name": "Front szuflady — main 1.3 / dno nakładane",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 809.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3a81d9700541",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "a685d8a90576"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "94afffa8f36c",
+      "name": "Front szuflady — main 1.4",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 796.0,
+      "v": 347.5,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 1150.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda na bieliznę — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 1050.5,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 3,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8767ce5336b7",
+            "right": "3f4cf09ec069",
+            "bottom": "7392df3763b8",
+            "top": "b8418ac431a1",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 3
+        },
+        "anchors": [
+          "8767ce5336b7",
+          "3f4cf09ec069",
+          "7392df3763b8",
+          "b8418ac431a1"
+        ],
+        "requires_review": true,
+        "children": [
+          "cf24938d8fb4",
+          "1028333e41a3",
+          "9edcf71501a7",
+          "c34d47616476",
+          "9657a058aef7"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "0b9ae4299901",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 173.75,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "b347eef7ede4",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "cf24938d8fb4",
+      "name": "Front szuflady — main 1.4 / bok lewy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 1164.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "94afffa8f36c"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "1028333e41a3",
+      "name": "Front szuflady — main 1.4 / bok prawy",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 1164.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "94afffa8f36c"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "94afffa8f36c",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "9edcf71501a7",
+      "name": "Front szuflady — main 1.4 / przód skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 1164.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "94afffa8f36c"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "c34d47616476",
+      "name": "Front szuflady — main 1.4 / tył skrzynki",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 1164.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "be0a477fc66d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "94afffa8f36c"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "9657a058aef7",
+      "name": "Front szuflady — main 1.4 / dno nakładane",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 1158.5,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3a81d9700541",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "94afffa8f36c"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.dno nakładane"
+      },
+      "layout": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": "35c3d2dc31bc",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "be0a477fc66d",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "e916808a153f",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "0ab729ad5089",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "83c82789cac9",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "37ac34c657f8",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "3a81d9700541",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "b78de4915656",
+      "anchors": [
+        "8767ce5336b7",
+        "3f4cf09ec069"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 155.0
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 155.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "b78de4915656",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 347.5,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 173.75,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "69279a14f44c",
+      "anchors": [
+        "8767ce5336b7",
+        "3f4cf09ec069"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 490.5
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 490.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "69279a14f44c",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 347.5,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 173.75,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "a685d8a90576",
+      "anchors": [
+        "8767ce5336b7",
+        "3f4cf09ec069"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 840.0
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 840.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "a685d8a90576",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 347.5,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 173.75,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "94afffa8f36c",
+      "anchors": [
+        "8767ce5336b7",
+        "3f4cf09ec069"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 1189.5
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 1189.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "94afffa8f36c",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 347.5,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 173.75,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "kind": "leg",
+      "owner_id": "7392df3763b8",
+      "group": "Komoda na bieliznę — 4 szuflady",
+      "name": "Noga meblowa — własny model Ø40 × 100 mm",
+      "qty": 4,
+      "unit": "szt.",
+      "price": 0.0,
+      "height": 100.0,
+      "diameter": 40.0,
+      "setback": 60.0,
+      "positions": [
+        {
+          "x": 60.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 60.0,
+          "y": 390.0,
+          "z": 0.0
+        },
+        {
+          "x": 740.0,
+          "y": 60.0,
+          "z": 0.0
+        },
+        {
+          "x": 740.0,
+          "y": 390.0,
+          "z": 0.0
+        }
+      ],
+      "color": "#242628",
+      "foot_diameter": 46.0,
+      "config_auto": true,
+      "configure_feature": "legs",
+      "source": "",
+      "requires_review": true,
+      "note": "Model zakupowy, bez automatycznego wiercenia mocowań. Dobierz artykuł, nośność i sposób mocowania."
+    }
+  ],
+  "scene": {
+    "room": "neutral",
+    "brightness": 1.0,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [],
+    "architecture": {
+      "enabled": false,
+      "width": 6000.0,
+      "depth": 4500.0,
+      "height": 2800.0,
+      "x": -600.0,
+      "y": -600.0,
+      "z": 0.0,
+      "wall_color": "#c8d8dd",
+      "floor_color": "#bc9567",
+      "cutaway": true,
+      "ceiling": false
+    }
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

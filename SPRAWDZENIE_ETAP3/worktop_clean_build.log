@@ -1,0 +1,4 @@
+[1/4] Building CXX object CMakeFiles/MebelModel.dir/native/core/worktop.cpp.obj
+[2/4] Linking CXX shared library bin\MebelModel.dll
+[3/4] Building CXX object CMakeFiles/test_worktop.dir/native/tests/test_worktop.cpp.obj
+[4/4] Linking CXX executable bin\test_worktop.exe

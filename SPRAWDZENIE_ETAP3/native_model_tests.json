@@ -1,0 +1,123 @@
+{
+  "checks": [
+    {
+      "name": "Native DLL requires no Python runtime",
+      "ok": true
+    },
+    {
+      "name": "Malformed JSON rejected without crossing the ABI",
+      "ok": true
+    },
+    {
+      "name": "Invalid request shape rejected",
+      "ok": true
+    },
+    {
+      "name": "Unmigrated function is an explicit error",
+      "ok": true
+    },
+    {
+      "name": "Excessive nesting rejected",
+      "ok": true
+    },
+    {
+      "name": "Null request rejected",
+      "ok": true
+    },
+    {
+      "name": "Concave polygon area in millimetres",
+      "ok": true
+    },
+    {
+      "name": "Interior of L contour is inside",
+      "ok": true
+    },
+    {
+      "name": "Empty notch of L contour is outside",
+      "ok": true
+    },
+    {
+      "name": "Self-intersecting production contour rejected",
+      "ok": true
+    },
+    {
+      "name": "Concave view keeps exactly n minus 2 triangles",
+      "ok": true
+    },
+    {
+      "name": "Toolbar wraps while all controls stay reachable",
+      "ok": true
+    },
+    {
+      "name": "XY winding preserved",
+      "ok": true
+    },
+    {
+      "name": "XZ swapped-axis winding preserved",
+      "ok": true
+    },
+    {
+      "name": "YZ winding preserved",
+      "ok": true
+    },
+    {
+      "name": "YZ construction plane uses the original coordinate order",
+      "ok": true
+    },
+    {
+      "name": "Furniture layout yaw and room translation preserved",
+      "ok": true
+    },
+    {
+      "name": "Invalid batch leaves the caller output unchanged",
+      "ok": true
+    },
+    {
+      "name": "Null pose rejected",
+      "ok": true
+    },
+    {
+      "name": "Excessive vertex count rejected before accessing input",
+      "ok": true
+    },
+    {
+      "name": "4096 calls release every response in its owning DLL",
+      "ok": true
+    },
+    {
+      "name": "Native atomic save works in Unicode folder",
+      "ok": true
+    },
+    {
+      "name": "Native Unicode project roundtrip is lossless",
+      "ok": true
+    },
+    {
+      "name": "Rejected project cannot overwrite the previous file",
+      "ok": true
+    },
+    {
+      "name": "Atomic replacement failure is reported",
+      "ok": true
+    },
+    {
+      "name": "Atomic replacement failure removes its temporary file",
+      "ok": true
+    },
+    {
+      "name": "Serialized project uses native validated atomic save",
+      "ok": true
+    },
+    {
+      "name": "Native serialized roundtrip preserves nested order and numeric spelling",
+      "ok": true
+    },
+    {
+      "name": "Malformed serialized project cannot replace a valid file",
+      "ok": true
+    }
+  ],
+  "count": 29,
+  "ok": true,
+  "process_uses_python": false
+}

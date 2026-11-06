@@ -1,0 +1,74 @@
+{
+  "checks": [
+    {
+      "name": "Full UTF8 serialized document retains every byte, nested order and metadata",
+      "ok": true
+    },
+    {
+      "name": "Commit undo redo preserve complete snapshots and monotonic revisions",
+      "ok": true
+    },
+    {
+      "name": "Noop commit preserves redo; real branch clears redo",
+      "ok": true
+    },
+    {
+      "name": "Checkpoint supports existing pre-edit snapshot calls without an extra undo",
+      "ok": true
+    },
+    {
+      "name": "Checkpoint adopts untracked mutable edits and clears old redo",
+      "ok": true
+    },
+    {
+      "name": "History limit evicts the oldest state and permits disabled history",
+      "ok": true
+    },
+    {
+      "name": "Stale and invalid commits preserve revision, complete data and both histories",
+      "ok": true
+    },
+    {
+      "name": "Malformed checkpoint validates before recording history",
+      "ok": true
+    },
+    {
+      "name": "Native document save holds revision check, file replacement and publication atomically",
+      "ok": true
+    },
+    {
+      "name": "Serialized snapshot size and nesting limits reject without allocating a document",
+      "ok": true
+    },
+    {
+      "name": "Concurrent same-revision writers yield exactly one commit",
+      "ok": true
+    },
+    {
+      "name": "Clone has isolated content history and lifetime",
+      "ok": true
+    },
+    {
+      "name": "Concurrent destruction and readers cannot retain an invalid document",
+      "ok": true
+    },
+    {
+      "name": "Document registry limit rejects the 257th model and releases capacity",
+      "ok": true
+    },
+    {
+      "name": "Native requests retain strict argument and opaque-handle validation",
+      "ok": true
+    },
+    {
+      "name": "Native document ownership releases every response buffer",
+      "ok": true
+    }
+  ],
+  "concurrent_writers": 12,
+  "count": 16,
+  "failed": 0,
+  "gui": false,
+  "ok": true,
+  "process_uses_python": false
+}

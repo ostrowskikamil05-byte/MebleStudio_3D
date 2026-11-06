@@ -1,0 +1,2601 @@
+{
+  "version": 1,
+  "name": "Komoda warsztatowa — 4 szuflady",
+  "parts": [
+    {
+      "id": "e573d2db405e",
+      "name": "Bok lewy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 500.0,
+      "v": 850.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "e547523d7536",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 253.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 253.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 465.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 465.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 677.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 677.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 48,
+          "name": "Komoda warsztatowa — 4 szuflady",
+          "width": 800.0,
+          "height": 850.0,
+          "depth": 500.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "e547523d7536",
+          "front_material": "fac80426129c",
+          "back": true,
+          "back_thickness": 3.0,
+          "worktop": false,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 0.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 400.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 4
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 850.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 4
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 0,
+              "front": "drawers",
+              "doors": 2,
+              "drawers": 4
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "e573d2db405e",
+            "signature": "3c30dd75013974044deab62aa92a578902ca20bc9396c94b4edb7078374bdb5c"
+          },
+          "carcass.right": {
+            "id": "2a118e35c99c",
+            "signature": "b9182e6b4ce4a1fe3365c16ed73a881a37072523b219b432bbf14979dd17f8e4"
+          },
+          "carcass.bottom": {
+            "id": "a65d85f974a0",
+            "signature": "699c54899b3d5a1ccd990e1ad076be2203b01ee6485746fc86a98e289e6e3861"
+          },
+          "carcass.top": {
+            "id": "744ee5c01ad2",
+            "signature": "8e8a215f907c91efd13324f405756898d1e5d485340f1a1a30a01de8124ff3b3"
+          },
+          "carcass.back": {
+            "id": "7886338b1ced",
+            "signature": "c65b7e530839e0fefc4989cb90165309a79c8c6abb7fc8453b92bd31222b07dc"
+          },
+          "main.bay.0.drawer.0": {
+            "id": "8fb6bef61df9",
+            "signature": "43eb414e9d5127daf5b4790dd70ce5534418906f37798a7b0d0be772ff8c8947"
+          },
+          "main.bay.0.drawer.0.box.bok lewy": {
+            "id": "7b8d6826ef29",
+            "signature": "67713e3cc26f7d63855b6d0cea622a35eb9afe5a42b2ea8c43ad35e6502b0822"
+          },
+          "main.bay.0.drawer.0.box.bok prawy": {
+            "id": "54ae512fdce3",
+            "signature": "aa3d090bb2d0a52f452e4ccc46cf8f20685bbda0cae3fcfd3ffc09c65b6ec59b"
+          },
+          "main.bay.0.drawer.0.box.przód skrzynki": {
+            "id": "491be50a3478",
+            "signature": "a42d9f21e8dd38feebeda2cfec38c15e7ac0fd76a379a5f89c667d2a1137416e"
+          },
+          "main.bay.0.drawer.0.box.tył skrzynki": {
+            "id": "cbd58ffe8d63",
+            "signature": "e91798286754a52a962f387fdae5ea18a3be10d2dfc48259e32d926782b09fa1"
+          },
+          "main.bay.0.drawer.0.box.dno nakładane": {
+            "id": "0113c6ba1143",
+            "signature": "2d255088886192eb976080110439274bc47e258435cfeace8aa0cd266050d8c9"
+          },
+          "main.bay.0.drawer.1": {
+            "id": "cf04561240dd",
+            "signature": "d7af00351b48bd88db1e608f389478fa141dacfcddf3c0bce0dd6aec785b4461"
+          },
+          "main.bay.0.drawer.1.box.bok lewy": {
+            "id": "03585dfa0604",
+            "signature": "00d14da2e9439d6d6ce49e29eebb2d63e9dfb740f247a2fb9f899e35c3bfc820"
+          },
+          "main.bay.0.drawer.1.box.bok prawy": {
+            "id": "72f582f9b4a7",
+            "signature": "2257b29c1a774a5ae55c187f36e30ba92d5acf8a65a5e92275f27bf01a108274"
+          },
+          "main.bay.0.drawer.1.box.przód skrzynki": {
+            "id": "ead90f04a3fc",
+            "signature": "ea0a3dd860c228701f4d4d160120064afd923c2033a4bddcf05fdbd4c1b127ff"
+          },
+          "main.bay.0.drawer.1.box.tył skrzynki": {
+            "id": "27b756272d5f",
+            "signature": "a641e749842bcb7b3f2af9fa12d1d31fd9d5b1d3772d8fbc47aad2c1c52765ed"
+          },
+          "main.bay.0.drawer.1.box.dno nakładane": {
+            "id": "996599f5ad02",
+            "signature": "2a60b965de94d7b34af6bdb3e9caca161ca8bd73c79443a4b8daa85dd2a7c198"
+          },
+          "main.bay.0.drawer.2": {
+            "id": "8b484c33d9af",
+            "signature": "451d976aced2ee79c6cddf2883888fc65ad49ff28add9d41cb1f5db6a4b53605"
+          },
+          "main.bay.0.drawer.2.box.bok lewy": {
+            "id": "e3a563a68e99",
+            "signature": "6ca4b4b38178773a8de11b59742588eb2202c8d3bd30f98ef6ab7842512cf6a2"
+          },
+          "main.bay.0.drawer.2.box.bok prawy": {
+            "id": "46b97cdb0d34",
+            "signature": "60078d2a0747686364a875fc010a4c51c4a4c4384a60f6289094fc413467b9f3"
+          },
+          "main.bay.0.drawer.2.box.przód skrzynki": {
+            "id": "442b93500c21",
+            "signature": "8906fb4e4ed51b7bf060a9bc1e7781ffd3359843005397aeb2cbada283b8e754"
+          },
+          "main.bay.0.drawer.2.box.tył skrzynki": {
+            "id": "fe23a768b18b",
+            "signature": "5482bfc6912f925d05d5abf801c69ced2382d8d85e6f097e80c72cee9f06488d"
+          },
+          "main.bay.0.drawer.2.box.dno nakładane": {
+            "id": "1ec9b26e46fc",
+            "signature": "c3609a79493215dd8b7c2aff8fc5d41a6d76e512a523c759041a8df16869a309"
+          },
+          "main.bay.0.drawer.3": {
+            "id": "3c5d501deb21",
+            "signature": "7bf91dbfa7f338c4adcd15c35638e19f0959dd92ac069f885d26df26b7b8d4d4"
+          },
+          "main.bay.0.drawer.3.box.bok lewy": {
+            "id": "44faa9e0f707",
+            "signature": "1dd0508855e3ae87e6535f1e33f4daa1508c1fbae4b40e3a0d0554dcee5bd44c"
+          },
+          "main.bay.0.drawer.3.box.bok prawy": {
+            "id": "1d41de2b6f20",
+            "signature": "bca50fea69cb03dd9c85c2cdbcd3a1e360389b08d0212de98fc20aca2c89c033"
+          },
+          "main.bay.0.drawer.3.box.przód skrzynki": {
+            "id": "46df85174541",
+            "signature": "260707220be819b093245b9a71820fdbbf942119fd61289e5fb6880d64cb7a6d"
+          },
+          "main.bay.0.drawer.3.box.tył skrzynki": {
+            "id": "651d2b611701",
+            "signature": "4bfc97843e9a25552b2fd7c9a41099b242b02132a62a94ac3f808ce991248c22"
+          },
+          "main.bay.0.drawer.3.box.dno nakładane": {
+            "id": "4ff8e882f9b6",
+            "signature": "9d94c36e1c1ac9c4287ab09ff5d029c36fe398f5d861b47fbddec6ce772a4ea7"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "2a118e35c99c",
+      "name": "Bok prawy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 500.0,
+      "v": 850.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 782.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "e547523d7536",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 55.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 253.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 253.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 465.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 465.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 57.0,
+          "v": 677.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 270.0,
+          "v": 677.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica korpusu",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "a65d85f974a0",
+      "name": "Dno",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 764.0,
+      "v": 500.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "e547523d7536",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "744ee5c01ad2",
+      "name": "Wieniec",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 764.0,
+      "v": 500.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 832.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "e547523d7536",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "7886338b1ced",
+      "name": "Plecy nakładane HDF",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 800.0,
+      "v": 850.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 500.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "1df3db7eccc1",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "back",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.back"
+      },
+      "layout": {}
+    },
+    {
+      "id": "8fb6bef61df9",
+      "name": "Front szuflady — main 1.1",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 796.0,
+      "v": 210.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 2.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda warsztatowa — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 2.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 20.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "e573d2db405e",
+            "right": "2a118e35c99c",
+            "bottom": "a65d85f974a0",
+            "top": "744ee5c01ad2",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 0
+        },
+        "anchors": [
+          "e573d2db405e",
+          "2a118e35c99c",
+          "a65d85f974a0",
+          "744ee5c01ad2"
+        ],
+        "requires_review": true,
+        "children": [
+          "7b8d6826ef29",
+          "54ae512fdce3",
+          "491be50a3478",
+          "cbd58ffe8d63",
+          "0113c6ba1143"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "1a9403e0032d",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "812907f8ad13",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "7b8d6826ef29",
+      "name": "Front szuflady — main 1.1 / bok lewy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8fb6bef61df9"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "54ae512fdce3",
+      "name": "Front szuflady — main 1.1 / bok prawy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8fb6bef61df9"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8fb6bef61df9",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "491be50a3478",
+      "name": "Front szuflady — main 1.1 / przód skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8fb6bef61df9"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "cbd58ffe8d63",
+      "name": "Front szuflady — main 1.1 / tył skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 30.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8fb6bef61df9"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "0113c6ba1143",
+      "name": "Front szuflady — main 1.1 / dno nakładane",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 24.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "1df3db7eccc1",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8fb6bef61df9"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.0.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "cf04561240dd",
+      "name": "Front szuflady — main 1.2",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 796.0,
+      "v": 210.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 214.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda warsztatowa — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 214.0,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "e573d2db405e",
+            "right": "2a118e35c99c",
+            "bottom": "a65d85f974a0",
+            "top": "744ee5c01ad2",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 1
+        },
+        "anchors": [
+          "e573d2db405e",
+          "2a118e35c99c",
+          "a65d85f974a0",
+          "744ee5c01ad2"
+        ],
+        "requires_review": true,
+        "children": [
+          "03585dfa0604",
+          "72f582f9b4a7",
+          "ead90f04a3fc",
+          "27b756272d5f",
+          "996599f5ad02"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "d1866e087f62",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "f249a09ef809",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "03585dfa0604",
+      "name": "Front szuflady — main 1.2 / bok lewy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 228.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "cf04561240dd"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "72f582f9b4a7",
+      "name": "Front szuflady — main 1.2 / bok prawy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 228.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "cf04561240dd"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "cf04561240dd",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "ead90f04a3fc",
+      "name": "Front szuflady — main 1.2 / przód skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 228.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "cf04561240dd"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "27b756272d5f",
+      "name": "Front szuflady — main 1.2 / tył skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 228.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "cf04561240dd"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "996599f5ad02",
+      "name": "Front szuflady — main 1.2 / dno nakładane",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 222.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "1df3db7eccc1",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "cf04561240dd"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.1.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "8b484c33d9af",
+      "name": "Front szuflady — main 1.3",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 796.0,
+      "v": 210.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 426.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda warsztatowa — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 426.0,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "e573d2db405e",
+            "right": "2a118e35c99c",
+            "bottom": "a65d85f974a0",
+            "top": "744ee5c01ad2",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 2
+        },
+        "anchors": [
+          "e573d2db405e",
+          "2a118e35c99c",
+          "a65d85f974a0",
+          "744ee5c01ad2"
+        ],
+        "requires_review": true,
+        "children": [
+          "e3a563a68e99",
+          "46b97cdb0d34",
+          "442b93500c21",
+          "fe23a768b18b",
+          "1ec9b26e46fc"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "c8eecaa8ea4e",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "a9643974ab04",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "e3a563a68e99",
+      "name": "Front szuflady — main 1.3 / bok lewy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 440.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8b484c33d9af"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "46b97cdb0d34",
+      "name": "Front szuflady — main 1.3 / bok prawy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 440.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8b484c33d9af"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "8b484c33d9af",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "442b93500c21",
+      "name": "Front szuflady — main 1.3 / przód skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 440.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8b484c33d9af"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "fe23a768b18b",
+      "name": "Front szuflady — main 1.3 / tył skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 440.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8b484c33d9af"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "1ec9b26e46fc",
+      "name": "Front szuflady — main 1.3 / dno nakładane",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 434.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "1df3db7eccc1",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "8b484c33d9af"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.2.box.dno nakładane"
+      },
+      "layout": {}
+    },
+    {
+      "id": "3c5d501deb21",
+      "name": "Front szuflady — main 1.4",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 796.0,
+      "v": 210.0,
+      "t": 18.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -20.0,
+      "z": 638.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer",
+      "assembly": {
+        "group": "Komoda warsztatowa — 4 szuflady",
+        "role": "drawer",
+        "config": {
+          "gap": 2.0,
+          "level": 638.0,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 12.7,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 6.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "e573d2db405e",
+            "right": "2a118e35c99c",
+            "bottom": "a65d85f974a0",
+            "top": "744ee5c01ad2",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "hinge_pattern": "hinge45",
+          "hinge_spring": "unknown",
+          "bay_drawers": 4,
+          "bay_drawer_index": 3
+        },
+        "anchors": [
+          "e573d2db405e",
+          "2a118e35c99c",
+          "a65d85f974a0",
+          "744ee5c01ad2"
+        ],
+        "requires_review": true,
+        "children": [
+          "44faa9e0f707",
+          "1d41de2b6f20",
+          "46df85174541",
+          "651d2b611701",
+          "4ff8e882f9b6"
+        ]
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 334.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "82e3acf2ac87",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 462.0,
+          "v": 105.0,
+          "diameter": 4.5,
+          "depth": 18.0,
+          "face": "bottom",
+          "batch": "9a2698197590",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle",
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {
+        "mode": "drawer",
+        "angle": 0,
+        "travel": 360.0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3",
+        "front_style": {
+          "style": "smooth",
+          "front_border": 60.0,
+          "front_depth": 3.0,
+          "front_radius": 6.0,
+          "flute_width": 8.0,
+          "flute_spacing": 20.0,
+          "flute_count": 0,
+          "finger_length": 120.0,
+          "finger_width": 24.0,
+          "finger_depth": 6.0
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "44faa9e0f707",
+      "name": "Front szuflady — main 1.4 / bok lewy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 652.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "3c5d501deb21"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.bok lewy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "1d41de2b6f20",
+      "name": "Front szuflady — main 1.4 / bok prawy",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 400.0,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "YZ",
+      "x": 753.3000000000001,
+      "y": 20.0,
+      "z": 652.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "3c5d501deb21"
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 250.0,
+          "v": 25.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "3c5d501deb21",
+          "purpose": "prowadnica skrzynki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.bok prawy"
+      },
+      "layout": {}
+    },
+    {
+      "id": "46df85174541",
+      "name": "Front szuflady — main 1.4 / przód skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 20.0,
+      "z": 652.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "3c5d501deb21"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.przód skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "651d2b611701",
+      "name": "Front szuflady — main 1.4 / tył skrzynki",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 706.6,
+      "v": 120.0,
+      "t": 16.0,
+      "plane": "XZ",
+      "x": 46.7,
+      "y": 404.0,
+      "z": 652.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "fac80426129c",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "3c5d501deb21"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.tył skrzynki"
+      },
+      "layout": {}
+    },
+    {
+      "id": "4ff8e882f9b6",
+      "name": "Front szuflady — main 1.4 / dno nakładane",
+      "group": "Komoda warsztatowa — 4 szuflady",
+      "u": 738.6,
+      "v": 400.0,
+      "t": 6.0,
+      "plane": "XY",
+      "x": 30.7,
+      "y": 20.0,
+      "z": 646.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "1df3db7eccc1",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "drawer_box",
+      "assembly": {
+        "generated_by": "3c5d501deb21"
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.drawer.3.box.dno nakładane"
+      },
+      "layout": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": "e547523d7536",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "fac80426129c",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "1ff976573ce7",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "c57f370b1830",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "4a0b22727df0",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "000422ba1c10",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "1df3db7eccc1",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "8fb6bef61df9",
+      "anchors": [
+        "e573d2db405e",
+        "2a118e35c99c"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 55.0
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 55.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "8fb6bef61df9",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 210.0,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 105.0,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "cf04561240dd",
+      "anchors": [
+        "e573d2db405e",
+        "2a118e35c99c"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 253.0
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 253.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "cf04561240dd",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 210.0,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 105.0,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "8b484c33d9af",
+      "anchors": [
+        "e573d2db405e",
+        "2a118e35c99c"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 465.0
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 465.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "8b484c33d9af",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 210.0,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 105.0,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    },
+    {
+      "name": "Para prowadnic bocznych — wzorzec roboczy",
+      "qty": 1,
+      "price": 0.0,
+      "owner_id": "3c5d501deb21",
+      "anchors": [
+        "e573d2db405e",
+        "2a118e35c99c"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 20.0,
+          "z": 677.0
+        },
+        {
+          "x": 782.0,
+          "y": 20.0,
+          "z": 677.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "runner",
+      "length": 400.0,
+      "closed_front_y": -20.0,
+      "color": "#aab0b6",
+      "config_auto": true
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "3c5d501deb21",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 796.0,
+      "design_v": 210.0,
+      "u_anchor": "center",
+      "v_anchor": "center",
+      "u": 398.0,
+      "v": 105.0,
+      "spacing": 128.0,
+      "vertical": false,
+      "color": "#242628",
+      "projection": 28.0,
+      "config_auto": true
+    }
+  ],
+  "scene": {
+    "room": "neutral",
+    "brightness": 1.0,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [],
+    "architecture": {
+      "enabled": false,
+      "width": 6000.0,
+      "depth": 4500.0,
+      "height": 2800.0,
+      "x": -600.0,
+      "y": -600.0,
+      "z": 0.0,
+      "wall_color": "#c8d8dd",
+      "floor_color": "#bc9567",
+      "cutaway": true,
+      "ceiling": false
+    }
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

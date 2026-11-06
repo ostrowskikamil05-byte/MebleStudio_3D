@@ -1,0 +1,1310 @@
+{
+  "version": 1,
+  "name": "Regał łazienkowy wąski",
+  "parts": [
+    {
+      "id": "8523128753a3",
+      "name": "Bok lewy",
+      "group": "Regał łazienkowy wąski",
+      "u": 300.0,
+      "v": 1800.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "left",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 306.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "0ac2aa51c113",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 306.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "0ac2aa51c113",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 597.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "ba9fdf4d8231",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 597.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "ba9fdf4d8231",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 888.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7504df7cbebf",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 888.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "7504df7cbebf",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 1179.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "99c7bed03364",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 1179.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "99c7bed03364",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 1470.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "c7edcdfc330d",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 1470.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "c7edcdfc330d",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.left",
+        "config": {
+          "schema": 1,
+          "template_index": 50,
+          "name": "Regał łazienkowy wąski",
+          "width": 300.0,
+          "height": 1800.0,
+          "depth": 300.0,
+          "thickness": 18.0,
+          "front_thickness": 18.0,
+          "gap": 2.0,
+          "material": "602819e2bf78",
+          "front_material": "ddef4eceeee4",
+          "back": false,
+          "back_thickness": 3.0,
+          "worktop": false,
+          "worktop_thickness": 28.0,
+          "worktop_overhang": 20.0,
+          "top_mode": "panel",
+          "rail_width": 80.0,
+          "leg_height": 0.0,
+          "leg_count": 4,
+          "leg_diameter": 40.0,
+          "leg_setback": 60.0,
+          "leg_color": "#242628",
+          "leg_price": 0.0,
+          "plinth": false,
+          "plinth_setback": 40.0,
+          "hinge_pattern": "hinge45",
+          "hinge_count": 2,
+          "hinge_spring": "unknown",
+          "handle_mode": "handle",
+          "handle_spacing": 128.0,
+          "handle_color": "#242628",
+          "opening_angle": 100.0,
+          "runner_profile": "",
+          "runner_length": 270.0,
+          "drawer_side_thickness": 16.0,
+          "drawer_bottom_thickness": 6.0,
+          "front_style": "smooth",
+          "front_border": 60,
+          "front_depth": 3,
+          "front_radius": 6,
+          "flute_width": 8,
+          "flute_spacing": 20,
+          "flute_count": 0,
+          "finger_length": 120,
+          "finger_width": 24,
+          "finger_depth": 6,
+          "led": false,
+          "led_mount": "under_shelf",
+          "led_width": 12.0,
+          "led_depth": 3.0,
+          "led_margin": 30.0,
+          "led_price_per_m": 0.0,
+          "led_profile": true,
+          "led_diffuser": true,
+          "led_color": "#fff3bf",
+          "led_source": "",
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "sections": [
+            {
+              "key": "bottom",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 5,
+              "front": "open",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "main",
+              "enabled": true,
+              "height": 1800.0,
+              "columns": 1,
+              "shelves": 5,
+              "front": "open",
+              "doors": 1,
+              "drawers": 3
+            },
+            {
+              "key": "upper",
+              "enabled": false,
+              "height": 200.0,
+              "columns": 1,
+              "shelves": 5,
+              "front": "open",
+              "doors": 1,
+              "drawers": 3
+            }
+          ],
+          "led_side": "left",
+          "led_profile_price_per_m": 0.0,
+          "led_diffuser_price_per_m": 0.0,
+          "led_source_price": 0.0,
+          "led_targets": null
+        },
+        "manifest": {
+          "carcass.left": {
+            "id": "8523128753a3",
+            "signature": "4449626a936ac0f7a5ba343e9eb899dbf608323eb49ce3a466996b06f8c9025e"
+          },
+          "carcass.right": {
+            "id": "176637164878",
+            "signature": "0d1a731f9f0f81fce35f3a7d7e283da1afda074d0bd144174521c1c29855505a"
+          },
+          "carcass.bottom": {
+            "id": "5fa9271e0d33",
+            "signature": "f15ad2b8514fefe202a283d96c8011f3b46f9cc2fa772b516fd61e6f7c4285c5"
+          },
+          "carcass.top": {
+            "id": "49d607601ad7",
+            "signature": "28fc5f709dce19e324aa4794541caa2b627eee92f0433dd0a7f71c2deb6e0197"
+          },
+          "main.bay.0.shelf.1": {
+            "id": "0ac2aa51c113",
+            "signature": "88c38f3cd86fbda9fa7ecdfd4162872b3c110cc96da349484545dada9f88690b"
+          },
+          "main.bay.0.shelf.2": {
+            "id": "ba9fdf4d8231",
+            "signature": "ffc8ef5eb3a0b3894f4c87f447fd49127e79bc40cba274a160ebcfae3666bab8"
+          },
+          "main.bay.0.shelf.3": {
+            "id": "7504df7cbebf",
+            "signature": "56381140a109b9caec211b1ff8d3a65597d1cc67751132fa8c973d8060bf244f"
+          },
+          "main.bay.0.shelf.4": {
+            "id": "99c7bed03364",
+            "signature": "928f34b2242aaa026e5042882e06a4b950fc0c4c4c2741e8eb97d0bf0429b243"
+          },
+          "main.bay.0.shelf.5": {
+            "id": "c7edcdfc330d",
+            "signature": "eadd104b73556a727fea41f3d1a3fdbf5e4089d06bf9631ae25aa78ba047fcbd"
+          }
+        }
+      },
+      "layout": {}
+    },
+    {
+      "id": "176637164878",
+      "name": "Bok prawy",
+      "group": "Regał łazienkowy wąski",
+      "u": 300.0,
+      "v": 1800.0,
+      "t": 18.0,
+      "plane": "YZ",
+      "x": 282.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "right",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 306.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "0ac2aa51c113",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 306.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "0ac2aa51c113",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 597.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "ba9fdf4d8231",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 597.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "ba9fdf4d8231",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 888.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7504df7cbebf",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 888.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "7504df7cbebf",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 1179.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "99c7bed03364",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 1179.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "99c7bed03364",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 1470.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "c7edcdfc330d",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        },
+        {
+          "type": "drill",
+          "u": 258.0,
+          "v": 1470.5,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "c7edcdfc330d",
+          "purpose": "podpórka półki",
+          "requires_review": true,
+          "config_auto": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.right"
+      },
+      "layout": {}
+    },
+    {
+      "id": "5fa9271e0d33",
+      "name": "Dno",
+      "group": "Regał łazienkowy wąski",
+      "u": 264.0,
+      "v": 300.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "bottom",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.bottom"
+      },
+      "layout": {}
+    },
+    {
+      "id": "49d607601ad7",
+      "name": "Wieniec",
+      "group": "Regał łazienkowy wąski",
+      "u": 264.0,
+      "v": 300.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 18.0,
+      "y": 0.0,
+      "z": 1782.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "top",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "carcass.top"
+      },
+      "layout": {}
+    },
+    {
+      "id": "0ac2aa51c113",
+      "name": "Półka — main 1.1",
+      "group": "Regał łazienkowy wąski",
+      "u": 260.0,
+      "v": 296.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 2.0,
+      "z": 309.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Regał łazienkowy wąski",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 309.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8523128753a3",
+            "right": "176637164878",
+            "bottom": "5fa9271e0d33",
+            "top": "49d607601ad7",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 5,
+          "bay_shelf_index": 1
+        },
+        "anchors": [
+          "8523128753a3",
+          "176637164878",
+          "5fa9271e0d33",
+          "49d607601ad7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.1"
+      },
+      "layout": {}
+    },
+    {
+      "id": "ba9fdf4d8231",
+      "name": "Półka — main 1.2",
+      "group": "Regał łazienkowy wąski",
+      "u": 260.0,
+      "v": 296.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 2.0,
+      "z": 600.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Regał łazienkowy wąski",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 600.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8523128753a3",
+            "right": "176637164878",
+            "bottom": "5fa9271e0d33",
+            "top": "49d607601ad7",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 5,
+          "bay_shelf_index": 2
+        },
+        "anchors": [
+          "8523128753a3",
+          "176637164878",
+          "5fa9271e0d33",
+          "49d607601ad7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.2"
+      },
+      "layout": {}
+    },
+    {
+      "id": "7504df7cbebf",
+      "name": "Półka — main 1.3",
+      "group": "Regał łazienkowy wąski",
+      "u": 260.0,
+      "v": 296.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 2.0,
+      "z": 891.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Regał łazienkowy wąski",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 891.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8523128753a3",
+            "right": "176637164878",
+            "bottom": "5fa9271e0d33",
+            "top": "49d607601ad7",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 5,
+          "bay_shelf_index": 3
+        },
+        "anchors": [
+          "8523128753a3",
+          "176637164878",
+          "5fa9271e0d33",
+          "49d607601ad7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.3"
+      },
+      "layout": {}
+    },
+    {
+      "id": "99c7bed03364",
+      "name": "Półka — main 1.4",
+      "group": "Regał łazienkowy wąski",
+      "u": 260.0,
+      "v": 296.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 2.0,
+      "z": 1182.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Regał łazienkowy wąski",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 1182.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8523128753a3",
+            "right": "176637164878",
+            "bottom": "5fa9271e0d33",
+            "top": "49d607601ad7",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 5,
+          "bay_shelf_index": 4
+        },
+        "anchors": [
+          "8523128753a3",
+          "176637164878",
+          "5fa9271e0d33",
+          "49d607601ad7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.4"
+      },
+      "layout": {}
+    },
+    {
+      "id": "c7edcdfc330d",
+      "name": "Półka — main 1.5",
+      "group": "Regał łazienkowy wąski",
+      "u": 260.0,
+      "v": 296.0,
+      "t": 18.0,
+      "plane": "XY",
+      "x": 20.0,
+      "y": 2.0,
+      "z": 1473.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "602819e2bf78",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Regał łazienkowy wąski",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 1473.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "bay": {
+            "left": "8523128753a3",
+            "right": "176637164878",
+            "bottom": "5fa9271e0d33",
+            "top": "49d607601ad7",
+            "left_mid": false,
+            "right_mid": false,
+            "bottom_mid": false,
+            "top_mid": false
+          },
+          "bay_shelves": 5,
+          "bay_shelf_index": 5
+        },
+        "anchors": [
+          "8523128753a3",
+          "176637164878",
+          "5fa9271e0d33",
+          "49d607601ad7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {},
+      "configurator_source": {
+        "schema": 1,
+        "key": "main.bay.0.shelf.5"
+      },
+      "layout": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": "602819e2bf78",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "ddef4eceeee4",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "12ec02c56bb7",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "5fbad544f20f",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e9391dba2135",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "1815dd21a8be",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "324c68406ff0",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "0ac2aa51c113",
+      "anchors": [
+        "8523128753a3",
+        "176637164878"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 42.0,
+          "z": 306.5
+        },
+        {
+          "x": 18.0,
+          "y": 258.0,
+          "z": 306.5
+        },
+        {
+          "x": 282.0,
+          "y": 42.0,
+          "z": 306.5
+        },
+        {
+          "x": 282.0,
+          "y": 258.0,
+          "z": 306.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    },
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "ba9fdf4d8231",
+      "anchors": [
+        "8523128753a3",
+        "176637164878"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 42.0,
+          "z": 597.5
+        },
+        {
+          "x": 18.0,
+          "y": 258.0,
+          "z": 597.5
+        },
+        {
+          "x": 282.0,
+          "y": 42.0,
+          "z": 597.5
+        },
+        {
+          "x": 282.0,
+          "y": 258.0,
+          "z": 597.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    },
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "7504df7cbebf",
+      "anchors": [
+        "8523128753a3",
+        "176637164878"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 42.0,
+          "z": 888.5
+        },
+        {
+          "x": 18.0,
+          "y": 258.0,
+          "z": 888.5
+        },
+        {
+          "x": 282.0,
+          "y": 42.0,
+          "z": 888.5
+        },
+        {
+          "x": 282.0,
+          "y": 258.0,
+          "z": 888.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    },
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "99c7bed03364",
+      "anchors": [
+        "8523128753a3",
+        "176637164878"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 42.0,
+          "z": 1179.5
+        },
+        {
+          "x": 18.0,
+          "y": 258.0,
+          "z": 1179.5
+        },
+        {
+          "x": 282.0,
+          "y": 42.0,
+          "z": 1179.5
+        },
+        {
+          "x": 282.0,
+          "y": 258.0,
+          "z": 1179.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    },
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "c7edcdfc330d",
+      "anchors": [
+        "8523128753a3",
+        "176637164878"
+      ],
+      "positions": [
+        {
+          "x": 18.0,
+          "y": 42.0,
+          "z": 1470.5
+        },
+        {
+          "x": 18.0,
+          "y": 258.0,
+          "z": 1470.5
+        },
+        {
+          "x": 282.0,
+          "y": 42.0,
+          "z": 1470.5
+        },
+        {
+          "x": 282.0,
+          "y": 258.0,
+          "z": 1470.5
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "config_auto": true
+    }
+  ],
+  "scene": {
+    "room": "neutral",
+    "brightness": 1.0,
+    "led_enabled": true,
+    "lights_enabled": true,
+    "objects": [],
+    "architecture": {
+      "enabled": false,
+      "width": 6000.0,
+      "depth": 4500.0,
+      "height": 2800.0,
+      "x": -600.0,
+      "y": -600.0,
+      "z": 0.0,
+      "wall_color": "#c8d8dd",
+      "floor_color": "#bc9567",
+      "cutaway": true,
+      "ceiling": false
+    }
+  },
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

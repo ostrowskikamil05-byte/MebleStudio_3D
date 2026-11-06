@@ -1,0 +1,123 @@
+﻿MEBELSTUDIO3D 0.8 — WINDOWS Z WBUDOWANYM CAD
+
+URUCHOMIENIE
+Rozpakuj cały ZIP i uruchom MebelStudio3D.exe. Python, CAD i biblioteki
+są dołączone. Program działa offline, bez pip i dodatkowej instalacji CAD.
+Zachowaj folder _internal obok EXE. Możesz przenieść cały folder lub
+utworzyć skrót do EXE. Wydanie jest przeznaczone dla Windows x64.
+Pliki projektów mają rozszerzenie .mebel. Starsze projekty można otworzyć.
+
+SZYBKI START
+1. + Mebel: wybierz jeden z 34 szablonów i wymiary korpusu.
+2. Kształty i style: dodatkowe 12 szablonów stołów, krzeseł, taboretów,
+   konsoli, ławki, toaletki, lustra i mebli z obłymi/ryflowanymi frontami.
+3. Zaznacz element w 3D albo na liście. Rysuj / Edytuj szkic tworzy zakładkę.
+4. W szkicu wybierz mebel i rolę: bok, góra, dół, blat, półka, drzwi,
+   szuflada albo inny element. Zapisz i rysuj następny pozwala kontynuować.
+5. Zapisz projekt. Eksporty i dokumentację znajdziesz w menu aplikacji.
+
+ZAKŁADKI I DWA MONITORY
+Szkic, podgląd, kreatory i dodatkowa wizualizacja otwierają się na pasku
+zakładek. Przeciągnij zakładkę poza pasek, aby odłączyć ją do okna.
+Możesz przeciągnąć uchwyt dokumentu albo systemowy pasek tytułu okna
+nad pasek zakładek, aby wrócić do aplikacji; dostępny jest też przycisk
+powrotu. Wpisane dane i bieżący szkic są zachowywane przy odłączaniu.
+Przy Nowy / Otwórz / zamykaniu aplikacji system wykrywa niezapisany szkic
+i zmiany formularzy. Anulowanie zachowuje dokumenty. Wczytanie nowego
+projektu zamyka stare edytory, aby nie zapisały zmian do innego modelu.
+
+SZKIC, WYMIARY I ROZCIĄGANIE 3D
+Rysuj prostokąty i wielokąty, używaj siatki, Orto, przyciągania, odbicia,
+obrotu, offsetu i długości odcinka. Pola U/V synchronizują szkic i bryłę.
+Podgląd na żywo pokazuje element w konstrukcji oraz wynik generowania
+okuć. Zamknięty kontur nie blokuje tworzenia następnego elementu.
+Rozciągaj część: uchwyty U/V/T. Rozciągaj mebel: szerokość, wysokość,
+głębokość. Opcjonalny krok 32 mm. Dopasuj element dopasowuje geometrię,
+a Dopasuj przy kamerze ustawia widok. Części powiązane i otwory montażowe
+są przeliczane; grubości płyt pozostają parametrami konstrukcji.
+Edytuj geometrię w pozycji zamkniętej. Zmiana całego mebla ze stylów
+odtwarza jego parametryczny szablon. Ręczna zmiana konstrukcji może
+wymagać edycji pojedynczych części zamiast przebudowania szablonu.
+
+OBŁE KSZTAŁTY I STYLE
+Edytor obrysów: prostokąt, niezależne promienie czterech narożników,
+okrąg, elipsa, kapsuła pozioma/pionowa, łuk, półelipsa i trapez.
+Promienie są zapisane w projekcie i pozostają w mm przy zmianie wymiarów.
+Edytor kantów rozpoznaje rzeczywiste łuki i odcinki dokładnej bryły.
+Koło ma dwa obwody do obróbki: górny i dolny. Zaokrąglenie lub faza
+stycznie połączonych krawędzi działa na ich wspólnym ciągu; różne wartości
+na tym samym ciągu są odrzucane. Narożniki obrysu R1…R4 pozostają osobne.
+STEP zawiera dokładne łuki, koła i elipsy. Szkic, wizualizacja i prosty DXF
+pokazują segmenty; gęstość podglądu jest edytowalna.
+Nogi kołowe mają bryły cylindryczne. Krzesła i taborety mają łączyny.
+Ryflowanie tworzy rzeczywiste rowki CAD; zmienia się wraz z parametrami.
+Okleinowanie całego obrysu liczy jego długość, także dla obłych części.
+Koszt i rozkrój półfabrykatu nadal bazują na nominalnym prostokącie.
+Szablony stanowią bazę konstrukcji: nie zawierają obliczeń wytrzymałości,
+pełnych połączeń stolarskich ani giętych w przestrzeni powierzchni.
+
+PROWADNICE — MENU KREATOR 0.8
+Katalog obejmuje 12 profili: Blum MOVENTO, Hettich Quadro,
+Hettich KA, Hettich Actro 5D, GRASS Dynapro, Salice Futura i Häfele.
+Wybierz front szuflady, profil, długość i grubość boków skrzynki.
+Kalkulator pokazuje szerokość wewnętrzną i zewnętrzną, luz na stronę,
+długość skrzynki, miejsce montażu, cofnięcie dna i tolerancje.
+Uwzględnia plecy wsunięte w korpus oraz głębokość całej skrzynki.
+Zastosuj przelicza pięć części skrzynki i wpisuje okucie do raportu.
+Warianty z nieustaloną głębokością wymagają podania i potwierdzenia
+wymiaru z własnej dokumentacji. Wartość warsztatowa jest oznaczona.
+Link dokumentacji prowadzi do odpowiedniego wariantu lub katalogu.
+Nie każdy profil zawiera wszystkie SKU. Lista nie obejmuje całego rynku.
+Wzory otworów, zaczepy, sprzęgła i przygotowanie tyłu prowadnic zależą
+od konkretnego artykułu; katalog nie generuje niepotwierdzonych wierceń.
+Plan montażu i lista okuć eksportują obliczenia i źródła do HTML.
+
+ZAWIASY I FRONTY BEZ UCHWYTÓW
+Nowe drzwi ze szkicu i biblioteki mogą automatycznie otrzymać zawiasy.
+Okucia → Zawiasy dodaje/naprawia istniejący front. Otwory puszki,
+mocowanie i prowadnik są powiązane z drzwiami i bokiem szafki.
+Sensys 9071205 TH52: Ø35 × 12,8; rozstaw 52 × 5,5; pilot Ø2,5.
+Głębokość pilota i wzór prowadnika są ustawieniami warsztatowymi.
+Kreator 0.8 → Fronty bez uchwytów: magnetyczny TIP-ON krótki/długi,
+TIP-ON z odbojnikiem, Salice Magnetic Push, profil krawędziowy,
+kieszeń frezowana i podłużne wycięcie. Pozycja i kąt są edytowalne.
+Wypychacze tworzą rzeczywisty otwór w krawędzi właściwego boku korpusu.
+Magnetyczny TIP-ON wymaga zawiasów bez sprężyny; wybierz/potwierdź je.
+Sensys ze sprężyną nie może być zastosowany z tym wariantem magnetycznym.
+Odbojnik jest przeznaczony do zawiasów ze sprężyną. Dobór siły, prowadnika
+i konkretnego numeru zawiasu wymaga sprawdzenia karty produktu.
+
+OTWORY, MATERIAŁY I POZOSTAŁE FUNKCJE
+System 32: Ø5, krok 32, linia 37 mm; edytowalne rzędy i głębokość.
+Konfirmaty 7 × 50, kołki, mimośrody, piloty i przeloty M4/M6/M8,
+podpórki półek, uchwyty i gałki. Powiązane otwory korpusu przeliczają się
+przy zmianach wymiarów. Wkręty dobieraj do materiału i konkretnego artykułu.
+Kreator 0.8 → Materiały i grubości: warianty płyt, MDF, sklejki i drewna,
+z podaniem źródła produktu lub oznaczeniem wartości warsztatowej.
+Paleta kolorów/dekorów, kosztorys, rozkrój, półfabrykaty i okleiny.
+Ceny nowych dekorów są 0; wprowadź własne ceny i koszty zakupu okuć.
+Zachowane: osobne fazy/zaokrąglenia kantów, kieszenie, rowki, wycięcia,
+wiercenia sześciostronne, szyki, lustro i własna biblioteka mebli.
+
+WIZUALIZACJA I PRODUKCJA
+Otwarcie 0–100%, animacja i sterowanie wszystkimi mechanizmami:
+zawiasy, szuflady, drzwi przesuwne, klapy, cargo i pokrywy.
+Widok rozstrzelony ma przełącznik Pokaż wymiary; dodatkowa zakładka
+wizualizacji jest powiązana z aktualnym modelem i pozycją otwarcia.
+Okucia 3D są modelami schematycznymi. Ruch jest podglądem, bez pełnej
+symulacji okuć i kolizji. Eksport produkcyjny używa pozycji zamkniętej.
+Eksporty: STEP, STL, SVG, prosty DXF, JSON operacji, CSV formatki,
+rysunki i etykiety HTML do druku/PDF, raport montażu i lista okuć.
+CNC na tym etapie: geometria oraz operacje. Kod maszyny i ścieżki
+narzędzi wymagają postprocesora dla wskazanego modelu CNC.
+
+PLIKI W PACZCE
+PRZYKLADY/: 46 gotowych projektów do otwarcia.
+DEMO_KUCHNIA.mebel oraz DEMO_PRODUKCJA.mebel/.step.
+DEMO_OKUCIA_0_8.mebel i PLAN_OKUCIA_0_8.html: prowadnice i TIP-ON.
+DEMO_KSZTALTY_0_8.mebel: obłe krzesło, stolik i komoda z ryflowaniem.
+DEMO_OBRYS_STEP.mebel/.step: okrągły blat z zaokrągleniem i fazą kantów.
+SOURCES_0_8_RUNNERS.md: producent, wariant, tolerancje i zakres danych.
+KSZTALTY_I_STYLE_0_8.md oraz ZAKLADKI_0_8.md: szczegóły nowej edycji.
+ZRODLA_PROGRAMU/: źródła i testy. LICENCJE/: informacje o bibliotekach.
+SPRAWDZENIE_EXE.json i SPRAWDZENIE_GUI.json: wyniki kontroli paczki.

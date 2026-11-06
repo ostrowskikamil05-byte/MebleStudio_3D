@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "started": "2026-10-30T19:10:54.415361+00:00",
+  "finished": "2026-10-30T19:11:15.932810+00:00",
+  "elapsed_seconds": 21.517430500000046,
+  "exit_code": 0,
+  "tests": 5,
+  "names": [
+    "native_scene",
+    "native_model",
+    "native_document",
+    "native_layout",
+    "native_worktop"
+  ],
+  "library": "C:\\Users\\kamil\\Desktop\\MebleStudio\\MebelStudio3D_Migracja_Cpp_Etap3\\build-native\\bin\\MebelModel.dll",
+  "library_sha256": "e7a680e782207edd2158158c9b23cf1151c56364507cb069b1cb523b93dfd372"
+}

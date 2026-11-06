@@ -1,0 +1,123 @@
+MEBEL STUDIO 3D 0.7 — WINDOWS Z WBUDOWANYM CAD
+
+1. Rozpakuj CAŁY ZIP do folderu, np. Dokumenty\MebelStudio3D.
+2. Uruchom MebelStudio3D.exe.
+3. CAD, Python i biblioteki są w paczce. Program nie pobiera zależności,
+   nie uruchamia pip i działa bez połączenia z internetem.
+
+Zachowaj folder _internal obok pliku EXE: to wbudowany silnik aplikacji.
+Możesz przenieść cały folder lub utworzyć skrót do EXE na pulpicie.
+Wydanie przygotowano dla Windows x64. Pierwszy start może potrwać chwilę.
+Zapisuj projekty jako .mebel przez Zapisz / Zapisz jako.
+
+NAJWAŻNIEJSZE PRZYCISKI
++ Mebel: 34 szablony, wyszukiwanie, wybór pomieszczenia, wymiarów
+oraz materiałów konstrukcji i frontów. Szablony to baza do konfiguracji.
+Okucia: katalog otworów, zawiasy, System 32, uchwyty, połączenia korpusu,
+prowadnice oraz cargo. Zaznacz właściwy element przed wejściem.
+Kolory / dekory: 42 odcienie. Wybrana część, wszystkie fronty albo mebel.
+Wymiary całego mebla: dokładna szerokość, wysokość i głębokość korpusu.
+Dopasuj element: dopasowanie wybranej części do konstrukcji mebla.
+
+ROZCIĄGANIE 3D
+Tryb „Rozciągaj część”: sześć kolorowych uchwytów U/V/T.
+Tryb „Rozciągaj mebel”: uchwyty całego korpusu X/Y/Z.
+Złap kwadrat i przeciągnij; puszczenie myszy zapisuje zmianę.
+Checkbox „Rozciąganie: krok 32 mm” jest opcjonalny; bez niego krok 1 mm.
+Zmiana całego korpusu zachowuje grubości oraz przelicza elementy
+powiązane, zawiasy, uchwyty i dodane pary wierceń konfirmatów.
+Błędne geometrie lub brak miejsca są pokazywane w pasku stanu.
+Rozciąganie działa w pozycji zamkniętej; użyj „Zamknij” przy otwieraniu.
+„Dopasuj” przy widokach dopasowuje kamerę, „Dopasuj element” geometrię.
+
+SZKIC 2D I MODEL 3D
++ Rysuj / Edytuj szkic: rysowanie prostokąta lub wielokąta.
+Pola U i V nad szkicem oraz „Zmień wymiary 2D i 3D” zmieniają kontur
+oraz podgląd 3D z jednego modelu. Enter również zatwierdza wymiary.
+Po prawej wybierz mebel oraz funkcję: bok, góra, dół, półka, blat,
+drzwiczki, szuflada lub inny element. „Dopasuj prostokąt do mebla”
+pobiera wymiary z korpusu. Checkbox automatycznego dopasowania robi
+to po wybraniu roli. Przy części z obróbkami sprawdź ich położenie.
+Podgląd 3D na żywo pokazuje położenie, wymiary i wynik generowania okuć;
+wyświetla też przyczynę niedopasowania, bez okien błędu przy rysowaniu.
+Zapisz i rysuj następny pozwala tworzyć wiele elementów w jednej sesji.
+Punkty / środki, siatka, Orto, odbicie, obrót, offset i długość odcinka
+pozostają dostępne. To edycje szkicu, bez pełnego solvera więzów CAD.
+
+ZAWIASY — NOWE I STARSZE FRONTY
+Nowe drzwiczki ze szkicu mają automatyczne zawiasy, gdy zaznaczone
+jest „Generuj okucia i wiercenia”. Nowe meble z biblioteki także.
+Dla starszego frontu wybierz Okucia → Zawiasy → „Dodaj / napraw zawiasy
+na drzwiczkach”. Dobierz liczbę i stronę. Wzór 45 × 9,5 lub 52 × 9
+obejmuje puszkę Ø35, otwory mocowania i prowadniki na właściwym boku.
+Głębokość puszki wynosi 12,5 mm; front musi być odpowiednio gruby.
+Prowadnik i piloty są wzorcem roboczym; dobierz je do konkretnego okucia.
+Wybrana krawędź frontu musi być przy boku. Jeśli front jest zbyt duży,
+użyj Dopasuj element lub zmień U/V. Drzwiczek nie nakładaj na istniejący
+front w tej samej pozycji — edytuj go albo usuń przed dodaniem nowego.
+
+OTWORY I ELEMENTY MONTAŻOWE
+Katalog ma 18 przepisów: System 32, prowadnik Hettich Direkt,
+puszki 45 × 9,5 i 52 × 9, konfirmaty, kołki Ø6/8/10, mimośród Ø15,
+piloty pod wkręty, przeloty M4/M6/M8 i podpórki półek.
+Każdy przepis wskazuje źródło oraz zakres danych potwierdzonych.
+Wartości robocze pozostają edytowalne.
+System 32: Ø5, krok 32, linia przednia 37; marginesy, głębokość
+oraz dwa rzędy można ustawić. Rzędy powstają w lokalnym U/V boku.
+Połączenia korpusu: pary otworów w bokach i krawędziach dna/wieńca.
+Konfirmat 7 × 50: przelot Ø7, pilot Ø5 i stożkowe pogłębienie Ø10 × 2.
+Kołki: otwory na obu stykających się częściach. Mimośród Ø15 to sam
+przepis pod puszkę, bez całego układu z trzpieniem.
+Wkręty i śruby: średnica pilota zależy od materiału i konkretnej śruby.
+
+UCHWYTY, PROWADNICE I CARGO
+Gałka i osiem rozstawów uchwytów 64–320 mm, sześć wykończeń,
+kierunek pionowy/poziomy, pozycja U/V. Model 3D oraz przeloty Ø4,5
+pod śrubę M4. Uchwyty przy brzegu lub na środku śledzą zmianę wymiaru.
+Szuflada generuje skrzynkę, otwory i uproszczone prowadnice boczne.
+Wybór 12,7 mm przelicza luz na stronę; konkretne otwory prowadnicy
+zależą od jej długości i wariantu, zmienisz je w parametrach montażu.
+Cargo pokazuje wysuwane kosze. Klapy pokazują korpus mechanizmu i ramiona.
+Drzwi przesuwne pokazują prowadzenie. To modele koncepcyjne ruchu
+wyposażenia; ich otwory i dobór nośności wymagają konkretnego produktu.
+
+OTWIERANIE I ANIMACJA
+Wybierz front, a następnie porusz suwakiem „Otwarcie” 0–100%.
+▶ otwiera / zamyka płynnie; ponowne kliknięcie zatrzymuje animację.
+„Wszystkie” steruje wszystkimi częściami z mechanizmem.
+„Mechanizm…” zmienia typ, kąt i zakres wysuwu.
+Dostępne: zawias lewy/prawy, szuflada, przesuw lewo/prawo,
+klapa do góry/w dół, cargo oraz pokrywa skrzyni ogrodowej.
+Zapis i eksport produkcyjny zawsze używają geometrii zamkniętej.
+To podgląd ruchu, bez dokładnej symulacji wieloczłonowego okucia
+oraz bez automatycznego sprawdzania kolizji podczas otwierania.
+
+WBUDOWANA BIBLIOTEKA
+Kuchnia: dolna, wisząca, pod zlew, trzy szuflady, cargo, spiżarnia,
+pod piekarnik, wyspa. Sypialnia: szafy, szafa przesuwna, komoda,
+szafka nocna, łóżko i toaletka. Salon: RTV, witryna, regał, stolik,
+komoda. Łazienka: pod umywalkę, słupek, klapa, regał. Garaż:
+regał, stół, szafka narzędziowa i szuflady. Ogród: stół, ławka,
+skrzynia i regał na donice. Biuro/przedpokój: biurko, szafka na buty,
+regał biurowy. Do drewna, płyty i MDF dobierz materiał w formularzu.
+Własny mebel możesz zapisać do biblioteki i ponownie wstawić.
+
+CAD I DOKUMENTACJA
+Zachowane funkcje 0.6: osobne zaokrąglenia/fazy kantów, kieszenie,
+rowki, wycięcia, wiercenia sześciostronne, szyki, odbicia i etykiety.
+Eksport: STEP z rzeczywistymi bryłami obrobionych części, STL, JSON,
+CSV, rysunki i etykiety HTML do druku/PDF, raport, SVG, prosty DXF.
+Modele kupowanych okuć są schematyczną wizualizacją; STEP opisuje
+produkowane części mebla. CNC: geometria i dane operacji, bez kodu
+maszyny, postprocesora oraz ścieżek narzędzi.
+Koszt i rozkrój liczą półfabrykat nominalny. Ceny nowych dekorów są 0;
+wpisz swoje ceny w Materiały i ceny. Paleta nie zastępuje wzornika.
+
+POMOC I PRZYKŁADY
+INSTRUKCJA.html: ta instrukcja w przeglądarce, z ilustracją.
+OKUCIA_ZRODLA_0_7.md: dokumentacja producentów i zakres przepisów.
+PRZYKLADY/: wszystkie 34 szablony jako gotowe pliki .mebel.
+DEMO_KUCHNIA.mebel: szafka, szuflady, cargo i moduł wiszący z klapą.
+DEMO_PRODUKCJA.mebel/.step: korpus ze sprzężonymi konfirmatami.
+ZRODLA_PROGRAMU/: źródła i testy do dalszej rozbudowy.
+LICENCJE/: informacje o bibliotekach wbudowanego silnika.

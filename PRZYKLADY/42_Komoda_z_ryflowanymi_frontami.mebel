@@ -1,0 +1,2502 @@
+{
+  "version": 1,
+  "name": "Komoda z ryflowanymi frontami",
+  "parts": [
+    {
+      "id": "d60e3b1f461e",
+      "name": "Bok lewy",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 430.0,
+      "v": 792.0,
+      "t": 22.0,
+      "plane": "YZ",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 257.83333333333337,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "92128bf38337",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 388.0,
+          "v": 257.83333333333337,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "92128bf38337",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 507.16666666666674,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "756404ea0385",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 388.0,
+          "v": 507.16666666666674,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "756404ea0385",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 86.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 118.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 674.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 706.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Bok lewy",
+        "signature": "5b10cd99d4779e8101da0c3ae9147ed8ac1b051f54ff5540ef61453f72c97907"
+      }
+    },
+    {
+      "id": "5ceb64fc712c",
+      "name": "Bok prawy",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 430.0,
+      "v": 792.0,
+      "t": 22.0,
+      "plane": "YZ",
+      "x": 1178.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 257.83333333333337,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "92128bf38337",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 388.0,
+          "v": 257.83333333333337,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "92128bf38337",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 42.0,
+          "v": 507.16666666666674,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "756404ea0385",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 388.0,
+          "v": 507.16666666666674,
+          "diameter": 5.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "756404ea0385",
+          "purpose": "podpórka półki",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 86.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "49066e723242",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 118.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "49066e723242",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 674.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "49066e723242",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 37.0,
+          "v": 706.0,
+          "diameter": 3.0,
+          "depth": 10.0,
+          "face": "bottom",
+          "owner_id": "49066e723242",
+          "purpose": "prowadnik zawiasu",
+          "requires_review": true
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Bok prawy",
+        "signature": "064cb5cd65eaca0d1b3693e4fc193d5688372c0e230dc71607a8478dd8da43c3"
+      }
+    },
+    {
+      "id": "e5993e6f194e",
+      "name": "Dno",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 1156.0,
+      "v": 430.0,
+      "t": 22.0,
+      "plane": "XY",
+      "x": 22.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Dno",
+        "signature": "8f96c24492e80ecfcd5162ce3ea6e095b0104130c97cb24452926a01a44aa8e3"
+      }
+    },
+    {
+      "id": "751fed2f40b7",
+      "name": "Wieniec",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 1156.0,
+      "v": 430.0,
+      "t": 22.0,
+      "plane": "XY",
+      "x": 22.0,
+      "y": 0.0,
+      "z": 770.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Wieniec",
+        "signature": "421e2ea87e0cb184b8e55fb3093754ebdc867742d506f25e166a632c3c53c751"
+      }
+    },
+    {
+      "id": "833cafabbb98",
+      "name": "Plecy nakładane HDF",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 1200.0,
+      "v": 792.0,
+      "t": 3.0,
+      "plane": "XZ",
+      "x": 0.0,
+      "y": 430.0,
+      "z": 0.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "3be3efa0e15d",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "other",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Plecy nakładane HDF",
+        "signature": "fc83f46276ccc48ad8ed04cdec25c85c894ab0515fb5ead207afbb26987c0b42"
+      }
+    },
+    {
+      "id": "92128bf38337",
+      "name": "Półka 1",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 1152.0,
+      "v": 426.0,
+      "t": 22.0,
+      "plane": "XY",
+      "x": 24.0,
+      "y": 2.0,
+      "z": 260.33333333333337,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Komoda z ryflowanymi frontami",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 260.33333333333337,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true
+        },
+        "anchors": [
+          "d60e3b1f461e",
+          "5ceb64fc712c",
+          "e5993e6f194e",
+          "751fed2f40b7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Półka 1",
+        "signature": "82ebd4a02af773257191c3a28ddbace01ff9be9b2a40aba24fa271d33eb3022e"
+      }
+    },
+    {
+      "id": "756404ea0385",
+      "name": "Półka 2",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 1152.0,
+      "v": 426.0,
+      "t": 22.0,
+      "plane": "XY",
+      "x": 24.0,
+      "y": 2.0,
+      "z": 509.66666666666674,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "shelf",
+      "assembly": {
+        "group": "Komoda z ryflowanymi frontami",
+        "role": "shelf",
+        "config": {
+          "gap": 2.0,
+          "level": 509.66666666666674,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true
+        },
+        "anchors": [
+          "d60e3b1f461e",
+          "5ceb64fc712c",
+          "e5993e6f194e",
+          "751fed2f40b7"
+        ],
+        "requires_review": true
+      },
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {},
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Półka 2",
+        "signature": "253669d8f9ae9f31ad77cdd3e87ef082bb49c6c45a85f3141ede4405db67b091"
+      }
+    },
+    {
+      "id": "24a04b12b1d3",
+      "name": "Front 1",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 597.0,
+      "v": 788.0,
+      "t": 22.0,
+      "plane": "XZ",
+      "x": 2.0,
+      "y": -24.0,
+      "z": 2.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "door",
+      "assembly": {
+        "group": "Komoda z ryflowanymi frontami",
+        "role": "door",
+        "config": {
+          "gap": 2.0,
+          "level": 300.0,
+          "offset": 0.0,
+          "hinge_side": "left",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "hinge_pattern": "hinge45"
+        },
+        "anchors": [
+          "d60e3b1f461e",
+          "5ceb64fc712c",
+          "e5993e6f194e",
+          "751fed2f40b7"
+        ],
+        "requires_review": true
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 100.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "puszka zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 77.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 122.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 22.5,
+          "v": 688.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "puszka zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 665.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 13.0,
+          "v": 710.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "24a04b12b1d3",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 562.0,
+          "v": 330.0,
+          "diameter": 4.5,
+          "depth": 22.0,
+          "face": "bottom",
+          "batch": "a998e94d35e2",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle"
+        },
+        {
+          "type": "drill",
+          "u": 562.0,
+          "v": 458.0,
+          "diameter": 4.5,
+          "depth": 22.0,
+          "face": "bottom",
+          "batch": "d3e7e56235cb",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle"
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 70.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 94.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 118.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 142.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 166.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 190.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 214.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 238.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 262.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 286.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 310.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 334.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 358.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 382.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 406.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 430.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 454.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 478.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 502.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 526.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        }
+      ],
+      "motion": {
+        "mode": "hinge_left",
+        "angle": 100,
+        "travel": 0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {
+        "type": "fluting",
+        "width": 8.0,
+        "pitch": 24.0,
+        "depth": 3.0,
+        "margin_u": 59.7,
+        "margin_v": 39.400000000000006,
+        "face": "bottom"
+      },
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Front 1",
+        "signature": "378a2af8cc9b940088db140a11600df3473b4439a972aae5d23bc095467fb3ec"
+      }
+    },
+    {
+      "id": "49066e723242",
+      "name": "Front 2",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 597.0,
+      "v": 788.0,
+      "t": 22.0,
+      "plane": "XZ",
+      "x": 601.0,
+      "y": -24.0,
+      "z": 2.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [],
+      "holes": [],
+      "visible": true,
+      "role": "door",
+      "assembly": {
+        "group": "Komoda z ryflowanymi frontami",
+        "role": "door",
+        "config": {
+          "gap": 2.0,
+          "level": 300.0,
+          "offset": 0.0,
+          "hinge_side": "right",
+          "hinge_count": 2,
+          "hinge_end": 100.0,
+          "cup_diameter": 35.0,
+          "cup_depth": 12.5,
+          "cup_edge": 5.0,
+          "plate_line": 37.0,
+          "plate_spacing": 32.0,
+          "screw_diameter": 3.0,
+          "screw_depth": 10.0,
+          "drawer_clearance": 13.0,
+          "drawer_depth": 400.0,
+          "drawer_height": 120.0,
+          "drawer_t": 16.0,
+          "drawer_bottom": 6.0,
+          "drawer_raise": 0.0,
+          "drawer_front_gap": 20.0,
+          "slide_line": 25.0,
+          "slide_first": 37.0,
+          "slide_last": 250.0,
+          "shelf_end": 40.0,
+          "shelf_diameter": 5.0,
+          "shelf_depth": 10.0,
+          "hinge_price": 0.0,
+          "slide_price": 0.0,
+          "shelf_price": 0.0,
+          "auto_hardware": true,
+          "hinge_pattern": "hinge45"
+        },
+        "anchors": [
+          "d60e3b1f461e",
+          "5ceb64fc712c",
+          "e5993e6f194e",
+          "751fed2f40b7"
+        ],
+        "requires_review": true
+      },
+      "operations": [
+        {
+          "type": "drill",
+          "u": 574.5,
+          "v": 100.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "49066e723242",
+          "purpose": "puszka zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 584.0,
+          "v": 77.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "49066e723242",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 584.0,
+          "v": 122.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "49066e723242",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 574.5,
+          "v": 688.0,
+          "diameter": 35.0,
+          "depth": 12.5,
+          "face": "top",
+          "owner_id": "49066e723242",
+          "purpose": "puszka zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 584.0,
+          "v": 665.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "49066e723242",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 584.0,
+          "v": 710.5,
+          "diameter": 2.8,
+          "depth": 8,
+          "face": "top",
+          "owner_id": "49066e723242",
+          "purpose": "mocowanie puszki zawiasu",
+          "requires_review": true
+        },
+        {
+          "type": "drill",
+          "u": 35.0,
+          "v": 330.0,
+          "diameter": 4.5,
+          "depth": 22.0,
+          "face": "bottom",
+          "batch": "7f76e2cfe1f0",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle"
+        },
+        {
+          "type": "drill",
+          "u": 35.0,
+          "v": 458.0,
+          "diameter": 4.5,
+          "depth": 22.0,
+          "face": "bottom",
+          "batch": "a798a95dfaa2",
+          "purpose": "Przelot pod śrubę M4 uchwytu",
+          "recipe_id": "handle"
+        }
+      ],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 70.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 94.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 118.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 142.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 166.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 190.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 214.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 238.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 262.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 286.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 310.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 334.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 358.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 382.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 406.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 430.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 454.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 478.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 502.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        },
+        {
+          "type": "groove",
+          "shape": "rect",
+          "face": "bottom",
+          "u": 526.5,
+          "v": 394.0,
+          "length": 8.0,
+          "width": 709.2,
+          "depth": 3.0,
+          "angle": 0,
+          "generated_decor": "fluting",
+          "purpose": "Ryflowanie parametryczne"
+        }
+      ],
+      "motion": {
+        "mode": "hinge_right",
+        "angle": 100,
+        "travel": 0
+      },
+      "profile": {},
+      "contour_edge": false,
+      "decor": {
+        "type": "fluting",
+        "width": 8.0,
+        "pitch": 24.0,
+        "depth": 3.0,
+        "margin_u": 59.7,
+        "margin_v": 39.400000000000006,
+        "face": "bottom"
+      },
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Front 2",
+        "signature": "708c198f9b4d8f23532063f2359b7f036895a1c5ae9a00e5d11f5a9b599fe3c6"
+      }
+    },
+    {
+      "id": "cb16ae010bb4",
+      "name": "Nakładany blat obły",
+      "group": "Komoda z ryflowanymi frontami",
+      "u": 1220.0,
+      "v": 450.0,
+      "t": 28.0,
+      "plane": "XY",
+      "x": -10.0,
+      "y": -10.0,
+      "z": 792.0,
+      "rx": 0.0,
+      "ry": 0.0,
+      "rz": 0.0,
+      "material": "75ffff0c1653",
+      "grain": true,
+      "edges": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "contour": [
+        [
+          0.0,
+          34.4
+        ],
+        [
+          0.294296769,
+          29.909898988
+        ],
+        [
+          1.172151576,
+          25.496624848
+        ],
+        [
+          2.618544082,
+          21.235689927
+        ],
+        [
+          4.60872611,
+          17.2
+        ],
+        [
+          7.108645094,
+          13.458606842
+        ],
+        [
+          10.075526727,
+          10.075526727
+        ],
+        [
+          13.458606842,
+          7.108645094
+        ],
+        [
+          17.2,
+          4.60872611
+        ],
+        [
+          21.235689927,
+          2.618544082
+        ],
+        [
+          25.496624848,
+          1.172151576
+        ],
+        [
+          29.909898988,
+          0.294296769
+        ],
+        [
+          34.4,
+          0.0
+        ],
+        [
+          1185.6,
+          0.0
+        ],
+        [
+          1190.090101012,
+          0.294296769
+        ],
+        [
+          1194.503375152,
+          1.172151576
+        ],
+        [
+          1198.764310073,
+          2.618544082
+        ],
+        [
+          1202.8,
+          4.60872611
+        ],
+        [
+          1206.541393158,
+          7.108645094
+        ],
+        [
+          1209.924473273,
+          10.075526727
+        ],
+        [
+          1212.891354906,
+          13.458606842
+        ],
+        [
+          1215.39127389,
+          17.2
+        ],
+        [
+          1217.381455918,
+          21.235689927
+        ],
+        [
+          1218.827848424,
+          25.496624848
+        ],
+        [
+          1219.705703231,
+          29.909898988
+        ],
+        [
+          1220.0,
+          34.4
+        ],
+        [
+          1220.0,
+          415.6
+        ],
+        [
+          1219.705703231,
+          420.090101012
+        ],
+        [
+          1218.827848424,
+          424.503375152
+        ],
+        [
+          1217.381455918,
+          428.764310073
+        ],
+        [
+          1215.39127389,
+          432.8
+        ],
+        [
+          1212.891354906,
+          436.541393158
+        ],
+        [
+          1209.924473273,
+          439.924473273
+        ],
+        [
+          1206.541393158,
+          442.891354906
+        ],
+        [
+          1202.8,
+          445.39127389
+        ],
+        [
+          1198.764310073,
+          447.381455918
+        ],
+        [
+          1194.503375152,
+          448.827848424
+        ],
+        [
+          1190.090101012,
+          449.705703231
+        ],
+        [
+          1185.6,
+          450.0
+        ],
+        [
+          34.4,
+          450.0
+        ],
+        [
+          29.909898988,
+          449.705703231
+        ],
+        [
+          25.496624848,
+          448.827848424
+        ],
+        [
+          21.235689927,
+          447.381455918
+        ],
+        [
+          17.2,
+          445.39127389
+        ],
+        [
+          13.458606842,
+          442.891354906
+        ],
+        [
+          10.075526727,
+          439.924473273
+        ],
+        [
+          7.108645094,
+          436.541393158
+        ],
+        [
+          4.60872611,
+          432.8
+        ],
+        [
+          2.618544082,
+          428.764310073
+        ],
+        [
+          1.172151576,
+          424.503375152
+        ],
+        [
+          0.294296769,
+          420.090101012
+        ],
+        [
+          0.0,
+          415.6
+        ]
+      ],
+      "holes": [],
+      "visible": true,
+      "role": "worktop",
+      "assembly": {},
+      "operations": [],
+      "fillets": [],
+      "chamfers": [],
+      "machining": [],
+      "motion": {},
+      "profile": {
+        "kind": "rounded",
+        "radii": [
+          34.4,
+          34.4,
+          34.4,
+          34.4
+        ],
+        "segments": 12,
+        "arch_rise": 150.0,
+        "taper": 10.0
+      },
+      "contour_edge": false,
+      "decor": {},
+      "style_source": {
+        "index": 7,
+        "width": 1200.0,
+        "height": 820.0,
+        "depth": 430.0,
+        "thickness": 28.0,
+        "origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "segments": 12,
+        "material": "75ffff0c1653",
+        "front_material": "75ffff0c1653",
+        "label": "Nakładany blat obły",
+        "signature": "5a8d67dd96c13becca0f356dc3d3fed34c6ae4f687a3c3a06dadcabc7df36cc9"
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "d5583708b0b2",
+      "name": "Dąb naturalny",
+      "color": "#bd9565",
+      "price_m2": 95,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "2e23da026ca8",
+      "name": "Biały mat",
+      "color": "#eeeeea",
+      "price_m2": 65,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "1fc7ea9d48a6",
+      "name": "Grafit",
+      "color": "#4f5661",
+      "price_m2": 85,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "plyta",
+      "price_m3": 0
+    },
+    {
+      "id": "2060439e82be",
+      "name": "MDF",
+      "color": "#ba9871",
+      "price_m2": 70,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "46fc66845e87",
+      "name": "Sklejka",
+      "color": "#d4b58a",
+      "price_m2": 110,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "sklejka",
+      "price_m3": 0
+    },
+    {
+      "id": "75ffff0c1653",
+      "name": "Drewno lite — dąb",
+      "color": "#b68a58",
+      "price_m2": 95,
+      "sheet_u": 2500,
+      "sheet_v": 200,
+      "kind": "drewno",
+      "price_m3": 4500
+    },
+    {
+      "id": "3be3efa0e15d",
+      "name": "HDF",
+      "color": "#b69d80",
+      "price_m2": 25,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "hdf",
+      "price_m3": 0
+    },
+    {
+      "id": "9e47f1f0ffcd",
+      "name": "Dekor — Biel śnieżna",
+      "color": "#f5f5f0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d4ba413b9858",
+      "name": "Dekor — Biel ciepła",
+      "color": "#eee9dd",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "15955e21acb8",
+      "name": "Dekor — Krem",
+      "color": "#e5dcc4",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "22791a223279",
+      "name": "Dekor — Beż piaskowy",
+      "color": "#cbb99e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "f2125f9092d6",
+      "name": "Dekor — Kaszmir",
+      "color": "#b8aaa0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "55bac823c242",
+      "name": "Dekor — Taupe",
+      "color": "#94867b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "55aa2f4418c6",
+      "name": "Dekor — Szary jasny",
+      "color": "#bec2c3",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "ee8546cc9795",
+      "name": "Dekor — Szary kamienny",
+      "color": "#909493",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d4ab7f73e705",
+      "name": "Dekor — Grafit",
+      "color": "#4f5661",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "38248e50f357",
+      "name": "Dekor — Antracyt",
+      "color": "#333a3e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e198a3d54e24",
+      "name": "Dekor — Czerń mat",
+      "color": "#222425",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e6f4fa2aa11d",
+      "name": "Dekor — Granat",
+      "color": "#243b53",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "407222636bc1",
+      "name": "Dekor — Niebieski",
+      "color": "#477d9f",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "2f8941d6cfcc",
+      "name": "Dekor — Błękit",
+      "color": "#a5cad8",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d9b7c373987e",
+      "name": "Dekor — Zieleń szałwia",
+      "color": "#a5b29c",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "6287a08125d3",
+      "name": "Dekor — Oliwka",
+      "color": "#7a8061",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e47c6b70cf19",
+      "name": "Dekor — Zieleń butelkowa",
+      "color": "#244b40",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "50d051701cd0",
+      "name": "Dekor — Mięta",
+      "color": "#b5cfc0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "5b7504a028fe",
+      "name": "Dekor — Bordo",
+      "color": "#673d44",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "ffd4b977c859",
+      "name": "Dekor — Ceglany",
+      "color": "#a5604b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "f865dc63779e",
+      "name": "Dekor — Terakota",
+      "color": "#bb795b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "e5002d6881f4",
+      "name": "Dekor — Pudrowy róż",
+      "color": "#d5b2b0",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "24b343a498bd",
+      "name": "Dekor — Musztarda",
+      "color": "#b29a50",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "8c6e63b31a6e",
+      "name": "Dekor — Żółty",
+      "color": "#d5be6e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "69bc2d3b59c9",
+      "name": "Dekor — Pomarańczowy",
+      "color": "#d28343",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "1db9f94ef54a",
+      "name": "Dekor — Lawenda",
+      "color": "#ada2bc",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "a37c119307c4",
+      "name": "Dekor — Fiolet",
+      "color": "#755f83",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "3634d1d00cbe",
+      "name": "Dekor — Petrol",
+      "color": "#32676e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "413a63c69bcc",
+      "name": "Dekor — Dąb naturalny",
+      "color": "#c5a06b",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "6cb420620709",
+      "name": "Dekor — Dąb jasny",
+      "color": "#ddc498",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "52390fbec3c1",
+      "name": "Dekor — Dąb wędzony",
+      "color": "#80664e",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "08df458c5470",
+      "name": "Dekor — Orzech",
+      "color": "#856044",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "02c4ee3c260f",
+      "name": "Dekor — Buk",
+      "color": "#cfaa80",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "19f19333ea08",
+      "name": "Dekor — Jesion",
+      "color": "#d9c49d",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "dd845caea9c7",
+      "name": "Dekor — Sosna",
+      "color": "#e0c493",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "d129d7e342f7",
+      "name": "Dekor — Brzoza",
+      "color": "#e8d5b2",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "cfcebdaa8c36",
+      "name": "Dekor — Wenge",
+      "color": "#483b34",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "94069e828024",
+      "name": "Dekor — Mahoń",
+      "color": "#8b5140",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "dfde2ad52d4d",
+      "name": "Dekor — Beton jasny",
+      "color": "#b5b3ae",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "7414946f0323",
+      "name": "Dekor — Beton ciemny",
+      "color": "#767975",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "0c8feeb92252",
+      "name": "Dekor — Marmur biały",
+      "color": "#e6e4df",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    },
+    {
+      "id": "9677e72f1f18",
+      "name": "Dekor — Marmur ciemny",
+      "color": "#3e4143",
+      "price_m2": 0,
+      "sheet_u": 2800,
+      "sheet_v": 2070,
+      "kind": "mdf",
+      "price_m3": 0
+    }
+  ],
+  "hardware": [
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "92128bf38337",
+      "anchors": [
+        "d60e3b1f461e",
+        "5ceb64fc712c"
+      ],
+      "positions": [
+        {
+          "x": 22.0,
+          "y": 42.0,
+          "z": 257.83333333333337
+        },
+        {
+          "x": 22.0,
+          "y": 388.0,
+          "z": 257.83333333333337
+        },
+        {
+          "x": 1178.0,
+          "y": 42.0,
+          "z": 257.83333333333337
+        },
+        {
+          "x": 1178.0,
+          "y": 388.0,
+          "z": 257.83333333333337
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1"
+    },
+    {
+      "name": "Podpórka półki — wzorzec roboczy",
+      "qty": 4,
+      "price": 0.0,
+      "owner_id": "756404ea0385",
+      "anchors": [
+        "d60e3b1f461e",
+        "5ceb64fc712c"
+      ],
+      "positions": [
+        {
+          "x": 22.0,
+          "y": 42.0,
+          "z": 507.16666666666674
+        },
+        {
+          "x": 22.0,
+          "y": 388.0,
+          "z": 507.16666666666674
+        },
+        {
+          "x": 1178.0,
+          "y": 42.0,
+          "z": 507.16666666666674
+        },
+        {
+          "x": 1178.0,
+          "y": 388.0,
+          "z": 507.16666666666674
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1"
+    },
+    {
+      "name": "Puszka Ø35 — wzór mocowania 45 × 9,5 + prowadnik roboczy",
+      "qty": 2,
+      "price": 0.0,
+      "owner_id": "24a04b12b1d3",
+      "anchors": [
+        "d60e3b1f461e"
+      ],
+      "positions": [
+        {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 102.0
+        },
+        {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 690.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "hinge",
+      "levels": [
+        100.0,
+        688.0
+      ],
+      "color": "#aab0b6",
+      "closing_spring": "unknown",
+      "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf"
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "24a04b12b1d3",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 597.0,
+      "design_v": 788.0,
+      "u_anchor": "right",
+      "v_anchor": "center",
+      "u": 562.0,
+      "v": 394.0,
+      "spacing": 128.0,
+      "vertical": true,
+      "color": "#242628",
+      "projection": 28.0
+    },
+    {
+      "name": "Puszka Ø35 — wzór mocowania 45 × 9,5 + prowadnik roboczy",
+      "qty": 2,
+      "price": 0.0,
+      "owner_id": "49066e723242",
+      "anchors": [
+        "5ceb64fc712c"
+      ],
+      "positions": [
+        {
+          "x": 1198.0,
+          "y": 0.0,
+          "z": 102.0
+        },
+        {
+          "x": 1198.0,
+          "y": 0.0,
+          "z": 690.0
+        }
+      ],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "hinge",
+      "levels": [
+        100.0,
+        688.0
+      ],
+      "color": "#aab0b6",
+      "closing_spring": "unknown",
+      "source": "https://www.hettich.com/fileadmin/Media_Center/Catalogue/Hinges_Cat_HUK_Online__NEW_96dpi%20.pdf"
+    },
+    {
+      "name": "Uchwyt 128 mm",
+      "qty": 1,
+      "price": 0,
+      "owner_id": "49066e723242",
+      "anchors": [],
+      "positions": [],
+      "requires_review": true,
+      "recipe": "generic-editable-1",
+      "kind": "handle",
+      "manual": true,
+      "design_u": 597.0,
+      "design_v": 788.0,
+      "u_anchor": "left",
+      "v_anchor": "center",
+      "u": 35.0,
+      "v": 394.0,
+      "spacing": 128.0,
+      "vertical": true,
+      "color": "#242628",
+      "projection": 28.0
+    }
+  ],
+  "kerf": 3.2,
+  "margin": 10,
+  "edge_t": 1,
+  "edge_price": 3.5,
+  "labor": 0,
+  "markup": 20
+}

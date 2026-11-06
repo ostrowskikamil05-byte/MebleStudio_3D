@@ -1,0 +1,65 @@
+MebelStudio3D - uruchamianie i sprawdzanie zrodel
+================================================
+
+Pelny edytor jest aplikacja hybrydowa: Python/Tk/CAD oraz natywne DLL C++.
+Etap dokumentu, historii i zapisu w C++ opisuje README_DOKUMENT_CPP.md.
+Pliki .cpp w glownym katalogu to nieukonczone prototypy migracji.
+Nie zastepuja dzialajacego edytora i nie sa czescia produkcyjnego buildu.
+Zrodla dzialajacego silnika C++ znajduja sie w katalogu native.
+
+1. Uruchomienie
+
+   Uruchom URUCHOM.bat z tego katalogu. Gdy obok katalogu zrodel znajduje
+   sie kompletna paczka EXE z _internal, skrypt korzysta z jej srodowiska,
+   ale laduje biezace zrodla z ZRODLA_PROGRAMU (--host-app).
+   Zachowaj cala paczke oraz MebelModel.dll i MebelNative3D.dll obok EXE.
+   W samodzielnym katalogu zrodel uzywana jest .venv albo systemowy Python.
+
+2. Regresja funkcji
+
+   Uruchom SPRAWDZ.bat. Pelna regresja wymaga systemowego Python 3.13
+   (zawiera takze moduly standardowe potrzebne tylko przez testy).
+   Biblioteki CAD/NumPy/Tk sa brane z dolaczonej paczki, bez instalacji pip.
+   Adaptery C++ sa sprawdzane z MebelModel.dll obok katalogu zrodel.
+   Parametr --native-library pozwala wskazac swiezo zbudowana DLL.
+   Zapis wyniku i logu jest oddzielony od ustawien uzytkownika.
+   Szczegoly: py -3.13 sprawdz_regresje.py --help.
+
+3. Budowanie istniejacych modulow C++ (Windows x64)
+
+   Otworz PowerShell w tym katalogu. Przykladowe polecenia dla MSYS2 UCRT64:
+
+   $env:PATH = 'C:\msys64\ucrt64\bin;' + $env:PATH
+   cmake -S . -B build-native -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe -DCMAKE_RC_COMPILER=C:/msys64/ucrt64/bin/windres.exe
+   cmake --build build-native --parallel 2
+   ctest --test-dir build-native --output-on-failure
+
+   Wyniki: build-native\bin\MebelStudio3D.exe, MebelModel.dll
+   i MebelNative3D.dll. Sam host EXE wymaga dolaczonego runtime i app.
+   Raporty testow: build-native\reports. Wymagany jest CMake >= 3.20
+   oraz kompilator C++20.
+   Mozna tez skonfigurowac CMake z 64-bitowym generatorem Visual Studio.
+
+   Opcja -DMS3D_BUILD_SCENE_VIEWER=ON dodaje podglad sceny tylko do odczytu.
+   Nie jest on pelnym edytorem mebli.
+
+4. Budowanie kompletnej paczki EXE
+
+   ZBUDUJ_EXE.bat uruchamia ZBUDUJ_EXE.ps1. Skrypt kompiluje host C++
+   i obie DLL, uruchamia CTest, a potem kopiuje kompletne prywatne
+   srodowisko, kod aplikacji, przyklady, dokumentacje i licencje.
+   Wymaga Python 3.13 i CMake z kompilatorem; nie korzysta z pip.
+   Domyslny wynik: dist\MebelStudio3D_DATA_GODZINA\MebelStudio3D.exe.
+   Istniejaca paczka i niepusty katalog docelowy nie sa nadpisywane.
+   Parametry PowerShell: -Compiler, -BuildDirectory, -OutputDirectory,
+   -RuntimeDirectory i -Python (sciezka do python.exe, opcjonalna).
+
+5. Zasady zachowania funkcji
+
+   Sam build DLL nie oznacza pelnej migracji aplikacji do C++.
+   Nie usuwaj modulow Python, prywatnego CAD, historii, eksportow ani GUI.
+   Nowe DLL najpierw sprawdz w osobnej paczce z testami zgodnosci.
+   CMake zapisuje pliki w katalogu budowy; nie podmienia dzialajacej paczki.
+
+   Poprzednia instrukcja wskazywala katalog bez CMakeLists.txt oraz
+   nieistniejacy plik .sln. Polecenia powyzej odnosza sie do tego katalogu.

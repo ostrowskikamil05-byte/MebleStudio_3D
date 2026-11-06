@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "reference": "C:\\Users\\kamil\\Desktop\\MebleStudio\\MebelStudio3D_Cpp_Etap2_2026_10_30\\ZRODLA_PROGRAMU",
+  "reference_callables": 912,
+  "removed": [],
+  "signature_changes": [],
+  "modified_sources": [
+    "migration_status.py",
+    "native/core/core_api.hpp",
+    "native/core/model_api.cpp",
+    "native/tools/build_model.ps1",
+    "native_model.py",
+    "workspace_worktops.py"
+  ],
+  "reference_files_modified": [],
+  "existing_tests_modified": [],
+  "c_abi_header_unchanged": true
+}

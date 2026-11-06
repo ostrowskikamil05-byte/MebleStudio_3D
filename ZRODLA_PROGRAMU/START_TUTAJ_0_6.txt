@@ -1,0 +1,79 @@
+MEBEL STUDIO 3D — WERSJA 0.6
+
+URUCHOMIENIE
+Rozpakuj cały ZIP. Uruchom URUCHOM.bat (Python 3.10+ z tkinter).
+Dla fazowania, zaokrągleń, odsuwania konturu, frezowania, wierceń
+krawędziowych oraz STEP/STL uruchom raz INSTALUJ_CAD.bat.
+Instalacja wymaga internetu; po niej program działa lokalnie offline.
+CAD sprawdzono na Python 3.13, CadQuery 2.8.0, OpenCascade 7.9.3.
+Nie dostarczamy zweryfikowanego samodzielnego EXE.
+
+NOWE MENU „CAD I OBRÓBKI”
+• Zaokrąglenia: niezależny promień każdego kantu.
+• Fazowanie: niezależna faza 45° każdego kantu; wartość C jest odległością
+  od krawędzi na obu przyległych powierzchniach. Ten sam kant nie może
+  mieć jednocześnie fazy i zaokrąglenia.
+• Kieszenie, rowki i wycięcia: prostokąt, koło lub otwór podłużny.
+  U/V to środek obróbki, długość otworu podłużnego obejmuje końce.
+  Można wybrać +T albo −T i kąt obrotu. Dla koła pole szerokości
+  oznacza średnicę. Rowek przechodzący do brzegów może mieć długość
+  równą wymiarowi części. Wycięcie przelotowe przechodzi przez grubość.
+• Operacje: zaznacz frezowanie i „Edytuj wybrane frezowanie”, zmień
+  wartości i zatwierdź przyciskiem dodawania/podglądu. Ręczne operacje
+  można usuwać; wiercenia okuć zmienia się w parametrach montażu.
+• Wiercenia: sześć stron, pojedynczy otwór albo siatka otworów.
+  Na +T/−T współrzędne to U,V; na U=0/max to V,T; na V=0/max to U,T.
+  Głębokość liczy się od wybranej powierzchni do wnętrza.
+  Rozstaw 32 mm jest edytowalny i nie gwarantuje zgodności z okuciami.
+• Szyk elementów: liczba NOWYCH kopii oraz krok X,Y,Z.
+• Odbicie U/V: nowa niezależna część z lustrzanym konturem i obróbkami;
+  kopia jest odsunięta w X i można ustawić jej pozycję w panelu.
+
+SZKIC
+Punkty / środki przyciągają kursor do wierzchołków i środków odcinków
+własnego konturu oraz rzutów części wybranego mebla. Wskaźnik w pasku
+opisuje przyciągnięcie. Siatka i Orto pozostają dostępne.
+Odbij U/V, Obróć 90°, Odsuń kontur, Odcinek poziomy/pionowy i Długość
+odcinka zmieniają kontur. Wybierz początek odcinka na liście punktów.
+To jednorazowe edycje, nie trwałe parametryczne więzy CAD.
+Narzędzia konturu nie zmieniają części z istniejącymi obróbkami —
+odbicie całej obrobionej części znajduje się w menu CAD.
+„Zapisz i rysuj następny” pozwala dodawać kolejne elementy bez zamykania.
+
+KONSTRUKCJA I BIBLIOTEKA
+• Równy podział na półki: dodaje nowe półki z równymi prześwitami
+  w osiowym korpusie; istniejące półki usuń, jeśli powodują kolizję.
+• Kopiuj cały mebel: zachowuje powiązania części, okuć i materiałów,
+  nadaje nowe identyfikatory oraz przesunięcie X,Y,Z.
+• Zapisz mebel do biblioteki / Wstaw mebel z biblioteki: szablony .mebel.
+• Widoczność: izolacja wybranej części i przywrócenie wszystkich.
+Zmiany projektu można cofnąć przez Ctrl+Z.
+
+WYMIARY, MONTAŻ I PRODUKCJA
+„Rozstrzelony” oraz „Wymiary” niezależnie włączają rozłożenie i opisy.
+Rozciąganie części oraz wymiary całego mebla działają jak w 0.5.
+Role szkicu, drzwi, półki i szuflady zachowują logikę montażu z 0.4.
+
+Eksport:
+• STEP — rzeczywiste bryły z obróbkami i wierceniami w układzie mebla.
+• STL — siatka brył; nie zawiera semantyki operacji produkcyjnych.
+• Rysunki części — HTML do wydruku/PDF, rzuty nominalnego konturu,
+  U,V,T, numery otworów, tabela współrzędnych i obróbek.
+• Etykiety — A4, nazwa, materiał, grupa, wymiary gotowe i do cięcia,
+  obrzeża, włókna, identyfikator tekstowy, miniatura. Bez kodu QR.
+• JSON i CSV — zapis parametrów obróbek, wierceń i faz.
+• Raport HTML, SVG i prosty rozkrój — jak w poprzednich wersjach.
+DXF jest dostępny dla prostych konturów i wierceń powierzchniowych;
+przy obróbkach bryłowych lub wierceniu krawędziowym wybierz STEP.
+Koszt i rozkrój liczą nominalną formatkę; nie symulują czasu frezowania.
+
+PRZYKLAD_OBROBEK.mebel / .step, RYSUNKI_PRZYKLAD.html i
+ETYKIETY_PRZYKLAD.html pokazują nowe funkcje.
+
+ZAKRES
+To rozwijany program meblarski, nie komplet wszystkich funkcji CAD/CAM.
+Nie generuje jeszcze ścieżek narzędzia ani kodu maszyny CNC.
+Automatyczne okucia mają edytowalne receptury ogólne. Do produkcji
+potrzebne są dane konkretnych okuć i postprocesor wybranej maszyny.
+Listę wdrożonych funkcji, źródła i dalszy zakres opisuje
+BADANIE_CAD_CAM_0_6.md. Instrukcje starszych wersji są historią projektu.

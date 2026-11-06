@@ -1,0 +1,8 @@
+MebelStudio3D - etap 3 migracji do C++, 30.10.2026
+
+Uruchom MebelStudio3D.exe. Zachowaj caly folder z prywatnym runtime.
+Nowe C++: odleglosc obrysow, naddatki, suma wielokatow i solver wspolnych blatow.
+Sprawdzone: 503 testow, 1048 porownan, 5 zestawow CTest.
+Szczegoly: RAPORT_MIGRACJI_ETAP3.md oraz README_BLATY_CPP.md.
+Zrodla: ZRODLA_PROGRAMU. Dowody: SPRAWDZENIE_ETAP3.
+Generatory, GUI i dokladny CAD wymagaja dalszej migracji.

@@ -1,0 +1,19 @@
+MebelStudio3D — etap 0.2
+
+Uruchom URUCHOM.bat. Wymagany Python 3.10+ z tkinter.
+
+Dodano rodzaje materiałów: plyta, mdf, sklejka, drewno, hdf, inne.
+Drewno lite jest wyceniane w zł/m³, pozostałe materiały w zł/m².
+Ceny przykładowe należy zastąpić własnymi. Wymiary surowca określają
+prostokątną płytę lub deskę używaną przez istniejący algorytm rozkroju.
+Algorytm nie uwzględnia wad drewna, suszenia ani naddatków strugania.
+
+Eksport JSON zawiera kontury, wiercenia od górnej powierzchni, obrzeża,
+kierunek włókien i położenie części w zespole. To dane wejściowe dla
+przyszłego postprocesora, nie program CNC ani ścieżki narzędzia.
+Dobór narzędzi, posuwów, mocowania i eksport maszyny wymagają osobnego modułu.
+
+Model obsługuje części pryzmatyczne, płaskie kontury i ręczne otwory.
+Nie dodano jeszcze połączeń stolarskich, części toczonych i krzywoliniowych,
+automatycznych okuć ani fotorealistycznego renderowania.
+Starsze projekty .mebel zachowują zgodność.

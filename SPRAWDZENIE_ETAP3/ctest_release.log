@@ -1,0 +1,15 @@
+Test project C:/Users/kamil/Desktop/MebleStudio/MebelStudio3D_Migracja_Cpp_Etap3/build-native
+    Start 1: native_scene
+1/5 Test #1: native_scene .....................   Passed    1.58 sec
+    Start 2: native_model
+2/5 Test #2: native_model .....................   Passed   16.31 sec
+    Start 3: native_document
+3/5 Test #3: native_document ..................   Passed    1.36 sec
+    Start 4: native_layout
+4/5 Test #4: native_layout ....................   Passed    1.19 sec
+    Start 5: native_worktop
+5/5 Test #5: native_worktop ...................   Passed    1.01 sec
+
+100% tests passed out of 5
+
+Total Test time (real) =  21.46 sec
