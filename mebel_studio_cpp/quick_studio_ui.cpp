@@ -232,6 +232,14 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     actions->pack({{"fill", "x"}});
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"+ Nowy", [this] { new_furniture(); }}, {"Kopia", [this] { duplicate_group(); }}, {"Usuń", [this] { delete_group(); }}})
         (new ttk::Button(actions, {{"text", label}, {"command", fn}, {"padding", "6 4"}}))->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", 1}});
+    auto* tabbar = new ttk::Frame(this, {{"padding", "10 2"}});
+    tabbar->pack({{"fill", "x"}});
+    for (const char* name : {"Korpus", "Fronty", "Okucia", "Dodatki"}) {
+        std::string tab_name = name;
+        auto* b = new ttk::Button(tabbar, {{"text", tab_name}, {"style", "Chip.TButton"}, {"command", Cmd([this, tab_name] { show_tab(tab_name); })}});
+        b->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", 1}});
+        tab_buttons.emplace_back(tab_name, b);
+    }
     auto* bottom = new ttk::Frame(this, {{"padding", "10 6"}});
     bottom->pack({{"side", "bottom"}, {"fill", "x"}});
     auto* actionrow = new ttk::Frame(bottom);
@@ -361,6 +369,29 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     }
     reload_presets();
     scroll->install_wheel(body);
+    show_tab("Korpus");
+}
+
+std::string QuickInspector::tab_of(const std::string& key) {
+    if (key == "fronts") return "Fronty";
+    if (key == "fittings") return "Okucia";
+    if (key == "legs" || key == "led" || key == "presets") return "Dodatki";
+    return "Korpus";
+}
+
+void QuickInspector::show_tab(const std::string& name) {
+    current_tab = name;
+    static const char* ORDER[] = {"type", "materials", "main", "bottom", "upper", "fronts", "fittings", "legs", "led", "presets"};
+    for (const char* key : ORDER) {
+        auto it = sections.find(key);
+        if (it != sections.end()) it->second->pack_forget();
+    }
+    for (const char* key : ORDER) {
+        auto it = sections.find(key);
+        if (it != sections.end() && tab_of(key) == name) it->second->pack({{"fill", "x"}, {"pady", "3 2"}});
+    }
+    for (auto& [tab_name, button] : tab_buttons) button->configure({{"style", tab_name == name ? "ChipOn.TButton" : "Chip.TButton"}});
+    if (scroll != nullptr && scroll->canvas != nullptr) scroll->canvas->yview_moveto(0);
 }
 
 void QuickInspector::draft_changed() {
@@ -1330,6 +1361,7 @@ void focus_section(App* app, const std::string& key) {
     app->workspace->select(app->design_page);
     app->inspector_tabs->select("0");
     Section* section = app->quick_inspector->sections.at(key);
+    app->quick_inspector->show_tab(QuickInspector::tab_of(key));
     section->opened = true;
     section->show();
     app->update_idletasks();

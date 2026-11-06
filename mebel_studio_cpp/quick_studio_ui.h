@@ -89,6 +89,11 @@ public:
     ScrollPanel* scroll = nullptr;
     Section* type_section = nullptr;
     tk::Canvas* preview = nullptr;
+    // Przełącznik grup parametrów (Korpus / Fronty / Okucia / Dodatki) jak na makiecie.
+    std::string current_tab = "Korpus";
+    std::vector<std::pair<std::string, ttk::Button*>> tab_buttons;
+    void show_tab(const std::string& name);
+    static std::string tab_of(const std::string& section_key);
 
     void draft_changed();
     void reset_fields();
