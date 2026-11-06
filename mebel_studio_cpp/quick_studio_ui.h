@@ -77,7 +77,7 @@ public:
     std::vector<int> template_indices;
     json saved = json::object();
     std::optional<json> clipboard;
-    tk::StringVar note, groupvar, templatevar, presetvar, runner_note;
+    tk::StringVar note, groupvar, templatevar, presetvar, runner_note, card_title, card_sub;
     ttk::Combobox *groupcombo = nullptr, *templatecombo = nullptr, *presetcombo = nullptr;
     ttk::Button* apply_button = nullptr;
     ScrollPanel* scroll = nullptr;

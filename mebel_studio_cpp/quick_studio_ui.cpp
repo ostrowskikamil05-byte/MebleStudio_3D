@@ -178,7 +178,12 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     note.set("Wybierz typ i dodaj mebel. Wymiary w mm.");
     auto* top = new ttk::Frame(this, {{"padding", "10 6"}});
     top->pack({{"fill", "x"}});
-    (new ttk::Label(top, {{"text", "KREATOR MEBLA"}, {"font", "{Segoe UI} 10 bold"}, {"foreground", "#4e6b3f"}}))->pack({{"anchor", "w"}});
+    card_title.set("Mebel");
+    card_sub.set("Wybierz mebel albo dodaj nowy");
+    auto* card = new ttk::Frame(top, {{"style", "Card.TFrame"}, {"padding", "12 9"}});
+    card->pack({{"fill", "x"}, {"pady", "0 6"}});
+    (new ttk::Label(card, {{"textvariable", card_title}, {"font", "{Segoe UI} 13 bold"}, {"background", forma_theme::CARD}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(card, {{"textvariable", card_sub}, {"foreground", forma_theme::MUTED}, {"background", forma_theme::CARD}}))->pack({{"anchor", "w"}});
     groupcombo = new ttk::Combobox(top, {{"textvariable", groupvar}, {"state", "readonly"}});
     groupcombo->pack({{"fill", "x"}, {"pady", 4}});
     groupcombo->bind("<<ComboboxSelected>>", plain([this](tk::Event&) { choose_group(); }));
@@ -199,7 +204,7 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     scroll = new ScrollPanel(this);
     scroll->pack({{"fill", "both"}, {"expand", true}});
     tk::Widget* body = scroll->body;
-    type_section = new Section(body, "Typ i wymiary", true);
+    type_section = new Section(body, "Wymiary", true);
     sections["type"] = type_section;
     for (size_t i = 0; i < furniture_library::TEMPLATES.size(); ++i) {
         auto& kind = furniture_library::TEMPLATES[i].kind;
@@ -222,7 +227,13 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
         int n = count;
         (new ttk::Button(quick, {{"text", label}, {"command", Cmd([this, m, n] { quick_front(m, n); })}, {"width", 1}, {"padding", "2 5"}}))->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}});
     }
-    auto* main = new Section(body, "Podziały i wyposażenie", true);
+    auto* materials = new Section(body, "Materiał", true);
+    sections["materials"] = materials;
+    combo(materials->body, "material", "Korpus", json::object());
+    combo(materials->body, "front_material", "Fronty", json::object());
+    check(materials->body, "back", "Plecy");
+    field(materials->body, "back_thickness", "Grubość pleców");
+    auto* main = new Section(body, "Konstrukcja", true);
     sections["main"] = main;
     section_fields(main->body, "main");
     for (auto& [key, label] : std::vector<std::pair<std::string, std::string>>{{"bottom", "Strefa dolna"}, {"upper", "Pawlacz / strefa górna"}}) {
@@ -279,12 +290,6 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     field(legs->body, "worktop_thickness", "Grubość blatu");
     field(legs->body, "worktop_overhang", "Nawis blatu");
     combo(legs->body, "top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy wzmacniające pod wspólny blat", "rails"}});
-    auto* materials = new Section(body, "Materiały i plecy");
-    sections["materials"] = materials;
-    combo(materials->body, "material", "Korpus", json::object());
-    combo(materials->body, "front_material", "Fronty", json::object());
-    check(materials->body, "back", "Plecy");
-    field(materials->body, "back_thickness", "Grubość pleców");
     auto* led = new Section(body, "LED i rowki");
     sections["led"] = led;
     check(led->body, "led", "Rowek i profil pod półkami");
@@ -515,6 +520,16 @@ void QuickInspector::set_config(const json& cfg_in) {
     }
     syncing = false;
     has_draft = false;
+    {
+        // Karta mebla u góry panelu: nazwa i gabaryty.
+        auto number_of = [&](const char* key) -> std::string {
+            json v = jget(cfg, key, json());
+            return v.is_number() ? std::format("{:g}", v.get<double>()) : std::string("—");
+        };
+        json name = jget(cfg, "name", json());
+        card_title.set(name.is_string() && !name.get<std::string>().empty() ? name.get<std::string>() : std::string("Mebel"));
+        card_sub.set(number_of("width") + " × " + number_of("height") + " × " + number_of("depth") + " mm");
+    }
     draw_preview();
 }
 
