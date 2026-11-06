@@ -35,7 +35,8 @@ void Style::configure(const std::string& style, const Opts& opts) {
     run(words);
 }
 void Style::layout(const std::string& style, const std::vector<std::string>& spec) {
-    run({"ttk::style", "layout", style, tkcore::merge(spec)});
+    // Jak ttk.Style.layout w Pythonie: pusta lista wyłącza układ (specjalna nazwa "null"), a nie "{}".
+    run({"ttk::style", "layout", style, spec.empty() ? std::string("null") : tkcore::merge(spec)});
 }
 std::string Style::lookup(const std::string& style, const std::string& option) {
     return run({"ttk::style", "lookup", style, option_name(option)});

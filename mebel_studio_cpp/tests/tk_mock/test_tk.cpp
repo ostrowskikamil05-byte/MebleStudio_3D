@@ -158,7 +158,7 @@ int main() {
     ttk::Style st(&app); st.configure("X.TButton", {{"padding", 6}, {"font", "{Segoe UI} 9 bold"}});
     CHECK(last() == "ttk::style | configure | X.TButton | -padding | 6 | -font | {Segoe UI} 9 bold");
     st.map("X.TButton", "background", {{"active", "#eee"}, {"disabled", "#ccc"}}); CHECK(last() == "ttk::style | map | X.TButton | -background | active #eee disabled #ccc");
-    st.layout("Hidden.TNotebook.Tab", {}); CHECK(last() == "ttk::style | layout | Hidden.TNotebook.Tab | ");
+    st.layout("Hidden.TNotebook.Tab", {}); CHECK(last() == "ttk::style | layout | Hidden.TNotebook.Tab | null");
 
     // okna dialogowe
     std::string observed;
