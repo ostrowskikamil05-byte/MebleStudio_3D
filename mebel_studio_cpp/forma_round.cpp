@@ -99,7 +99,10 @@ struct Look {
 
 // Obraz 9-częściowy o promieniu `radius`; zwraca nazwę obrazu.
 std::string box(tk::Widget* root, int radius, const Look& look) {
-    int size = 2 * radius + 3;
+    // Środek obrazu musi być duży: ttk rozciąga go na cały element, powtarzając go (kafelkami) wiele razy, a każde powtórzenie to
+    // osobne, drogie wywołanie GDI w Windows. Przy środku 1 px pole 300×56 kosztowało ok. 10 000 wywołań (≈220 ms na odrysowanie).
+    constexpr int MIDDLE = 64;
+    int size = 2 * (radius + 1) + MIDDLE;
     return make_image(root, size, rounded(size, radius, look.fill, look.border));
 }
 
