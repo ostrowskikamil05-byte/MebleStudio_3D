@@ -411,6 +411,15 @@ ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key,
 }
 
 void QuickInspector::rebuild_swatches() {
+    if (swatch_row == nullptr || swatches_pending) return;
+    swatches_pending = true;
+    app->after(1, [this] {
+        swatches_pending = false;
+        build_swatches_now();
+    });
+}
+
+void QuickInspector::build_swatches_now() {
     if (swatch_row == nullptr) return;
     try {
         for (tk::Widget* child : swatch_row->winfo_children()) child->destroy();
@@ -427,7 +436,6 @@ void QuickInspector::rebuild_swatches() {
                 try {
                     find("material").text->set(name);
                     choice_changed("material");
-                    rebuild_swatches();
                 } catch (const tk::TclError&) {
                 }
                 return std::string();
