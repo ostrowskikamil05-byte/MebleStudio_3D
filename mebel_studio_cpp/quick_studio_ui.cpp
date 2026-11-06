@@ -1,6 +1,7 @@
 // One persistent inspector and a compact ribbon for cabinet configuration.
 #include "forma_theme.h"
 #include "forma_widgets.h"
+#include "perf_monitor.h"
 #include "quick_studio_ui.h"
 
 #include <algorithm>
@@ -581,6 +582,7 @@ json QuickInspector::draft() {
 }
 
 void QuickInspector::set_config(const json& cfg_in) {
+    perf::Scope perf_scope("QuickInspector::set_config");
     json cfg = cfg_in;
     syncing = true;
     config = cfg;
@@ -635,6 +637,7 @@ void QuickInspector::set_config(const json& cfg_in) {
 }
 
 void QuickInspector::refresh() {
+    perf::Scope perf_scope("QuickInspector::refresh");
     using namespace furniture_configurator;
     cancel_pending();
     if (generation != app->project_generation) clipboard.reset();
@@ -947,6 +950,7 @@ void QuickInspector::delete_preset() {
 }
 
 void QuickInspector::draw_preview() {
+    perf::Scope perf_scope("QuickInspector::draw_preview");
     auto* c = preview;
     c->delete_("all");
     int w = std::max(280, c->winfo_width());
@@ -1065,6 +1069,7 @@ void build(App* app) {
     auto* panel_title = new ttk::Label(library, {{"text", "Mebel"}, {"style", "Title.TLabel"}, {"padding", "12 10 8 4"}});
     panel_title->pack({{"side", "top"}, {"fill", "x"}});
     auto* ribbon = new ttk::Notebook(library, {{"style", "Rail.TNotebook"}});
+    perf::watch_notebook(app, ribbon, "panel boczny");
     ribbon->pack({{"side", "top"}, {"fill", "both"}, {"expand", true}});
     app->ribbon = ribbon;
     auto& pages = app->ribbon_pages;

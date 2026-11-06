@@ -9,6 +9,7 @@
 
 #include "app.h"
 #include "forma_theme.h"
+#include "perf_monitor.h"
 
 namespace forma_tabs {
 
@@ -78,6 +79,7 @@ void install(App* app) {
 
     auto paint = [app, bar, state, font](bool force) {
         try {
+            perf::Scope perf_scope("forma_tabs::paint");
             double width = bar->winfo_width();
             if (width < 60) return;
             std::vector<Entry> all;

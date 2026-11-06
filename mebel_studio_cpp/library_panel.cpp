@@ -10,6 +10,7 @@
 #include "forma_theme.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
+#include "perf_monitor.h"
 #include "responsive_ui.h"
 #include "side_panels.h"
 #include "visual_catalogue.h"
@@ -106,6 +107,7 @@ void LibraryPanel::show_kind(const std::string& kind) {
 }
 
 void LibraryPanel::render() {
+    perf::Scope perf_scope("LibraryPanel::render");
     for (const auto& [kind, chip] : chips_) chip->configure({{"style", kind == kind_ ? "ChipOn.TButton" : "Chip.TButton"}});
     tk::Widget* body = scroll_->body;
     for (tk::Widget* child : body->winfo_children()) child->destroy();

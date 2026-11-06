@@ -9,6 +9,7 @@
 
 #include "app.h"
 #include "forma_tabs.h"
+#include "perf_monitor.h"
 #include "ui_settings.h"
 
 namespace forma_shell {
@@ -85,6 +86,8 @@ void finish(App* app) {
     if (app->ui_layout != nullptr) app->ui_layout->show_toolbars(false, false);
 
     forma_tabs::install(app);
+    perf::watch_notebook(app, app->tabs, "dokumenty");
+    if (app->inspector_tabs != nullptr) perf::watch_notebook(app, app->inspector_tabs, "właściwości");
 
     if (app->library != nullptr) app->library->refresh();
 

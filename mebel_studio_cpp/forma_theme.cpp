@@ -1,4 +1,5 @@
 #include "forma_theme.h"
+#include "perf_monitor.h"
 
 #include <string>
 
@@ -8,6 +9,7 @@
 namespace forma_theme {
 
 void apply(tk::Widget* root) {
+    perf::Scope perf_scope("forma_theme::apply");
     // Klasyczne widgety tk (nie ttk): domyślne kolory z bazy opcji Tk, żeby wszystkie okna i dialogi wyglądały spójnie.
     auto option = [](const char* pattern, const char* value) { tkcore::eval({"option", "add", pattern, value}); };
     for (const char* kind : {"Frame", "Label", "Toplevel", "Canvas"}) option((std::string("*") + kind + ".background").c_str(), BG);

@@ -34,6 +34,15 @@ void set_var(const std::string& name, const std::string& value);
 // Wpisuje piksele RGBA (w*h*4 bajtów) do istniejącego obrazu typu photo.
 void put_photo(const std::string& name, int width, int height, const std::vector<std::uint8_t>& rgba);
 
+// --- profilowanie (perf_monitor) ---
+// Hook dostaje czas każdej procedury obsługi (kind="callback", what=etykieta) oraz wolnych poleceń Tcl (kind="eval").
+using ProfileHook = std::function<void(const char* kind, const std::string& what, double ms)>;
+void set_profile_hook(ProfileHook hook, double eval_threshold_ms);
+// Opis procedury (np. "bind <Button-1> .!frame.!canvas") pokazywany w raportach zamiast nazwy "_cb123".
+void set_label(const std::string& command, const std::string& label);
+struct EvalStats { std::uint64_t count = 0; double total_ms = 0; };
+EvalStats eval_stats();
+
 void main_loop();
 
 // Lista Tcl <-> wektor tekstów

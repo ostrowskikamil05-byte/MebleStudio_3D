@@ -1,3 +1,4 @@
+#include <unordered_map>
 // Jedyne miejsce z nagłówkami Tcl/Tk (nagłówki X11 z tk.h definiują makra None/Bool/Status...).
 // UWAGA: katalog projektu NIE może być w ścieżce -I, bo <tk.h> trafiłby do naszego tk.h.
 #include "tkcore.h"
@@ -25,6 +26,7 @@
 #error "Nie znaleziono nagłówka Tk (<tk.h>). Nie dodawaj katalogu projektu przez -I; użyj -iquote."
 #endif
 
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
@@ -119,6 +121,15 @@ void report(std::exception_ptr error) {
     }
 }
 
+ProfileHook g_profile_hook;
+double g_eval_threshold_ms = 25;
+// Celowo nigdy niszczone: polecenia Tcl bywają usuwane przy zamykaniu interpretera, już po statycznych destruktorach.
+std::unordered_map<std::string, std::string>& labels() {
+    static auto* map = new std::unordered_map<std::string, std::string>();
+    return *map;
+}
+EvalStats g_eval_stats;
+
 int command_proc(void* data, Tcl_Interp* interp, Size objc, Tcl_Obj* const objv[]) {
     auto* callback = static_cast<Callback*>(data);
     Args args;
@@ -128,18 +139,28 @@ int command_proc(void* data, Tcl_Interp* interp, Size objc, Tcl_Obj* const objv[
     // Kopie, bo polecenie jednorazowe usuwa własną strukturę po wykonaniu.
     const bool once = callback->once;
     const std::string name = callback->name;
+    const auto started = std::chrono::steady_clock::now();
     try {
         result = callback->handler(args);
     } catch (...) {
         report(std::current_exception());
         result.clear();
     }
+    if (g_profile_hook) {
+        const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+        auto label = labels().find(name);
+        g_profile_hook("callback", label != labels().end() ? label->second : name, ms);
+    }
     Tcl_SetObjResult(interp, Tcl_NewStringObj(result.data(), static_cast<Size>(result.size())));
     if (once) Tcl_DeleteCommand(interp, name.c_str());
     return TCL_OK;
 }
 
-void command_deleted(void* data) { delete static_cast<Callback*>(data); }
+void command_deleted(void* data) {
+    auto* callback = static_cast<Callback*>(data);
+    labels().erase(callback->name);
+    delete callback;
+}
 
 void create_command(const std::string& name, Handler handler, bool once) {
     require();
@@ -229,7 +250,16 @@ std::string eval(const Args& words) {
     if (words.empty()) return {};
     if (tracing()) trace_words("", words);
     ObjList objs(words);
+    const auto started = std::chrono::steady_clock::now();
     const int code = Tcl_EvalObjv(g_interp, objs.size(), objs.data(), TCL_EVAL_GLOBAL);
+    const double eval_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+    ++g_eval_stats.count;
+    g_eval_stats.total_ms += eval_ms;
+    if (g_profile_hook && eval_ms >= g_eval_threshold_ms) {
+        std::string what;
+        for (std::size_t i = 0; i < words.size() && i < 4; ++i) what += (i ? " " : "") + shorten(words[i], 60);
+        g_profile_hook("eval", what, eval_ms);
+    }
     std::string result = result_text();
     if (code != TCL_OK) {
         if (tracing()) std::fprintf(stderr, "[tcl]   -> BŁĄD (kod %d): %s\n", code, shorten(result, 300).c_str());
@@ -261,6 +291,13 @@ void define_named(const std::string& name, Handler handler) { create_command(nam
 void remove(const std::string& name) noexcept {
     if (g_interp) Tcl_DeleteCommand(g_interp, name.c_str());
 }
+
+void set_profile_hook(ProfileHook hook, double eval_threshold_ms) {
+    g_profile_hook = std::move(hook);
+    g_eval_threshold_ms = eval_threshold_ms;
+}
+void set_label(const std::string& command, const std::string& label) { labels()[command] = label; }
+EvalStats eval_stats() { return g_eval_stats; }
 
 void set_exception_sink(std::function<void(std::exception_ptr)> sink) { g_sink = std::move(sink); }
 

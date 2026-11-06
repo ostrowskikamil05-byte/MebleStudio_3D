@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "forma_theme.h"
+#include "perf_monitor.h"
 #include "tkcore.h"
 
 namespace forma_theme {
@@ -119,6 +120,7 @@ void button_layout(const std::string& style, const std::string& element_name) {
 }  // namespace
 
 void install_round(tk::Widget* root) {
+    perf::Scope perf_scope("forma_theme::install_round");
     // FORMA_FLAT=1 wyłącza zaokrąglenia (porównanie wydajności / awaryjny płaski wygląd).
     if (const char* flat = std::getenv("FORMA_FLAT"); flat != nullptr && flat[0] == '1') return;
     try {

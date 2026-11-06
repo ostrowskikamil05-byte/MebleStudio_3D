@@ -24,6 +24,7 @@
 #include "pyutil.h"
 #include "forma_shell.h"
 #include "library_panel.h"
+#include "perf_monitor.h"
 #include "side_panels.h"
 #include "view_style.h"
 #include "viewport_hud.h"
@@ -255,7 +256,7 @@ public:
         view_style::load();
         forma_theme::apply(this);
         ui();
-        developer_logs::install(this); workspace_controls::install(this); studio_interaction::install(this);
+        developer_logs::install(this); perf::install(this); workspace_controls::install(this); studio_interaction::install(this);
         view_modes_ui::install(this);
         visual_catalogue::install(this);
         responsive_ui::install(this);
@@ -385,6 +386,7 @@ public:
     }
 
     void refresh() {
+        perf::Scope perf_scope("App::refresh");
         project = workspace_worktops::refresh_shared_worktops(project, false);
         _sync_native_document();
         std::vector<std::pair<std::string, std::string>> stale;
@@ -415,6 +417,7 @@ public:
     }
 
     void load_form() {
+        perf::Scope perf_scope("App::load_form");
         Part* p = selected_part();
         if (p) selected_scene.reset();
         for (auto& [key, var] : vars) var.set(p ? py::str(p->get_attr(key)) : "");
@@ -533,6 +536,7 @@ public:
     }
 
     void refresh_production() {
+        perf::Scope perf_scope("App::refresh_production");
         auto* table = tables["parts"]; table->delete_(table->get_children());
         for (auto& p : project->parts) {
             auto [a, b] = p.blank(project->edge_t);
@@ -578,7 +582,7 @@ public:
 
     // native_viewport.install owija draw: po pełnym rysowaniu zatwierdza nakładki silnika C++.
     std::function<void()> draw_wrapper;
-    void draw() { if (draw_wrapper) draw_wrapper(); else draw_original(); }
+    void draw() { perf::Scope perf_scope("App::draw"); if (draw_wrapper) draw_wrapper(); else draw_original(); }
 
     void draw_original() {
         if (_native_document != nullptr) _sync_native_document();

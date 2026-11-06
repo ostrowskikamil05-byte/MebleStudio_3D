@@ -36,7 +36,10 @@ struct Registry {
                 return std::string();
             },
             once);
-        if (owner) owner->commands_.push_back(name);
+        if (owner) {
+            owner->commands_.push_back(name);
+            tkcore::set_label(name, "polecenie " + owner->path());
+        }
         return name;
     }
 
@@ -369,6 +372,7 @@ void Widget::bind(const std::string& sequence, std::function<std::string(Event&)
         return callback(event);
     });
     commands_.push_back(name);
+    tkcore::set_label(name, "bind " + sequence + " " + path_);
     // Tak samo jak tkinter: wartość "break" z procedury przerywa dalsze wiązania.
     std::string script = "if {\"[" + name + " %x %y %D %X %Y %w %h %s %b %K %W]\" == \"break\"} break\n";
     if (add) script = "+" + script;
@@ -429,6 +433,7 @@ double Widget::winfo_fpixels(const std::string& spec) const { return parse_doubl
 
 std::string Widget::after(int milliseconds, std::function<void()> callback) {
     const std::string name = Registry::make_command(this, [callback = std::move(callback)](const Args&) { callback(); }, true);
+    tkcore::set_label(name, "after " + std::to_string(milliseconds) + " ms " + path_);
     return run({"after", std::to_string(milliseconds), name});
 }
 void Widget::after_cancel(const std::string& id) {
@@ -445,6 +450,7 @@ void Widget::after_cancel(const std::string& id) {
 }
 std::string Widget::after_idle(std::function<void()> callback) {
     const std::string name = Registry::make_command(this, [callback = std::move(callback)](const Args&) { callback(); }, true);
+    tkcore::set_label(name, "after_idle " + path_);
     return run({"after", "idle", name});
 }
 std::string Widget::call(const std::vector<std::string>& words) const { return run(words); }

@@ -1,5 +1,6 @@
 // Responsive toolbar layout and user controlled panes, independent of projects.
 #include "responsive_ui.h"
+#include "perf_monitor.h"
 
 #include <algorithm>
 #include <memory>
@@ -67,6 +68,7 @@ void WrapToolbar::schedule() {
 }
 
 void WrapToolbar::reflow() {
+    perf::Scope perf_scope("WrapToolbar::reflow");
     _job.reset();
     if (!winfo_exists()) return;
     std::vector<tk::Widget*> children = winfo_children();
@@ -250,6 +252,7 @@ void UiLayout::schedule() {
 }
 
 void UiLayout::reflow() {
+    perf::Scope perf_scope("UiLayout::reflow");
     job.reset();
     auto panes_contain = [](ttk::Panedwindow* pane, tk::Widget* child) {
         auto panes = pane->panes();
