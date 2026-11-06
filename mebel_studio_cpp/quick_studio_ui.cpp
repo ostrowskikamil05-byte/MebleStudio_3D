@@ -1,5 +1,6 @@
 // One persistent inspector and a compact ribbon for cabinet configuration.
 #include "forma_theme.h"
+#include "forma_widgets.h"
 #include "quick_studio_ui.h"
 
 #include <algorithm>
@@ -269,6 +270,9 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     sections["materials"] = materials;
     combo(materials->body, "material", "Korpus", json::object());
     combo(materials->body, "front_material", "Fronty", json::object());
+    forma_widgets::caption(materials->body, "Próbki materiałów");
+    swatch_row = new tk::Frame(materials->body, {{"bg", forma_theme::PANEL}});
+    swatch_row->pack({{"fill", "x"}, {"pady", "2 6"}});
     check(materials->body, "back", "Plecy");
     field(materials->body, "back_thickness", "Grubość pleców");
     auto* main = new Section(body, "Konstrukcja", true);
@@ -404,6 +408,34 @@ ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key,
     combos[key] = {widget, choices};
     widget->bind("<<ComboboxSelected>>", plain([this, key](tk::Event&) { choice_changed(key); }));
     return widget;
+}
+
+void QuickInspector::rebuild_swatches() {
+    if (swatch_row == nullptr) return;
+    try {
+        for (tk::Widget* child : swatch_row->winfo_children()) child->destroy();
+        std::string current = find("material").text->get();
+        int index = 0;
+        for (const auto& m : app->project->materials) {
+            bool on = m.name == current;
+            auto* cell = new tk::Canvas(swatch_row, {{"width", 34}, {"height", 34}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+            cell->grid({{"row", index / 7}, {"column", index % 7}, {"padx", 2}, {"pady", 2}});
+            cell->create_rectangle(3, 3, 31, 31, {{"fill", m.color}, {"outline", on ? forma_theme::ACCENT : forma_theme::BORDER}, {"width", on ? 3 : 1}});
+            if (on) cell->create_text(17, 17, {{"text", "✓"}, {"fill", "white"}, {"font", "{Segoe UI} 10 bold"}});
+            std::string name = m.name;
+            cell->bind("<Button-1>", [this, name](tk::Event&) {
+                try {
+                    find("material").text->set(name);
+                    choice_changed("material");
+                    rebuild_swatches();
+                } catch (const tk::TclError&) {
+                }
+                return std::string();
+            });
+            ++index;
+        }
+    } catch (const tk::TclError&) {
+    }
 }
 
 void QuickInspector::choice_changed(const std::string& key) {
@@ -583,7 +615,9 @@ void QuickInspector::set_config(const json& cfg_in) {
         card_sub.set(number_of("width") + " × " + number_of("height") + " × " + number_of("depth") + " mm");
         draw_card_icon(card_icon, number_value("width"), number_value("height"), number_value("depth"));
         app->props_title.set(card_title.get() == "Mebel" ? std::string("Właściwości") : "Właściwości: " + card_title.get());
+        if (side_panels::is_open("item") && side_panels::item_stale()) side_panels::hide(app);  // zaznaczenie w scenie wraca do właściwości mebla
     }
+    rebuild_swatches();
     draw_preview();
 }
 
@@ -1126,6 +1160,8 @@ void build(App* app) {
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"3D", [app] { app->view(-38, 24); }}, {"Przód", [app] { app->view(0, 0); }}, {"Bok", [app] { app->view(-90, 0); }},
                                                                        {"Góra", [app] { app->view(0, 90); }}, {"Dół", [app] { app->view(0, -90); }}, {"Dopasuj", [app] { app->fit(); }}})
         make_button(view, label, fn);
+    make_group(pages["Widok"], "PROJEKT");
+    side_panels::register_row("layers", make_button(pages["Widok"], "Warstwy", [app] { side_panels::show_layers(app); }));
     make_group(pages["Widok"], "KAMERA");
     make_button(pages["Widok"], "Dopasuj 3D", [app] { app->fit(); });
     make_group(pages["Widok"], "POKAŻ");

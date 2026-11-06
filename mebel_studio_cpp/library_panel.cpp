@@ -11,6 +11,7 @@
 #include "pyutil.h"
 #include "quick_studio_ui.h"
 #include "responsive_ui.h"
+#include "side_panels.h"
 #include "visual_catalogue.h"
 
 namespace library_panel {
@@ -18,7 +19,7 @@ namespace library_panel {
 namespace {
 
 constexpr int COLUMNS = 3;
-constexpr int PREVIEW_W = 84, PREVIEW_H = 64;
+constexpr int PREVIEW_W = 90, PREVIEW_H = 72;
 
 // Etykiety krótkie, żeby mieściły się w rzędzie przycisków rodzajów.
 const std::string HINT = "⌕  Szukaj modułów, frontów, materiałów…";
@@ -128,7 +129,7 @@ void LibraryPanel::render() {
         bool all = searching || expanded_.contains(category) || list.size() <= (size_t)COLUMNS;
         auto* head = new ttk::Frame(body, {{"style", "Panel.TFrame"}});
         head->pack({{"fill", "x"}, {"pady", "10 4"}});
-        (new tk::Label(head, {{"text", category}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::TEXT}, {"font", "{Segoe UI} 10 bold"}}))->pack({{"side", "left"}});
+        (new tk::Label(head, {{"text", category}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::TEXT}, {"font", "{Segoe UI} 11 bold"}}))->pack({{"side", "left"}});
         if (!searching && list.size() > (size_t)COLUMNS) {
             bool open = expanded_.contains(category);
             auto* more = new tk::Label(head, {{"text", open ? "Pokaż mniej ‹" : "Zobacz wszystkie ›"}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::ACCENT},
@@ -157,10 +158,10 @@ void LibraryPanel::render() {
             } catch (const std::exception&) {
             }
             auto* title = new tk::Label(card, {{"text", item.at("title").get<std::string>()}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::TEXT},
-                                               {"font", "{Segoe UI} 8 bold"}, {"wraplength", PREVIEW_W + 6}, {"justify", "center"}, {"cursor", "hand2"}});
+                                               {"font", "{Segoe UI} 9 bold"}, {"wraplength", PREVIEW_W + 10}, {"justify", "center"}, {"cursor", "hand2"}});
             title->pack({{"pady", "3 0"}});
             auto* dims = new tk::Label(card, {{"text", visual_catalogue::dimension_text(item)}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::MUTED},
-                                              {"font", "{Segoe UI} 7"}, {"wraplength", PREVIEW_W + 6}, {"justify", "center"}});
+                                              {"font", "{Segoe UI} 8"}, {"wraplength", PREVIEW_W + 10}, {"justify", "center"}});
             dims->pack();
             json copy = item;
             for (tk::Widget* widget : std::vector<tk::Widget*>{card, image, title, dims})
@@ -184,6 +185,8 @@ void LibraryPanel::activate(const json& item) {
         note_.set(item.at("title").get<std::string>() + " · " + action);
         app_->status.set("Biblioteka: " + item.at("title").get<std::string>() + " · " + action);
         generation_ = app_->project_generation;
+        json shown = item;
+        side_panels::show_item(app_, shown, [this, shown] { activate(shown); });
         render_later();
     } catch (const std::invalid_argument& error) {
         note_.set(error.what());

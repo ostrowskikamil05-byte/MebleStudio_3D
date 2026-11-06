@@ -3,6 +3,7 @@
 #pragma once
 #include <functional>
 #include <string>
+#include "core.h"
 #include "tk.h"
 #include "ttk.h"
 
@@ -17,6 +18,13 @@ void hide(App* app);
 bool is_open(const std::string& key);
 
 void show_fillet(App* app);
+// Właściwości pozycji katalogu (AGD, LED, nogi, prowadnice, zawiasy, uchwyty, materiały, meble):
+// Wymiary · Parametry · Przyłącza · Informacje. `add` ponownie wykonuje akcję katalogu.
+void show_item(App* app, const core::json& item, std::function<void()> add = nullptr);
+// Panel pozycji katalogu jest otwarty od co najmniej 1,5 s (odświeżenia tuż po dodaniu pozycji go nie zamykają).
+bool item_stale();
+// Drzewo warstw projektu (grupy = meble, elementy z przełączaną widocznością).
+void show_layers(App* app);
 void show_engine(App* app);
 
 // Zaznaczanie krawędzi w widoku 3D, gdy panel "Zaokrąglenia" jest otwarty (tryb Kanty).
