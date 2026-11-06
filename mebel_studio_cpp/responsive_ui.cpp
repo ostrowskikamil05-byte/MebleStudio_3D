@@ -2,6 +2,8 @@
 #include "responsive_ui.h"
 
 #include <algorithm>
+#include <memory>
+#include <map>
 #include <cmath>
 #include <format>
 #include <sstream>
@@ -129,7 +131,17 @@ void FieldRow::destroyed(tk::Event& event) {
 
 void FieldRow::arrange() {
     int width = std::max(1, winfo_width());
-    int label_width = tk::font::Font(this, label->cget("font")).measure(label->cget("text")) + 4;
+    if (width == _last_width && _stacked) return;  // Configure przychodzi przy każdym pokazaniu strony — bez zmiany szerokości nic do liczenia
+    _last_width = width;
+    if (_label_width < 0) {
+        // Czcionka pomiarowa jest tworzona raz na opis (wcześniej tworzono ją przy każdym odświeżeniu każdego wiersza).
+        static std::map<std::string, std::unique_ptr<tk::font::Font>> fonts;
+        std::string spec = label->cget("font");
+        auto& cached = fonts[spec];
+        if (!cached) cached = std::make_unique<tk::font::Font>(this, spec);
+        _label_width = cached->measure(label->cget("text")) + 4;
+    }
+    int label_width = _label_width;
     bool stack = width < label_width + entry->winfo_reqwidth() + 8;
     label->configure({{"wraplength", stack ? std::max(80, width - 4) : 0}});
     if (_stacked && stack == *_stacked) return;
