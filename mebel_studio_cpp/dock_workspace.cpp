@@ -9,16 +9,17 @@
 #include <format>
 #include <stdexcept>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "app.h"
 #include "gpu_viewport.h"
 #include "native_viewport.h"
 #include "quick_studio_ui.h"
 #include "viewport_modes.h"
 #include "viewport_scene.h"
+
+// windows.h dopiero po nagłówkach projektu: definiuje makra (near, far, ERROR), które psują ich identyfikatory.
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace dock_workspace {
 
