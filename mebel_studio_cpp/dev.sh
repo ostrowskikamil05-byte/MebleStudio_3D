@@ -15,7 +15,7 @@ type=Release
 if [ "$mode" = "fast" ]; then dir=build-dev; type=Debug; fi
 if [ "$mode" = "clean" ]; then rm -rf build build-dev; echo "Usunięto katalogi build."; exit 0; fi
 
-exe() { ls "$dir"/bin/MebelStudio3D_cpp.exe "$dir"/MebelStudio3D_cpp.exe 2>/dev/null | head -1; }
+exe() { ls "$dir"/bin/MebelStudio3D_cpp.exe "$dir"/MebelStudio3D_cpp.exe 2>/dev/null | head -1 || true; }
 
 selftest() {
   local e; e="$(exe)"
