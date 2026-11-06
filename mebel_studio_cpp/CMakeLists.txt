@@ -15,7 +15,7 @@ project(MebelStudio3D_Cpp VERSION 0.16 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)   # gnu++20: nagłówki MinGW (M_PI, winuser.h) wymagają niezdefiniowanego __STRICT_ANSI__
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 endif()
@@ -83,13 +83,14 @@ add_executable(MebelStudio3D_cpp ${MEBEL_SOURCES})
 set_target_properties(MebelStudio3D_cpp PROPERTIES OUTPUT_NAME "MebelStudio3D_cpp")
 
 # Nagłówki Tcl/Tk tylko dla jednego pliku
+# -idirafter (a nie -I): katalog include toolchaina jako -I psuje #include_next <stdlib.h> w libstdc++
 set_source_files_properties(tkcore.cpp PROPERTIES
-    INCLUDE_DIRECTORIES "${MEBEL_TCL_INCLUDE_DIR};${MEBEL_TK_INCLUDE_DIR}")
+    COMPILE_OPTIONS "-idirafter;${MEBEL_TCL_INCLUDE_DIR};-idirafter;${MEBEL_TK_INCLUDE_DIR}")
 
 target_include_directories(MebelStudio3D_cpp SYSTEM PRIVATE ${OpenCASCADE_INCLUDE_DIR})
 target_link_libraries(MebelStudio3D_cpp PRIVATE nlohmann_json::nlohmann_json ${MEBEL_OCCT_LIBS}
                       ${MEBEL_TK_LIBRARY} ${MEBEL_TCL_LIBRARY})
-target_compile_definitions(MebelStudio3D_cpp PRIVATE UNICODE _UNICODE NOMINMAX)
+target_compile_definitions(MebelStudio3D_cpp PRIVATE UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
 if(MEBEL_LAUNCHER)
     target_compile_definitions(MebelStudio3D_cpp PRIVATE MEBEL_LAUNCHER)
 endif()

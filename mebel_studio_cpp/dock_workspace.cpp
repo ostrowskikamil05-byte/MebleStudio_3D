@@ -19,6 +19,7 @@
 // windows.h dopiero po nagłówkach projektu: definiuje makra (near, far, ERROR), które psują ich identyfikatory.
 #ifdef _WIN32
 #include <windows.h>
+#include <winuser.h>
 #endif
 
 namespace dock_workspace {

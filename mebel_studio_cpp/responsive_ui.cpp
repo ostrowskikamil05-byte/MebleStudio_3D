@@ -14,6 +14,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <winuser.h>
 #endif
 
 namespace responsive_ui {
