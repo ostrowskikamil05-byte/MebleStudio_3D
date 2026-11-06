@@ -37,7 +37,7 @@ RoomScenePanel::RoomScenePanel(tk::Widget* parent, App* app_)
       cutaway(true), ceiling(false), catalogue(room_objects::CATALOG.at("washer").at("name").get<std::string>()), enabled(true), light_enabled(true), total("") {
     auto* top = new ttk::Frame(this, {{"padding", "10 6"}});
     top->pack({{"fill", "x"}});
-    (new ttk::Label(top, {{"text", "POMIESZCZENIE I WYPOSAŻENIE"}, {"foreground", "#176a78"}, {"font", "{Segoe UI} 10 bold"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(top, {{"text", "POMIESZCZENIE I WYPOSAŻENIE"}, {"foreground", "#4e6b3f"}, {"font", "{Segoe UI} 10 bold"}}))->pack({{"anchor", "w"}});
     std::vector<std::string> room_labels;
     for (auto& [key, label] : room_objects::ROOMS.items()) room_labels.push_back(label.get<std::string>());
     roomcombo = new ttk::Combobox(top, {{"textvariable", room}, {"values", room_labels}, {"state", "readonly"}});
@@ -66,7 +66,7 @@ RoomScenePanel::RoomScenePanel(tk::Widget* parent, App* app_)
     (new ttk::Button(row, {{"text", "Usuń obiekt"}, {"command", std::function<void()>([this] { delete_selected(); })}}))->pack({{"side", "left"}, {"expand", true}, {"fill", "x"}});
     (new ttk::Label(footer, {{"textvariable", total}, {"font", "{Segoe UI} 9"}}))->pack({{"fill", "x"}});
     (new ttk::Label(footer, {{"textvariable", note}, {"wraplength", 295}, {"font", "{Segoe UI} 9"}}))->pack({{"fill", "x"}, {"pady", "3 0"}});
-    canvas = new tk::Canvas(this, {{"bg", "#f6f8fa"}, {"highlightthickness", 0}, {"width", 320}});
+    canvas = new tk::Canvas(this, {{"bg", "#f6f3ee"}, {"highlightthickness", 0}, {"width", 320}});
     auto* scrollbar = new ttk::Scrollbar(this, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     canvas->pack({{"fill", "both"}, {"expand", true}});
@@ -94,7 +94,7 @@ RoomScenePanel::RoomScenePanel(tk::Widget* parent, App* app_)
     row->pack({{"fill", "x"}});
     (new ttk::Button(row, {{"text", "Zastosuj"}, {"command", std::function<void()>([this] { apply_room(); })}}))->pack({{"side", "left"}, {"expand", true}, {"fill", "x"}});
     (new ttk::Button(row, {{"text", "Pokaż całe pomieszczenie"}, {"command", std::function<void()>([this] { fit_room(); })}}))->pack({{"side", "left"}, {"expand", true}, {"fill", "x"}});
-    (new ttk::Label(body, {{"text", "Wyposażenie przeciągniesz w 3D w trybie Układaj. Shift: wysokość. Środkowy przycisk: obrót widoku."}, {"wraplength", 285}, {"foreground", "#176a78"}}))->pack({{"fill", "x"}, {"pady", 5}});
+    (new ttk::Label(body, {{"text", "Wyposażenie przeciągniesz w 3D w trybie Układaj. Shift: wysokość. Środkowy przycisk: obrót widoku."}, {"wraplength", 285}, {"foreground", "#4e6b3f"}}))->pack({{"fill", "x"}, {"pady", 5}});
     (new ttk::Label(body, {{"text", "Dodaj z katalogu"}, {"font", "{Segoe UI} 9 bold"}}))->pack({{"anchor", "w"}});
     std::vector<std::string> catalogue_names;
     for (auto& [key, spec] : room_objects::CATALOG.items()) catalogue_names.push_back(spec.at("name").get<std::string>());

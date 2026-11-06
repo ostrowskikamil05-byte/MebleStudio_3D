@@ -1,4 +1,5 @@
 // One persistent inspector and a compact ribbon for cabinet configuration.
+#include "forma_theme.h"
 #include "quick_studio_ui.h"
 
 #include <algorithm>
@@ -108,7 +109,7 @@ Handler plain(std::function<void(tk::Event&)> fn) {
 // ---------------------------------------------------------------------------
 
 ScrollPanel::ScrollPanel(tk::Widget* parent) : ttk::Frame(parent) {
-    canvas = new tk::Canvas(this, {{"highlightthickness", 0}, {"bg", "#f6f8fa"}, {"width", 320}});
+    canvas = new tk::Canvas(this, {{"highlightthickness", 0}, {"bg", "#f6f3ee"}, {"width", 320}});
     auto* sb = new ttk::Scrollbar(this, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     sb->pack({{"side", "right"}, {"fill", "y"}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
@@ -180,7 +181,7 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     note.set("Wybierz typ i dodaj mebel. Wymiary w mm.");
     auto* top = new ttk::Frame(this, {{"padding", "10 6"}});
     top->pack({{"fill", "x"}});
-    (new ttk::Label(top, {{"text", "KREATOR MEBLA"}, {"font", "{Segoe UI} 10 bold"}, {"foreground", "#176a78"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(top, {{"text", "KREATOR MEBLA"}, {"font", "{Segoe UI} 10 bold"}, {"foreground", "#4e6b3f"}}))->pack({{"anchor", "w"}});
     groupcombo = new ttk::Combobox(top, {{"textvariable", groupvar}, {"state", "readonly"}});
     groupcombo->pack({{"fill", "x"}, {"pady", 4}});
     groupcombo->bind("<<ComboboxSelected>>", plain([this](tk::Event&) { choose_group(); }));
@@ -864,17 +865,10 @@ void QuickInspector::draw_preview() {
 void build(App* app) {
     advanced_ui::install_menu(app);
     studio_ui::install(app);
-    ttk::Style style(app);
-    style.configure("TNotebook.Tab", {{"padding", "12 6"}, {"font", "{Segoe UI} 9 bold"}});
-    style.configure("Ribbon.TButton", {{"padding", "7 4"}});
-    style.configure("RibbonGroup.TLabel", {{"foreground", "#5b7083"}, {"font", "{Segoe UI} 8 bold"}});
-    style.configure("Section.TButton", {{"anchor", "w"}, {"padding", "6 5"}, {"font", "{Segoe UI} 9 bold"}});
-    style.configure("Inspector.TNotebook.Tab", {{"padding", "10 5"}, {"font", "{Segoe UI} 9 bold"}});
-    style.configure("Header.TFrame", {{"background", "#172332"}});
     auto* head = new responsive_ui::WrapToolbar(app, {{"style", "Header.TFrame"}});
     head->pack({{"fill", "x"}});
-    (new tk::Label(head, {{"text", "MEBEL STUDIO 3D"}, {"fg", "white"}, {"bg", "#172332"}, {"font", "{Segoe UI} 12 bold"}}))->pack({{"side", "left"}, {"padx", 14}, {"pady", 7}});
-    (new tk::Label(head, {{"text", "0.15 · CAD wbudowany"}, {"fg", "#93adbf"}, {"bg", "#172332"}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "right"}, {"padx", 14}});
+    (new tk::Label(head, {{"text", "MEBEL Studio"}, {"fg", forma_theme::TEXT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 13 bold"}}))->pack({{"side", "left"}, {"padx", 14}, {"pady", 7}});
+    (new tk::Label(head, {{"text", "0.15 · CAD wbudowany"}, {"fg", forma_theme::MUTED}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "right"}, {"padx", 14}});
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Nowy", [app] { app->new_(); }}, {"Otwórz", [app] { app->open(); }}, {"Zapisz", [app] { app->save(); }},
                                                                        {"Cofnij", [app] { app->undo(); }}, {"Ponów", [app] { app->redo(); }}})
         make_button(head, label, fn);
@@ -900,7 +894,7 @@ void build(App* app) {
     app->responsive_toolbars = unique_pages;
     app->tabs = new ttk::Notebook(workspacepane);
     workspacepane->add(app->tabs, {{"weight", 1}});
-    auto* design = new tk::Frame(app, {{"bg", "#f6f8fa"}});
+    auto* design = new tk::Frame(app, {{"bg", forma_theme::BG}});
     app->design_page = design;
     app->tabs->add(design, {{"text", "Projekt 3D"}});
     auto* pane = new ttk::Panedwindow(design, {{"orient", "horizontal"}});
@@ -1019,7 +1013,7 @@ void build(App* app) {
     (new ttk::Checkbutton(motion, {{"text", "Cały mebel"}, {"variable", app->motion_all}}))->pack({{"side", "left"}});
     make_button(motion, "▶", [app] { app->animate_motion(); });
     make_button(motion, "Zamknij", [app] { app->close_motion(); });
-    app->canvas = new StudioCanvas(middle, {{"bg", "#edf1f4"}, {"highlightthickness", 0}, {"takefocus", true}});
+    app->canvas = new StudioCanvas(middle, {{"bg", forma_theme::BG}, {"highlightthickness", 0}, {"takefocus", true}});
     app->canvas->pack({{"fill", "both"}, {"expand", true}});
     for (auto& [event, fn] : std::vector<std::pair<std::string, Handler>>{
              {"<Configure>", plain([app](tk::Event&) { app->draw(); })},
@@ -1085,7 +1079,7 @@ void build(App* app) {
     make_button(pages["Ustawienia"], "Pomoc", [app] { app->help(); });
     make_button(pages["Ustawienia"], "Silnik C++ i stan migracji", [app] { migration_status::open_status(app); });
     build_production(app);
-    (new ttk::Label(app, {{"textvariable", app->status}, {"background", "#172332"}, {"foreground", "#cddbe5"}, {"padding", "12 5"}, {"font", "{Segoe UI} 9"}}))
+    (new ttk::Label(app, {{"textvariable", app->status}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"padding", "12 5"}, {"font", "{Segoe UI} 9"}}))
         ->pack({{"side", "bottom"}, {"fill", "x"}, {"before", workspacepane->path()}});
     app->workspace = new dock_workspace::DockWorkspace(app, app->tabs);
     app->workspace->add_existing(design, "Projekt 3D", false);

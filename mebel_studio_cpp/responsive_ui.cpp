@@ -86,7 +86,7 @@ void WrapToolbar::reflow() {
 }
 
 RibbonPage::RibbonPage(tk::Widget* parent) : ttk::Frame(parent) {
-    canvas = new tk::Canvas(this, {{"highlightthickness", 0}, {"bg", "#f6f8fa"}, {"height", 76}});
+    canvas = new tk::Canvas(this, {{"highlightthickness", 0}, {"bg", "#f6f3ee"}, {"height", 76}});
     auto* scrollbar = new ttk::Scrollbar(this, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});

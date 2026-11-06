@@ -68,7 +68,7 @@ HardwarePlacementPanel::HardwarePlacementPanel(tk::Widget* parent, App* app_) : 
     (new ttk::Label(row, {{"text", "Kierunek LED:"}}))->pack({{"side", "left"}, {"padx", "4 1"}});
     (new ttk::Combobox(row, {{"textvariable", axis}, {"values", std::vector<std::string>{"Automatycznie", "Oś U powierzchni", "Oś V powierzchni"}}, {"state", "readonly"}, {"width", 17}}))->pack({{"side", "left"}});
     (new ttk::Button(row, {{"text", "Anuluj / Esc"}, {"command", std::function<void()>([this] { controller->cancel(); })}}))->pack({{"side", "right"}});
-    note_label = new ttk::Label(this, {{"textvariable", note}, {"foreground", "#176a78"}, {"wraplength", 850}});
+    note_label = new ttk::Label(this, {{"textvariable", note}, {"foreground", "#4e6b3f"}, {"wraplength", 850}});
     note_label->pack({{"anchor", "w"}, {"pady", 2}});
 }
 

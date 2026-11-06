@@ -27,7 +27,7 @@ const json& at(const json& d, const std::string& key) {
 
 CornerPanel::CornerPanel(tk::Widget* parent, App* app_) : ttk::Frame(parent, {{"padding", 8}}), app(app_) {
     group.reset(); config = json::object(); syncing = false; job.reset(); generation = app->project_generation; fields.clear(); mapping = json::object(); signature.reset(); has_draft = false;
-    (new ttk::Label(this, {{"text", "NAROŻNIK"}, {"font", "{Segoe UI} 10 bold"}, {"foreground", "#176a78"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(this, {{"text", "NAROŻNIK"}, {"font", "{Segoe UI} 10 bold"}, {"foreground", "#4e6b3f"}}))->pack({{"anchor", "w"}});
     note = tk::StringVar("Wybierz szafkę do konwersji lub dodaj nowy narożnik.");
     auto* footer = new ttk::Frame(this); footer->pack({{"side", "bottom"}, {"fill", "x"}});
     auto* actions = new ttk::Frame(footer); actions->pack({{"fill", "x"}, {"pady", 5}});
@@ -146,7 +146,7 @@ void CornerPanel::draw_preview() {
         if (width == 0 || depth == 0) return;  // ZeroDivisionError
         double w = std::max(100, preview->winfo_width()); double scale = std::min((w - 18) / width, 86 / depth);
         std::vector<double> coords; for (auto& [x, y] : points) { coords.push_back(9 + x * scale); coords.push_back(9 + y * scale); }
-        preview->create_polygon(coords, {{"fill", "#8ebcc2"}, {"outline", "#176a78"}, {"width", 2}});
+        preview->create_polygon(coords, {{"fill", "#a9be96"}, {"outline", "#4e6b3f"}, {"width", 2}});
     } catch (const py::ValueError&) {
     } catch (const py::KeyError&) {
     }

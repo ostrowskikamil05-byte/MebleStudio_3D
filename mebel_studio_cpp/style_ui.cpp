@@ -79,7 +79,7 @@ struct ScrollForm { ttk::Frame* outer; ttk::Frame* form; };
 
 ScrollForm scroll_form(tk::Widget* parent, int width = 380) {
     auto* outer = new ttk::Frame(parent);
-    auto* canvas = new tk::Canvas(outer, {{"width", width}, {"bg", "#f6f8fa"}, {"highlightthickness", 0}});
+    auto* canvas = new tk::Canvas(outer, {{"width", width}, {"bg", "#f6f3ee"}, {"highlightthickness", 0}});
     canvas->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* scrollbar = new ttk::Scrollbar(outer, {{"orient", "vertical"}, {"command", canvas->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
@@ -236,7 +236,7 @@ ShapeDialog::ShapeDialog(App* app_, const core::Part& part) : dock_workspace::Do
             struct Corner { double x, y; const char* label; };
             for (const Corner& corner : {Corner{0, 0, "R1"}, Corner{u, 0, "R2"}, Corner{u, v, "R3"}, Corner{0, v, "R4"}})
                 canvas->create_text(cx + (corner.x - u / 2) * scale, cy - (corner.y - v / 2) * scale,
-                                    {{"text", corner.label}, {"fill", "#176a78"}, {"anchor", corner.y != 0 ? "sw" : "nw"}});
+                                    {{"text", corner.label}, {"fill", "#4e6b3f"}, {"anchor", corner.y != 0 ? "sw" : "nw"}});
             double exact = shaped_furniture::profile_area(shaped_furniture::shape_definition(json(parsed.which), u, v, parsed.opts), u, v);
             summary.set(std::format("{} · pole {:.4f} m² · {} punktów podglądu.\nParametry obrysu są zapisane; STEP ma dokładne krzywe.", shape.get(), exact / 1e6, pts.size()));
             error.set("");

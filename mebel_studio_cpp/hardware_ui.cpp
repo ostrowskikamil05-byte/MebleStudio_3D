@@ -47,7 +47,7 @@ bool contains(const std::vector<std::string>& values, const std::string& text) {
 
 ScrollForm _scroll_form(tk::Widget* parent, int width) {
     auto* holder = new ttk::Frame(parent, {{"width", width}});
-    auto* viewport = new tk::Canvas(holder, {{"width", width}, {"highlightthickness", 0}, {"bg", "#f6f8fa"}});
+    auto* viewport = new tk::Canvas(holder, {{"width", width}, {"highlightthickness", 0}, {"bg", "#f6f3ee"}});
     auto* scrollbar = new ttk::Scrollbar(holder, {{"orient", "vertical"}, {"command", viewport->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     viewport->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
@@ -137,7 +137,7 @@ RunnerDialog::RunnerDialog(App* app_) : dock_workspace::DockDocument(app_) {
     (new ttk::Label(dimensions, {{"textvariable", summary}, {"font", "{Segoe UI} 11"}, {"wraplength", 650}, {"padding", 10}}))->pack({{"fill", "x"}});
     auto* details = new ttk::Frame(notes, {{"padding", 8}});
     details->pack({{"fill", "both"}, {"expand", true}});
-    auto* note_text = new tk::Text(details, {{"wrap", "word"}, {"height", 5}, {"font", "{Segoe UI} 10"}, {"relief", "flat"}, {"bg", "#f6f8fa"}});
+    auto* note_text = new tk::Text(details, {{"wrap", "word"}, {"height", 5}, {"font", "{Segoe UI} 10"}, {"relief", "flat"}, {"bg", "#f6f3ee"}});
     note_text->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
     auto* scrollbar = new ttk::Scrollbar(details, {{"command", note_text->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});

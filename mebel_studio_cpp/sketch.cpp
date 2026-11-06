@@ -215,7 +215,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     body->pack({{"fill", "both"}, {"expand", true}});
     auto* sidebar = new ttk::Frame(body);
     sidebar->pack({{"side", "right"}, {"fill", "y"}});
-    auto* viewport = new tk::Canvas(sidebar, {{"width", 305}, {"highlightthickness", 0}, {"bg", "#f6f8fa"}});
+    auto* viewport = new tk::Canvas(sidebar, {{"width", 305}, {"highlightthickness", 0}, {"bg", "#f6f3ee"}});
     auto* scrollbar = new ttk::Scrollbar(sidebar, {{"orient", "vertical"}, {"command", viewport->path() + " yview"}});
     scrollbar->pack({{"side", "right"}, {"fill", "y"}});
     viewport->pack({{"side", "left"}, {"fill", "y"}, {"expand", true}});
@@ -890,7 +890,7 @@ void Sketch::draw() {
     if (coords.size() >= 3 && filled) {
         std::vector<double> flat;
         for (auto& [x, y] : coords) { flat.push_back(x); flat.push_back(y); }
-        c->create_polygon(flat, {{"fill", "#d7e9ec"}, {"outline", "#176a78"}, {"width", 2}});
+        c->create_polygon(flat, {{"fill", "#dbe6cf"}, {"outline", "#4e6b3f"}, {"width", 2}});
     }
     using ScreenPair = std::pair<std::pair<double, double>, std::pair<double, double>>;
     std::vector<ScreenPair> pairs;
@@ -906,7 +906,7 @@ void Sketch::draw() {
     for (size_t i = 0; i < pairs.size(); ++i) {
         auto& [a, b] = pairs[i];
         auto& [pa, pb] = local_pairs[i];
-        c->create_line({a.first, a.second, b.first, b.second}, {{"fill", "#176a78"}, {"width", 2}});
+        c->create_line({a.first, a.second, b.first, b.second}, {{"fill", "#4e6b3f"}, {"width", 2}});
         if (!py::truthy(part.profile) && pts.size() <= 20 && std::hypot(a.first - b.first, a.second - b.second) >= 45)
             label((a.first + b.first) / 2, (a.second + b.second) / 2 - 12, std::format("{:.2f} mm", dist(pa, pb)));
     }
@@ -914,7 +914,7 @@ void Sketch::draw() {
     for (int index : listbox->curselection()) selected_points.insert(index);
     for (size_t i = 0; i < points.size(); ++i) {
         auto [x, y] = screen(points[i]);
-        c->create_oval(x - 4, y - 4, x + 4, y + 4, {{"fill", "#176a78"}, {"outline", "white"}});
+        c->create_oval(x - 4, y - 4, x + 4, y + 4, {{"fill", "#4e6b3f"}, {"outline", "white"}});
         if ((!py::truthy(part.profile) && points.size() <= 20) || selected_points.count((int)i))
             c->create_text(x + 9, y + 10, {{"text", std::to_string(i + 1)}, {"anchor", "w"}, {"fill", "#345"}});
     }

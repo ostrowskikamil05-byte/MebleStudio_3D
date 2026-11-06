@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 #include "pyutil.h"
+#include "forma_theme.h"
 #include "tk.h"            // tk::Tk, tk::StringVar, tk::DoubleVar, tk::BooleanVar, tk::Event, tk::Opts,
                            // tk::messagebox, tk::filedialog, tk::colorchooser
 #include "ttk.h"           // ttk::Style, ttk::Button, ttk::Label, ttk::Combobox, ttk::Entry, ttk::Frame, ...
@@ -243,15 +244,7 @@ public:
         edit_mode = tk::StringVar("camera"); handles = {}; edge_handles = {}; drag_edit.reset();
         layout_magnet = tk::BooleanVar(true); layout_tolerance = tk::DoubleVar(80); layout_drag = nullptr;
         status = tk::StringVar("Gotowy · wszystkie wymiary w milimetrach");
-        ttk::Style style(this); style.theme_use("clam");
-        style.configure(".", {{"font", "{Segoe UI} 10"}, {"background", "#f6f8fa"}, {"foreground", "#243144"}});
-        style.configure("TButton", {{"padding", "10 7"}, {"background", "#e6ebf1"}});
-        style.map("TButton", "background", {{"active", "#d7e0eb"}});
-        style.configure("Accent.TButton", {{"background", "#176a78"}, {"foreground", "white"}});
-        style.configure("TNotebook.Tab", {{"padding", "16 9"}, {"font", "{Segoe UI} 10 bold"}});
-        style.configure("Treeview", {{"rowheight", 29}, {"background", "white"}, {"fieldbackground", "white"}});
-        style.configure("Treeview.Heading", {{"font", "{Segoe UI} 10 bold"}, {"padding", 7}});
-        style.configure("Title.TLabel", {{"font", "{Segoe UI} 13 bold"}});
+        forma_theme::apply(this);
         ui();
         developer_logs::install(this); workspace_controls::install(this); studio_interaction::install(this);
         view_modes_ui::install(this);
@@ -663,8 +656,8 @@ public:
                             auto unit = point; unit[index] += 1; auto a = camera.project(core::layout_point(*p, unit), w, h); std::array<double, 2> vector{a[0] - x, a[1] - y};
                             if (std::hypot(vector[0], vector[1]) < .01) continue;
                             handles.push_back(Handle{std::string{axis, end}, x, y, vector, p->group});
-                            c->create_rectangle(x - 6, y - 6, x + 6, y + 6, {{"fill", "#176a78"}, {"outline", "white"}, {"width", 2}});
-                            c->create_text(x + 10, y - 12, {{"text", std::string{(char)std::toupper(axis), end}}, {"fill", "#176a78"}, {"anchor", "w"}});
+                            c->create_rectangle(x - 6, y - 6, x + 6, y + 6, {{"fill", "#4e6b3f"}, {"outline", "white"}, {"width", 2}});
+                            c->create_text(x + 10, y - 12, {{"text", std::string{(char)std::toupper(axis), end}}, {"fill", "#4e6b3f"}, {"anchor", "w"}});
                         }
                     }
                 } catch (const ValueError& e) { status.set(e.what()); }

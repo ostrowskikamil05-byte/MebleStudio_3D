@@ -453,7 +453,7 @@ VisualCatalogue::VisualCatalogue(form_dialog::Form* parent, App* app_, const std
     count = tk::StringVar();
     auto* head = new ttk::Frame(this);
     head->pack({{"fill", "x"}, {"pady", "0 7"}});
-    (new ttk::Label(head, {{"text", "KATALOG GRAFICZNY"}, {"font", "{Segoe UI} 12 bold"}, {"foreground", "#176a78"}}))->pack({{"side", "left"}});
+    (new ttk::Label(head, {{"text", "KATALOG GRAFICZNY"}, {"font", "{Segoe UI} 12 bold"}, {"foreground", "#4e6b3f"}}))->pack({{"side", "left"}});
     std::vector<std::string> labels;
     for (auto& [key, label] : KINDS) labels.push_back(label);
     kindcombo = new ttk::Combobox(head, {{"textvariable", kindvar}, {"values", labels}, {"state", "readonly"}, {"width", 22}});
@@ -566,7 +566,7 @@ void VisualCatalogue::render() {
         auto* title = new ttk::Label(card, {{"text", item.at("title").get<std::string>()}, {"wraplength", 185}, {"font", "{Segoe UI} 9 bold"}});
         title->pack({{"fill", "x"}, {"pady", "3 0"}});
         (new ttk::Label(card, {{"text", dimension_text(item)}, {"wraplength", 185}, {"foreground", "#596c78"}}))->pack({{"fill", "x"}});
-        (new ttk::Label(card, {{"text", item.at("category").get<std::string>()}, {"wraplength", 185}, {"foreground", "#176a78"}, {"font", "{Segoe UI} 8"}}))->pack({{"fill", "x"}});
+        (new ttk::Label(card, {{"text", item.at("category").get<std::string>()}, {"wraplength", 185}, {"foreground", "#4e6b3f"}, {"font", "{Segoe UI} 8"}}))->pack({{"fill", "x"}});
         json copy = item;
         (new ttk::Button(card, {{"text", "Wybierz"}, {"command", std::function<void()>([this, copy] { activate(copy); })}}))->pack({{"fill", "x"}, {"pady", "5 0"}});
         image->bind("<ButtonRelease-1>", [this, copy](tk::Event&) { activate(copy); return std::string(); });
