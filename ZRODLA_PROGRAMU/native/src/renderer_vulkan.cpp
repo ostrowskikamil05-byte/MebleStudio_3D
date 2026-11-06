@@ -486,7 +486,7 @@ public:
             if(acquire!=VK_SUCCESS&&acquire!=VK_SUBOPTIMAL_KHR) {if(acquire==VK_ERROR_DEVICE_LOST) lost_=true; check(acquire,"vkAcquireNextImageKHR");}
             std::memcpy(uniformMap_,&frame,sizeof(Frame));
             beginCommand();
-            VkClearValue clear[2]{}; clear[0].color={{.075f,.095f,.135f,1.f}}; clear[1].depthStencil={1.f,0};
+            VkClearValue clear[2]{}; clear[0].color={{.953f,.957f,.945f,1.f}}; clear[1].depthStencil={1.f,0};
             VkRenderPassBeginInfo begin{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO}; begin.renderPass=renderPass_; begin.framebuffer=framebuffer_;
             begin.renderArea={{0,0},{width_,height_}}; begin.clearValueCount=2; begin.pClearValues=clear;
             vkCmdBeginRenderPass(command_,&begin,VK_SUBPASS_CONTENTS_INLINE);

@@ -265,6 +265,7 @@ public:
         if (!api->pick(handle, static_cast<float>(x), static_cast<float>(y), mode, &result)) return nullptr;
         if (!(0 <= result.owner && result.owner < static_cast<int32_t>(sources.size()))) return nullptr;
         const auto& [identity, kind] = sources[static_cast<size_t>(result.owner)];
+        if (identity == "viewport.grid") return nullptr;  // podłoga/siatka nie jest obiektem do zaznaczania
         return json{{"id", identity}, {"kind", kind},
                     {"world", json::array({static_cast<double>(result.world[0]), static_cast<double>(result.world[1]), static_cast<double>(result.world[2])})},
                     {"depth", static_cast<double>(result.depth)}, {"precise_surface", kind == "part"}, {"flags", result.flags}};

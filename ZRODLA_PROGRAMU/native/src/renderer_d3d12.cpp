@@ -457,7 +457,7 @@ class Direct3D12Renderer final:public Renderer {
         commands_->RSSetViewports(1,&viewport);commands_->RSSetScissorRects(1,&scissor);
         auto rtv=rtvHeap_->GetCPUDescriptorHandleForHeapStart();rtv.ptr+=static_cast<SIZE_T>(index)*rtvStride_;
         auto dsv=dsvHeap_->GetCPUDescriptorHandleForHeapStart();
-        const float background[]={0.075f,0.095f,0.135f,1};
+        const float background[]={0.953f,0.957f,0.945f,1};
         commands_->OMSetRenderTargets(1,&rtv,FALSE,&dsv);
         commands_->ClearRenderTargetView(rtv,background,0,nullptr);
         commands_->ClearDepthStencilView(dsv,D3D12_CLEAR_FLAG_DEPTH,1,0,0,nullptr);

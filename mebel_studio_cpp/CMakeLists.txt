@@ -15,6 +15,12 @@ project(MebelStudio3D_Cpp VERSION 0.16 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ccache (jeśli jest zainstalowany): ponowne budowanie niezmienionych plików trwa sekundy.
+find_program(MEBEL_CCACHE ccache)
+if(MEBEL_CCACHE)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${MEBEL_CCACHE}")
+endif()
 set(CMAKE_CXX_EXTENSIONS ON)   # gnu++20: nagłówki MinGW (M_PI, winuser.h) wymagają niezdefiniowanego __STRICT_ANSI__
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)

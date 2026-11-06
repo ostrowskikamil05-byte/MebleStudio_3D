@@ -29,6 +29,7 @@ struct Options {
     std::set<std::string> selected_ids;
     std::optional<std::string> selected;
     std::set<std::string> xray_ids;
+    bool ground = true;  // podłoga + siatka pod modelem (silniki natywne ich nie rysują)
 };
 
 // Zwraca (binarny snapshot, diagnostyka); nigdy nie zmienia projektu ani danych CNC.
