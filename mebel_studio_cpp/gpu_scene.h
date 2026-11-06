@@ -52,7 +52,7 @@ struct MeshGroup {
     size_t vertex_count() const { return vertices.size() / 3; }
 };
 
-struct Basis { Point3 right, up, near; };
+struct Basis { Point3 right, up, toward; };  // toward = dawne "near" (makro near z windows.h)
 
 struct CameraSpec {
     Point3 position, focal_point, up;

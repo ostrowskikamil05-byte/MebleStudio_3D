@@ -18,7 +18,7 @@
 
 // windows.h dopiero po nagłówkach projektu: definiuje makra (near, far, ERROR), które psują ich identyfikatory.
 #ifdef _WIN32
-#include <windows.h>
+#include "win32_compat.h"
 #endif
 
 namespace dock_workspace {
@@ -72,7 +72,7 @@ void* WindowsDockBridge::hwnd(tk::Widget* page) {
 std::optional<Rect> WindowsDockBridge::rect(void* hwnd) {
 #ifdef _WIN32
     RECT result;
-    if (!GetWindowRect((HWND)hwnd, &result)) {
+    if (!win32_compat::GetWindowRect((HWND)hwnd, &result)) {
         return std::nullopt;
     }
     return Rect{result.left, result.top, result.right, result.bottom};
@@ -93,7 +93,7 @@ unsigned WindowsDockBridge::dpi(void* hwnd) {
 std::optional<std::pair<long, long>> WindowsDockBridge::cursor() {
 #ifdef _WIN32
     POINT point;
-    if (GetCursorPos(&point)) {
+    if (win32_compat::GetCursorPos(&point)) {
         return std::make_pair((long)point.x, (long)point.y);
     }
 #endif
@@ -104,7 +104,7 @@ bool WindowsDockBridge::left_button_down() {
     // A native window transition can lose Tk's ButtonRelease event. Read
     // only the high bit: the low bit reports a historical press instead.
 #ifdef _WIN32
-    return (GetAsyncKeyState(0x01) & 0x8000) != 0;
+    return (win32_compat::GetAsyncKeyState(0x01) & 0x8000) != 0;
 #else
     return false;
 #endif
@@ -193,10 +193,10 @@ std::optional<std::pair<double, double>> WindowsDockBridge::notebook_point(ttk::
 #ifdef _WIN32
     POINT point{(LONG)(int)x, (LONG)(int)y}; RECT r;
     HWND handle = (HWND)notebook->winfo_id();
-    if (!ScreenToClient(handle, &point)) {
+    if (!win32_compat::ScreenToClient(handle, &point)) {
         return std::nullopt;
     }
-    if (!GetClientRect(handle, &r)) {
+    if (!win32_compat::GetClientRect(handle, &r)) {
         return std::nullopt;
     }
     if (r.right <= 0 || r.bottom <= 0) {

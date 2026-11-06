@@ -73,6 +73,29 @@ private:
     std::vector<Tcl_Obj*> objs_;
 };
 
+// MEBEL_TRACE_TCL=1: każde polecenie Tcl (i błąd) trafia na stderr — do diagnozy pierwszego uruchomienia.
+bool tracing() {
+    static const bool enabled = [] {
+        const char* value = std::getenv("MEBEL_TRACE_TCL");
+        return value && *value && *value != '0';
+    }();
+    return enabled;
+}
+
+std::string shorten(const std::string& text, std::size_t limit = 100) {
+    std::string out = text.size() > limit ? text.substr(0, limit) + "..." : text;
+    for (char& c : out) {
+        if (c == '\n' || c == '\r') c = ' ';
+    }
+    return out;
+}
+
+void trace_words(const char* prefix, const Args& words) {
+    std::string line = std::string("[tcl] ") + prefix;
+    for (std::size_t i = 0; i < words.size() && i < 8; ++i) line += ' ' + shorten(words[i]);
+    std::fprintf(stderr, "%s\n", line.c_str());
+}
+
 void require() {
     if (!g_interp) throw tk::TclError("Interpreter Tcl/Tk nie jest zainicjowany");
 }
@@ -180,6 +203,7 @@ void configure_libraries() {
 
 void init() {
     if (g_interp) return;
+    if (tracing()) std::fprintf(stderr, "[tcl] tkcore zbudowany %s %s\n", __DATE__, __TIME__);
     configure_libraries();
     Tcl_FindExecutable(nullptr);
     Tcl_Interp* interp = Tcl_CreateInterp();
@@ -203,10 +227,26 @@ bool initialized() { return g_interp != nullptr; }
 std::string eval(const Args& words) {
     require();
     if (words.empty()) return {};
+    if (tracing()) trace_words("", words);
     ObjList objs(words);
     const int code = Tcl_EvalObjv(g_interp, objs.size(), objs.data(), TCL_EVAL_GLOBAL);
     std::string result = result_text();
-    if (code != TCL_OK) throw tk::TclError(result);
+    if (code != TCL_OK) {
+        if (tracing()) std::fprintf(stderr, "[tcl]   -> BŁĄD (kod %d): %s\n", code, shorten(result, 300).c_str());
+        // Komunikat Tcl + polecenie, które go wywołało (ułatwia lokalizację błędu w interfejsie).
+        std::string message = result.empty() ? "pusty komunikat Tcl (kod " + std::to_string(code) + ")" : result;
+        message += "\n  polecenie Tcl:";
+        for (std::size_t i = 0; i < words.size() && i < 5; ++i) {
+            message += ' ' + (words[i].size() > 80 ? words[i].substr(0, 80) + "..." : words[i]);
+        }
+        const char* info = Tcl_GetVar2(g_interp, "errorInfo", nullptr, TCL_GLOBAL_ONLY);
+        if (info && *info) {
+            std::string text = info;
+            if (text.size() > 700) text.resize(700);
+            message += "\n  errorInfo: " + text;
+        }
+        throw tk::TclError(message);
+    }
     return result;
 }
 
@@ -227,14 +267,19 @@ void set_exception_sink(std::function<void(std::exception_ptr)> sink) { g_sink =
 std::string get_var(const std::string& name) {
     require();
     const char* value = Tcl_GetVar2(g_interp, name.c_str(), nullptr, TCL_GLOBAL_ONLY | TCL_LEAVE_ERR_MSG);
-    if (!value) throw tk::TclError(result_text());
+    if (!value) {
+        std::string message = result_text();
+        if (tracing()) std::fprintf(stderr, "[tcl] get_var %s -> BŁĄD: %s\n", name.c_str(), message.c_str());
+        throw tk::TclError(message.empty() ? "nie można odczytać zmiennej Tcl \"" + name + "\"" : message);
+    }
     return value;
 }
 
 void set_var(const std::string& name, const std::string& value) {
     require();
     if (!Tcl_SetVar2(g_interp, name.c_str(), nullptr, value.c_str(), TCL_GLOBAL_ONLY | TCL_LEAVE_ERR_MSG)) {
-        throw tk::TclError(result_text());
+        std::string message = result_text();
+        throw tk::TclError(message.empty() ? "nie można ustawić zmiennej Tcl \"" + name + "\"" : message);
     }
 }
 
@@ -256,7 +301,8 @@ void put_photo(const std::string& name, int width, int height, const std::vector
     block.offset[2] = 2;
     block.offset[3] = 3;
     if (Tk_PhotoPutBlock(g_interp, handle, &block, 0, 0, width, height, TK_PHOTO_COMPOSITE_SET) != TCL_OK) {
-        throw tk::TclError(result_text());
+        std::string message = result_text();
+        throw tk::TclError(message.empty() ? "Tk_PhotoPutBlock zgłosiło błąd dla obrazu " + name : message);
     }
 }
 
@@ -279,7 +325,8 @@ Args split(const std::string& list) {
     Size count = 0;
     const char** items = nullptr;
     if (Tcl_SplitList(g_interp, list.c_str(), &count, &items) != TCL_OK) {
-        throw tk::TclError(g_interp ? result_text() : "Niepoprawna lista Tcl: " + list);
+        std::string message = g_interp ? result_text() : std::string();
+        throw tk::TclError(message.empty() ? "Niepoprawna lista Tcl: " + shorten(list, 200) : message);
     }
     Args result;
     result.reserve(static_cast<std::size_t>(count));

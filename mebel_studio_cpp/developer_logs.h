@@ -22,6 +22,10 @@ class App;
 
 namespace developer_logs {
 
+// windows.h (dołączane przez nagłówki OpenCASCADE/VTK) definiuje makro ERROR
+#ifdef ERROR
+#undef ERROR
+#endif
 enum Level { NOTSET = 0, DEBUG = 10, INFO = 20, WARNING = 30, ERROR = 40, CRITICAL = 50 };
 
 std::string level_name(int level);

@@ -28,8 +28,8 @@ std::string lower_text(const std::string& text) {
     std::string out;
     for (size_t i = 0; i < text.size();) {
         bool replaced = false;
-        for (auto& [upper, small] : polish)
-            if (text.compare(i, upper.size(), upper) == 0) { out += small; i += upper.size(); replaced = true; break; }
+        for (auto& [upper, lower] : polish)
+            if (text.compare(i, upper.size(), upper) == 0) { out += lower; i += upper.size(); replaced = true; break; }
         if (replaced) continue;
         char ch = text[i++];
         out += (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch - 'A' + 'a') : ch;
@@ -65,7 +65,7 @@ CameraSpec camera_spec(const core::Camera& camera, std::pair<double, double> siz
     double distance = std::max(10000.0, radius * 2 + 2000);
     double extent = std::max(1000.0, radius + 1000);
     CameraSpec spec;
-    for (int i = 0; i < 3; ++i) spec.position[i] = center[i] + distance * basis.near[i];
+    for (int i = 0; i < 3; ++i) spec.position[i] = center[i] + distance * basis.toward[i];
     spec.focal_point = center; spec.up = basis.up;
     spec.parallel_scale = height / (2 * std::max(camera.scale, 1e-6));
     spec.window_center = {-2 * camera.pan[0] / std::max(width, 1.0), 2 * camera.pan[1] / std::max(height, 1.0)};
@@ -92,7 +92,7 @@ Point3 unproject(const core::Camera& camera, std::pair<double, double> size, dou
     double u = (x - size.first / 2 - camera.pan[0]) / camera.scale;
     double v = -(y - size.second / 2 - camera.pan[1]) / camera.scale;
     Point3 out;
-    for (int i = 0; i < 3; ++i) out[i] = camera.center[i] + u * basis.right[i] + v * basis.up[i] + depth * basis.near[i];
+    for (int i = 0; i < 3; ++i) out[i] = camera.center[i] + u * basis.right[i] + v * basis.up[i] + depth * basis.toward[i];
     return out;
 }
 

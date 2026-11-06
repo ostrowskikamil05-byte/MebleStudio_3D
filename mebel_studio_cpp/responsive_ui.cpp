@@ -13,7 +13,7 @@
 #include "sketch.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include "win32_compat.h"
 #endif
 
 namespace responsive_ui {
@@ -157,7 +157,7 @@ json monitor_info(tk::Widget* window, const std::optional<std::pair<long long, l
         std::array<long long, 2> frame{16, 64};
         if (hwnd != nullptr) {
             RECT outer{}, client{};
-            if (GetWindowRect(hwnd, &outer) && GetClientRect(hwnd, &client)) {
+            if (win32_compat::GetWindowRect(hwnd, &outer) && win32_compat::GetClientRect(hwnd, &client)) {
                 long long fw = (outer.right - outer.left) - (client.right - client.left);
                 long long fh = (outer.bottom - outer.top) - (client.bottom - client.top);
                 // An unrealized Tk root reports zero-sized decorations. Keep
