@@ -91,6 +91,12 @@ ttk::Button* make_button(tk::Widget* parent, const std::string& label, Cmd comma
     return button;
 }
 
+ttk::Label* make_group(tk::Widget* parent, const std::string& title) {
+    auto* label = new ttk::Label(parent, {{"text", "┃ " + title}, {"style", "RibbonGroup.TLabel"}});
+    label->pack({{"side", "left"}, {"padx", "8 2"}, {"pady", 3}});
+    return label;
+}
+
 Handler plain(std::function<void(tk::Event&)> fn) {
     return [fn](tk::Event& e) { fn(e); return std::string(); };
 }
@@ -861,6 +867,7 @@ void build(App* app) {
     ttk::Style style(app);
     style.configure("TNotebook.Tab", {{"padding", "12 6"}, {"font", "{Segoe UI} 9 bold"}});
     style.configure("Ribbon.TButton", {{"padding", "7 4"}});
+    style.configure("RibbonGroup.TLabel", {{"foreground", "#5b7083"}, {"font", "{Segoe UI} 8 bold"}});
     style.configure("Section.TButton", {{"anchor", "w"}, {"padding", "6 5"}, {"font", "{Segoe UI} 9 bold"}});
     style.configure("Inspector.TNotebook.Tab", {{"padding", "10 5"}, {"font", "{Segoe UI} 9 bold"}});
     style.configure("Header.TFrame", {{"background", "#172332"}});
@@ -966,6 +973,9 @@ void build(App* app) {
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"3D", [app] { app->view(-38, 24); }}, {"Przód", [app] { app->view(0, 0); }}, {"Bok", [app] { app->view(-90, 0); }},
                                                                        {"Góra", [app] { app->view(0, 90); }}, {"Dół", [app] { app->view(0, -90); }}, {"Dopasuj", [app] { app->fit(); }}})
         make_button(view, label, fn);
+    make_group(pages["Widok"], "KAMERA");
+    make_button(pages["Widok"], "Dopasuj 3D", [app] { app->fit(); });
+    make_group(pages["Widok"], "POKAŻ");
     for (auto& [label, var] : std::vector<std::pair<std::string, tk::BooleanVar*>>{{"Rozstrzelony", &app->explode}, {"Wymiary", &app->dimensions}, {"X-ray", &app->xray}})
         (new ttk::Checkbutton(pages["Widok"], {{"text", label}, {"variable", *var}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 4}});
     auto* details = new responsive_ui::WrapToolbar(middle);
@@ -1022,42 +1032,56 @@ void build(App* app) {
              {"<Button-4>", plain([app](tk::Event&) { app->zoom(1.12); })},
              {"<Button-5>", plain([app](tk::Event&) { app->zoom(1 / 1.12); })}})
         app->canvas->bind(event, fn);
-    // The ribbon only exposes common actions; detailed settings stay beside 3D.
-    for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{
-             {"+ Mebel", [quick] { quick->new_furniture(); }},
-             {"Biblioteka wszystkich mebli", [app] { if (app->library_dialog) app->library_dialog(); }},
-             {"Kształty i style", [app] { if (app->style_library) app->style_library(); }},
-             {"Kolory", [app] { if (app->palette_dialog) app->palette_dialog(); }}})
-        make_button(pages["Mebel"], label, fn, label == "+ Mebel");
+    // Wstążka: każda zakładka ma podpisane grupy; każda funkcja jest tylko w jednym miejscu.
+    // Zakładka „Mebel": tworzenie, wygląd, wyposażenie (katalogi dopisuje visual_catalogue).
+    make_group(pages["Mebel"], "NOWY MEBEL");
+    make_button(pages["Mebel"], "+ Mebel", [quick] { quick->new_furniture(); }, true);
+    make_button(pages["Mebel"], "Biblioteka wszystkich mebli", [app] { if (app->library_dialog) app->library_dialog(); });
+    make_group(pages["Mebel"], "WYGLĄD");
+    make_button(pages["Mebel"], "Kształty i style", [app] { if (app->style_library) app->style_library(); });
+    make_button(pages["Mebel"], "Kolory", [app] { if (app->palette_dialog) app->palette_dialog(); });
+    make_group(pages["Mebel"], "WYPOSAŻENIE");
     for (auto& [label, key] : std::vector<std::pair<std::string, std::string>>{{"Fronty / uchwyty", "fronts"}, {"Zawiasy / prowadnice", "fittings"}, {"Nóżki / blat", "legs"},
                                                                                {"Materiały", "materials"}, {"LED", "led"}})
         make_button(pages["Fronty i okucia"], label, [app, key] { focus_section(app, key); });
     make_button(pages["Fronty i okucia"], "Okucia elementu…", [app] { if (app->fittings_dialog) app->fittings_dialog(); });
-    for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"+ Rysuj", [app] { new Sketch(app, nullptr); }}, {"Edytuj szkic", [app] { app->edit_sketch(); }},
-                                                                       {"Dopasuj element", [app] { if (app->fit_selected) app->fit_selected(); }},
-                                                                       {"Zaokrąglenia", [app] { app->round_edges(); }}})
-        make_button(pages["Szkic / CAD"], label, fn);
+    // Zakładka „CAD": szkic, element, tryb pracy myszą.
+    make_group(pages["Szkic / CAD"], "SZKIC");
+    make_button(pages["Szkic / CAD"], "+ Rysuj", [app] { new Sketch(app, nullptr); });
+    make_button(pages["Szkic / CAD"], "Edytuj szkic", [app] { app->edit_sketch(); });
+    make_group(pages["Szkic / CAD"], "ELEMENT");
+    make_button(pages["Szkic / CAD"], "Dopasuj element", [app] { if (app->fit_selected) app->fit_selected(); });
+    make_button(pages["Szkic / CAD"], "Zaokrąglenia", [app] { app->round_edges(); });
+    make_group(pages["Szkic / CAD"], "TRYB MYSZY");
     auto* modes = new ttk::Combobox(pages["Szkic / CAD"], {{"state", "readonly"}, {"width", 24}, {"values", std::vector<std::string>{"Wybór / obrót", "Rozciągaj część", "Rozciągaj mebel", "Kanty"}}});
     modes->current(0);
     modes->pack({{"side", "left"}, {"padx", 5}});
     static const std::vector<std::string> cad_modes = {"camera", "resize", "furniture", "fillet"};
     modes->bind("<<ComboboxSelected>>", plain([app, modes](tk::Event&) { app->edit_mode.set(cad_modes.at(modes->current())); app->draw(); }));
     (new ttk::Checkbutton(pages["Szkic / CAD"], {{"text", "Krok 32 mm"}, {"variable", app->resize_step}}))->pack({{"side", "left"}});
+    // Zakładka „Układ": tryb, obrót, pozycja (narożniki i blaty dopisuje workspace_controls).
+    make_group(pages["Układ"], "TRYB");
     (new ttk::Radiobutton(pages["Układ"], {{"text", "Wybór / obrót"}, {"variable", app->edit_mode}, {"value", "camera"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 6}});
     (new ttk::Radiobutton(pages["Układ"], {{"text", "Przesuwaj meble"}, {"variable", app->edit_mode}, {"value", "layout"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}});
     (new ttk::Checkbutton(pages["Układ"], {{"text", "Magnes"}, {"variable", app->layout_magnet}}))->pack({{"side", "left"}, {"padx", 6}});
+    make_group(pages["Układ"], "POZYCJA");
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"−90°", [app] { if (app->rotate_furniture) app->rotate_furniture(-90); }},
                                                                        {"+90°", [app] { if (app->rotate_furniture) app->rotate_furniture(90); }},
                                                                        {"Łączenie i pozycja…", [app] { if (app->layout_dialog) app->layout_dialog(); }}})
         make_button(pages["Układ"], label, fn);
+    make_group(pages["Układ"], "NAROŻNIKI I BLATY");
+    // Zakładka „Produkcja": dokumenty i eksport (ceny są w Ustawieniach, pomoc też).
+    make_group(pages["Produkcja"], "DOKUMENTY");
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Drukuj komplet…", [app] { if (app->print_project) app->print_project(); }},
-                                                                       {"Eksport CAD / CNC", [app] { app->export_(); }}, {"Materiały i ceny", [app] { app->settings(); }},
-                                                                       {"Pomoc", [app] { app->help(); }}})
+                                                                       {"Eksport CAD / CNC", [app] { app->export_(); }}})
         make_button(pages["Produkcja"], label, fn);
-    for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Dopasuj 3D", [app] { app->fit(); }}, {"Interfejs i jakość 3D", interface_settings}})
-        make_button(pages["Widok"], label, fn);
+    make_group(pages["Produkcja"], "DIAGNOSTYKA");
+    // Zakładka „Widok" jest budowana wyżej (kamera, pokaż) i w view_modes_ui (silnik 3D).
+    // Zakładka „Ustawienia": program i dane.
+    make_group(pages["Ustawienia"], "PROGRAM");
     make_button(pages["Ustawienia"], "Okno, skala, panele i silnik 3D", interface_settings, true);
     make_button(pages["Ustawienia"], "Materiały i ceny produkcji", [app] { app->settings(); });
+    make_group(pages["Ustawienia"], "INFORMACJE");
     make_button(pages["Ustawienia"], "Pomoc", [app] { app->help(); });
     make_button(pages["Ustawienia"], "Silnik C++ i stan migracji", [app] { migration_status::open_status(app); });
     build_production(app);
@@ -1126,5 +1150,7 @@ void build_production(App* app) {
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent) {
     return make_button(parent, label, std::move(command), accent);
 }
+
+ttk::Label* _group(tk::Widget* parent, const std::string& title) { return make_group(parent, title); }
 
 }  // namespace quick_studio_ui

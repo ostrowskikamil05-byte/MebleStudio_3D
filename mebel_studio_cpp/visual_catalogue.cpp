@@ -7,6 +7,7 @@
 #include <set>
 
 #include "app.h"
+#include "quick_studio_ui.h"
 #include "catalogue_previews.h"
 #include "corner_furniture.h"
 #include "drag_hardware.h"
@@ -653,12 +654,14 @@ void install(App* app) {
     app->visual_catalogue_open = [app](const std::string& kind, OnSelect on_select) { return show(app, kind, on_select); };
     if (app->_catalogue_buttons_installed) return;
     app->catalogue_buttons.clear();
+    std::set<std::string> captioned;
     struct Entry { const char* kind; const char* label; const char* page; };
     for (const Entry& entry : {Entry{"furniture", "Katalog mebli", "Mebel"}, Entry{"hinge", "Katalog okuć", "Mebel"}, Entry{"material", "Katalog materiałów", "Mebel"},
                                Entry{"appliance", "Katalog AGD", "Scena"}}) {
         auto parent = app->ribbon_pages.find(entry.page);
         if (parent == app->ribbon_pages.end() || parent->second == nullptr) continue;
         std::string kind = entry.kind;
+        if (captioned.insert(entry.page).second) quick_studio_ui::_group(parent->second, "KATALOGI");
         auto* button = new ttk::Button(parent->second, {{"text", entry.label}, {"command", std::function<void()>([app, kind] { app->visual_catalogue_open(kind, nullptr); })},
                                                         {"style", "Ribbon.TButton"}, {"padding", "7 4"}});
         button->pack({{"side", "left"}, {"padx", 2}, {"pady", 3}});

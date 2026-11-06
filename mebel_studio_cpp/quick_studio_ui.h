@@ -121,5 +121,7 @@ void focus_section(App* app, const std::string& key);
 void build_production(App* app);
 // quick_studio_ui._button: przycisk wstążki (używany też przez workspace_controls).
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent = false);
+// Podpis grupy na wstążce (np. "WYPOSAŻENIE"); kolejne przyciski należą do tej grupy.
+ttk::Label* _group(tk::Widget* parent, const std::string& title);
 
 }  // namespace quick_studio_ui
