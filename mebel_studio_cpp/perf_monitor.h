@@ -37,6 +37,9 @@ void self_test(App* app);
 
 // Przełącza na widok 3D i mierzy koszt odrysowania płótna (obraz z alfa vs bez), żeby wskazać źródło wielosekundowych postojów Tk.
 void diagnose_redraw(App* app);
+
+// Odrysowuje po kolei każdy widoczny widget (zdarzenie Expose) i mierzy czas: wskazuje klasy i konkretne widgety, które najwięcej kosztują.
+void diagnose_widgets(App* app);
 // Zeruje statystyki.
 void reset();
 
