@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "app.h"
@@ -123,6 +124,11 @@ void install(App* app) {
         return std::string();
     }, true);
     tkcore::set_profile_hook([](const char* kind, const std::string& what, double ms) {
+        if (std::string_view(kind) == "stack") {  // próbkowanie stosu podczas postoju (tkcore::sampler) — zawsze do logu, bez limitu
+            State& st = state();
+            if (st.app != nullptr && st.app->log != nullptr) st.app->log->warning("[wydajność] Stos postoju (" + std::format("{:.0f}", ms) + " ms) — " + what);
+            return;
+        }
         // Najczęstsze krótkie procedury nie trafiają do statystyk (tylko bardzo wolne i powyżej 1 ms).
         if (ms < 1.0) return;
         record(kind, what, ms);
