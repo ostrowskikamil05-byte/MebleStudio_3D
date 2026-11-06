@@ -66,68 +66,76 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
     if (grid_spacing.is_number()) spacing_text = std::format("Siatka {:g} mm   ·   ", grid_spacing.get<double>());
     app->status_right.set(spacing_text + std::format("Zoom {:.0f}%", std::fabs(app->camera.scale) * 100));
 
-    // Przełączniki u góry (X-ray / rozstrzelony / wymiary).
-    if (width >= 520) {
-        struct Toggle { std::string label; tk::BooleanVar* var; };
-        std::vector<Toggle> toggles = {{"X-ray", &app->xray}, {"Rozstrzelony", &app->explode}, {"Wymiary", &app->dimensions}};
-        double pad = size(16), gap = size(4), h = size(34), total = size(8);
-        std::vector<double> widths;
-        for (const auto& t : toggles) { widths.push_back(measure.measure(t.label) + 2 * pad); total += widths.back() + gap; }
-        double x = (width - total) / 2, y = size(14);
-        card(c, x, y, x + total, y + h + size(8), size(18));
-        x += size(8);
-        for (size_t i = 0; i < toggles.size(); ++i) {
-            bool on = toggles[i].var->get();
-            double x1 = x + widths[i];
-            if (on) c->create_polygon(rounded(x, y + size(4), x1, y + size(4) + h, size(15)), {{"fill", forma_theme::ACCENT}, {"outline", ""}, {"tags", "hud"}});
-            c->create_text((x + x1) / 2, y + size(4) + h / 2, {{"text", toggles[i].label}, {"fill", on ? "white" : forma_theme::TEXT}, {"font", label_font}, {"tags", "hud"}});
-            tk::BooleanVar* var = toggles[i].var;
-            g_areas.push_back({x, y, x1, y + h + size(8), [app, var] { var->set(!var->get()); app->draw(); }});
-            x = x1 + gap;
-        }
-    }
-
-    // Paleta narzędzi po lewej.
+    // Paleta narzędzi po lewej: Zaznacz · Przesuń · Obróć · Wymiary · Okucia (jak na makiecie).
     if (height >= 380) {
         struct Tool { std::string label, glyph, mode; };
-        std::vector<Tool> tools = {{"Zaznacz", "↖", "camera"}, {"Przesuń", "✥", "layout"}, {"Mebel", "⇔", "furniture"},
-                                   {"Część", "⇱", "resize"}, {"Kanty", "◠", "fillet"}, {"Okucia", "⚙", "tray"}};
-        double cell_w = size(60), cell_h = size(58), x = size(14), y = size(64);
+        std::vector<Tool> tools = {{"Zaznacz", "↖", "camera"}, {"Przesuń", "✥", "layout"}, {"Obróć", "↻", "rotate"}, {"Wymiary", "↔", "dimensions"}, {"Okucia", "⚙", "tray"}};
+        double cell_w = size(60), cell_h = size(58), x = size(14), y = size(18);
         double total = cell_h * tools.size() + size(10);
         card(c, x, y, x + cell_w + size(8), y + total, size(14));
         std::string mode = app->edit_mode.get();
         for (size_t i = 0; i < tools.size(); ++i) {
             double cy = y + size(5) + cell_h * i, cx = x + size(4);
-            bool active = tools[i].mode == mode;
+            bool active = tools[i].mode == mode || (tools[i].mode == "dimensions" && app->dimensions.get());
             if (active) c->create_polygon(rounded(cx, cy + 1, cx + cell_w, cy + cell_h - 1, size(10)), {{"fill", forma_theme::ACCENT_SOFT}, {"outline", forma_theme::ACCENT}, {"width", 1}, {"tags", "hud"}});
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.38, {{"text", tools[i].glyph}, {"fill", active ? forma_theme::ACCENT : forma_theme::TEXT}, {"font", icon_font}, {"tags", "hud"}});
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.80, {{"text", tools[i].label}, {"fill", active ? forma_theme::ACCENT : forma_theme::MUTED}, {"font", small_font}, {"tags", "hud"}});
             std::string target = tools[i].mode;
             g_areas.push_back({cx, cy, cx + cell_w, cy + cell_h, [app, target] {
                 if (target == "tray") { if (app->toggle_hardware_tray) app->toggle_hardware_tray(); }
+                else if (target == "rotate") { if (app->rotate_furniture) app->rotate_furniture(90); }
+                else if (target == "dimensions") { app->dimensions.set(!app->dimensions.get()); app->draw(); }
                 else { app->edit_mode.set(target); app->draw(); }
             }});
         }
     }
 
-    // Przełącznik widoków na dole.
-    if (width >= 560 && height >= 300) {
-        struct View { std::string label; double yaw, pitch; bool fit; };
-        std::vector<View> views = {{"Perspektywa", -38, 24, false}, {"Przód", 0, 0, false}, {"Bok", -90, 0, false}, {"Góra", 0, 90, false}, {"Dół", 0, -90, false}, {"Dopasuj", 0, 0, true}};
+    // Przełącznik widoków u dołu po lewej: Perspektywa · Przód · Góra (Bok, Dół i Dopasuj są w menu Widok).
+    if (width >= 420 && height >= 300) {
+        struct View { std::string label; double yaw, pitch; };
+        std::vector<View> views = {{"◈  Perspektywa", -38, 24}, {"▭  Przód", 0, 0}, {"▭  Góra", 0, 90}};
         double pad = size(14), gap = size(4), h = size(34), total = size(8);
         std::vector<double> widths;
         for (const auto& v : views) { widths.push_back(measure.measure(v.label) + 2 * pad); total += widths.back() + gap; }
-        double x = (width - total) / 2, y = height - size(14) - h - size(8);
+        double x = size(14), y = height - size(14) - h - size(8);
         card(c, x, y, x + total, y + h + size(8), size(18));
         x += size(8);
         for (const auto& v : views) {
             double x1 = x + widths[&v - &views[0]];
-            bool active = !v.fit && std::fabs(app->camera.yaw - v.yaw) < 0.5 && std::fabs(app->camera.pitch - v.pitch) < 0.5;
+            bool active = std::fabs(app->camera.yaw - v.yaw) < 0.5 && std::fabs(app->camera.pitch - v.pitch) < 0.5;
             if (active) c->create_polygon(rounded(x, y + size(4), x1, y + size(4) + h, size(15)), {{"fill", forma_theme::ACCENT}, {"outline", ""}, {"tags", "hud"}});
             c->create_text((x + x1) / 2, y + size(4) + h / 2, {{"text", v.label}, {"fill", active ? "white" : forma_theme::TEXT}, {"font", label_font}, {"tags", "hud"}});
             View copy = v;
-            g_areas.push_back({x, y, x1, y + h + size(8), [app, copy] { if (copy.fit) app->fit(); else app->view(copy.yaw, copy.pitch); }});
+            g_areas.push_back({x, y, x1, y + h + size(8), [app, copy] { app->view(copy.yaw, copy.pitch); }});
             x = x1 + gap;
+        }
+    }
+
+    // Wskaźnik osi X / Y / Z w prawym dolnym rogu (zgodny z bieżącą kamerą).
+    if (width >= 420 && height >= 260) {
+        try {
+            core::Point3 origin = app->camera.project({0, 0, 0}, width, height);
+            struct Axis { const char* label; core::Point3 vector; const char* color; double dx = 0, dy = 0, length = 0; };
+            std::vector<Axis> axes = {{"X", {1, 0, 0}, "#d9453d"}, {"Y", {0, 1, 0}, "#3f7fd0"}, {"Z", {0, 0, 1}, "#4f9a3f"}};
+            double longest = 1e-6;
+            for (auto& axis : axes) {
+                core::Point3 tip = app->camera.project(axis.vector, width, height);
+                axis.dx = tip[0] - origin[0]; axis.dy = tip[1] - origin[1];
+                axis.length = std::hypot(axis.dx, axis.dy);
+                longest = std::max(longest, axis.length);
+            }
+            double cx = width - size(64), cy = height - size(52), reach = size(34);
+            for (const auto& axis : axes) {
+                if (axis.length < 1e-6) continue;
+                double scale = reach * std::max(0.35, axis.length / longest) / axis.length;
+                double ex = cx + axis.dx * scale, ey = cy + axis.dy * scale;
+                double ux = (ex - cx) / std::hypot(ex - cx, ey - cy), uy = (ey - cy) / std::hypot(ex - cx, ey - cy);
+                c->create_line({cx, cy, ex, ey}, {{"fill", axis.color}, {"width", 2}, {"tags", "hud"}});
+                c->create_polygon({ex, ey, ex - ux * 8 - uy * 4, ey - uy * 8 + ux * 4, ex - ux * 8 + uy * 4, ey - uy * 8 - ux * 4},
+                                  {{"fill", axis.color}, {"outline", ""}, {"tags", "hud"}});
+                c->create_text(ex + ux * 11, ey + uy * 11, {{"text", axis.label}, {"fill", axis.color}, {"font", label_font + " bold"}, {"tags", "hud"}});
+            }
+        } catch (const std::exception&) {
         }
     }
 }

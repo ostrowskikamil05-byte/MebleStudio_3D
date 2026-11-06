@@ -1,5 +1,6 @@
 // Presentation-only snapshots for the integrated native C++ viewport.
 #include "native_scene_export.h"
+#include "view_style.h"
 
 #include <algorithm>
 #include <cmath>
@@ -292,7 +293,9 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
             }
         };
         // Kolory z zapasem na cieniowanie shadera (.40+.52*diffuse+.16*secondary).
-        const float floor_rgb[3] = {0.93f, 0.92f, 0.89f}, grid_rgb[3] = {0.66f, 0.65f, 0.62f}, axis_rgb[3] = {0.55f, 0.58f, 0.64f};
+        const float* floor_rgb = view_style::palette().floor_rgb;
+        const float* grid_rgb = view_style::palette().grid_rgb;
+        const float axis_rgb[3] = {0.55f, 0.58f, 0.64f};
         quad(cx - hx, cy - hy, cx + hx, cy + hy, floor_z - 3, floor_rgb);
         int lines = 0;
         for (double x = std::ceil((cx - hx) / grid_step) * grid_step; x <= cx + hx && lines < 200; x += grid_step, ++lines) {

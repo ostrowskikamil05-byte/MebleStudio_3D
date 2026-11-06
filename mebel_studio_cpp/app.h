@@ -24,6 +24,8 @@
 #include "pyutil.h"
 #include "forma_shell.h"
 #include "library_panel.h"
+#include "side_panels.h"
+#include "view_style.h"
 #include "viewport_hud.h"
 #include "forma_theme.h"
 #include "tk.h"            // tk::Tk, tk::StringVar, tk::DoubleVar, tk::BooleanVar, tk::Event, tk::Opts,
@@ -170,7 +172,9 @@ public:
     ttk::Notebook* inspector_tabs = nullptr;
     tk::Widget* design_page = nullptr;
     // quick_studio_ui::build: układ okna (nagłówek, wstążka, panele, paski narzędzi)
-    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; tk::StringVar status_right; ttk::Frame* library_panel = nullptr;
+    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; tk::StringVar status_right; tk::StringVar status_x, status_y, status_z; ttk::Frame* library_panel = nullptr;
+    ttk::Frame* props_page = nullptr; ttk::Frame* context_page = nullptr; ttk::Frame* context_body = nullptr;  // prawy panel: Właściwości albo panel kontekstowy narzędzia
+    tk::StringVar context_title; tk::StringVar props_title;
     ttk::Panedwindow* workspace_pane = nullptr; ttk::Notebook* ribbon = nullptr;
     std::map<std::string, responsive_ui::WrapToolbar*> ribbon_pages; std::vector<responsive_ui::WrapToolbar*> responsive_toolbars;
     ttk::Panedwindow* main_pane = nullptr; ttk::Frame* inspector_frame = nullptr; ttk::Frame* view_frame = nullptr;
@@ -248,6 +252,7 @@ public:
         edit_mode = tk::StringVar("camera"); handles = {}; edge_handles = {}; drag_edit.reset();
         layout_magnet = tk::BooleanVar(true); layout_tolerance = tk::DoubleVar(80); layout_drag = nullptr;
         status = tk::StringVar("Gotowy · wszystkie wymiary w milimetrach");
+        view_style::load();
         forma_theme::apply(this);
         ui();
         developer_logs::install(this); workspace_controls::install(this); studio_interaction::install(this);
@@ -644,8 +649,6 @@ public:
             return camera.project({position[0] + shift[0], position[1] + shift[1], position[2] + shift[2]}, w, h);
         };
         viewport_annotations::paint(this, display);
-        c->create_text(18, 20, {{"text", std::format("{} elementów   /   {}", project->parts.size(), project->name)}, {"anchor", "w"}, {"font", "{Segoe UI} 11"}, {"fill", "#6b7266"}});
-        viewport_scene::paint_overlay(c, camera, {w, h}, background["spacing"]);
         viewport_hud::paint(this, w, h, background["spacing"]);
         handles = {}; edge_handles = {};
         bool any_open = false; for (auto& [k, v] : open_amounts) if (v) any_open = true;
@@ -832,6 +835,7 @@ public:
     }
 
     void round_edges(std::optional<cad_geometry::Edge> edge = std::nullopt) {
+        if (edge && !edge->empty() && side_panels::fillet_active()) { side_panels::toggle_edge(this, *edge); return; }
         Part* p = selected_part();
         if (!p) return;
         try {

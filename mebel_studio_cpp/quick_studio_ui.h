@@ -73,11 +73,14 @@ public:
     // key -> (widget, {etykieta: wartość}); kolejność etykiet = kolejność wstawiania
     std::map<std::string, std::pair<ttk::Combobox*, json>> combos;
     std::map<std::string, Section*> sections;
+    tk::Frame* swatch_row = nullptr;   // próbki materiałów projektu (kliknięcie ustawia materiał korpusu)
+    void rebuild_swatches();
     bool has_draft = false;
     std::vector<int> template_indices;
     json saved = json::object();
     std::optional<json> clipboard;
     tk::StringVar note, groupvar, templatevar, presetvar, runner_note, card_title, card_sub;
+    tk::Canvas* card_icon = nullptr;  // miniatura mebla w karcie na górze panelu
     ttk::Combobox *groupcombo = nullptr, *templatecombo = nullptr, *presetcombo = nullptr;
     ttk::Button* apply_button = nullptr;
     ScrollPanel* scroll = nullptr;

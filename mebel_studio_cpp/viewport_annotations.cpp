@@ -201,11 +201,11 @@ void paint_dimensions(App* app, const core::Project& display) {
         y = std::max(45.0, std::min(size.second - 22.0, y));
         placed.push_back({x, y, half});
         double ax = a[0] + nx * offset, ay = a[1] + ny * offset, bx = b[0] + nx * offset, by = b[1] + ny * offset;
-        c->create_line({a[0], a[1], ax, ay}, {{"fill", "#23889c"}, {"dash", "2 3"}, {"tags", "dimensions"}});
-        c->create_line({b[0], b[1], bx, by}, {{"fill", "#23889c"}, {"dash", "2 3"}, {"tags", "dimensions"}});
-        c->create_line({ax, ay, bx, by}, {{"fill", "#137b94"}, {"width", 1}, {"arrow", "both"}, {"tags", "dimensions"}});
-        c->create_rectangle(x - half, y - 11, x + half, y + 11, {{"fill", "#eefbff"}, {"outline", "#91c6d2"}, {"tags", "dimensions"}});
-        c->create_text(x, y, {{"text", text}, {"fill", "#123c49"}, {"font", "{Segoe UI} 9 bold"}, {"tags", "dimensions"}});
+        c->create_line({a[0], a[1], ax, ay}, {{"fill", "#f0a35e"}, {"dash", "2 3"}, {"tags", "dimensions"}});
+        c->create_line({b[0], b[1], bx, by}, {{"fill", "#f0a35e"}, {"dash", "2 3"}, {"tags", "dimensions"}});
+        c->create_line({ax, ay, bx, by}, {{"fill", "#e8872b"}, {"width", 2}, {"arrow", "both"}, {"tags", "dimensions"}});
+        c->create_rectangle(x - half, y - 11, x + half, y + 11, {{"fill", "#fffaf2"}, {"outline", "#f2c79a"}, {"tags", "dimensions"}});
+        c->create_text(x, y, {{"text", text}, {"fill", "#c9661a"}, {"font", "{Segoe UI} 9 bold"}, {"tags", "dimensions"}});
         json record = json::object();
         record["axis"] = spec.axis;
         record["a"] = json::array({a[0], a[1], a[2]});
@@ -232,19 +232,19 @@ void paint_dimensions(App* app, const core::Project& display) {
         }
         double x = size.first - 260, y = 55;
         double shown = (double)std::min<long long>(rows, (long long)visible.size());
-        c->create_rectangle(x, y, size.first - 8, y + 46 + shown * 23, {{"fill", "#f6fbff"}, {"outline", "#a7c5d5"}, {"tags", "dimensions"}});
-        c->create_text(x + 10, y + 13, {{"text", "Formatki wybranego mebla [mm]"}, {"anchor", "w"}, {"fill", "#123c49"}, {"font", "{Segoe UI} 9 bold"}, {"tags", "dimensions"}});
+        c->create_rectangle(x, y, size.first - 8, y + 46 + shown * 23, {{"fill", "#ffffff"}, {"outline", "#e2ded5"}, {"tags", "dimensions"}});
+        c->create_text(x + 10, y + 13, {{"text", "Formatki wybranego mebla [mm]"}, {"anchor", "w"}, {"fill", "#1f2a1f"}, {"font", "{Segoe UI} 9 bold"}, {"tags", "dimensions"}});
         for (long long n = 1; n <= std::min<long long>(rows, (long long)visible.size()); ++n) {
             auto& [part, q] = visible[(size_t)(n - 1)];
             c->create_text(x + 10, y + 16 + n * 23, {{"text", std::format("{}. {} · {:g}×{:g}×{:g}", n, utf8_prefix(part->name, 18), part->u, part->v, part->t)},
-                                                     {"anchor", "w"}, {"fill", "#25394c"}, {"font", "{Segoe UI} 9"}, {"tags", "dimensions"}});
+                                                     {"anchor", "w"}, {"fill", "#1f2a1f"}, {"font", "{Segoe UI} 9"}, {"tags", "dimensions"}});
             if (depth_raster::screen_visibility(c, q[0], q[1], q[2], std::nullopt, part->t)) {
-                c->create_oval(q[0] - 8, q[1] - 8, q[0] + 8, q[1] + 8, {{"fill", "#eefbff"}, {"outline", "#137b94"}, {"tags", "dimensions"}});
-                c->create_text(q[0], q[1], {{"text", std::to_string(n)}, {"fill", "#123c49"}, {"font", "{Segoe UI} 8 bold"}, {"tags", "dimensions"}});
+                c->create_oval(q[0] - 8, q[1] - 8, q[0] + 8, q[1] + 8, {{"fill", "#fffaf2"}, {"outline", "#e8872b"}, {"tags", "dimensions"}});
+                c->create_text(q[0], q[1], {{"text", std::to_string(n)}, {"fill", "#1f2a1f"}, {"font", "{Segoe UI} 8 bold"}, {"tags", "dimensions"}});
             }
         }
         std::string footer = (long long)visible.size() > rows ? "Wszystkie formatki: zakładka Formatki / Drukuj" : "Wymiary nominalne U × V × grubość";
-        c->create_text(x + 10, y + 34 + shown * 23, {{"text", footer}, {"anchor", "w"}, {"fill", "#56717f"}, {"font", "{Segoe UI} 8"}, {"tags", "dimensions"}});
+        c->create_text(x + 10, y + 34 + shown * 23, {{"text", footer}, {"anchor", "w"}, {"fill", "#6b7266"}, {"font", "{Segoe UI} 8"}, {"tags", "dimensions"}});
     }
 }
 

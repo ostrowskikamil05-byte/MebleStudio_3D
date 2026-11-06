@@ -11,6 +11,7 @@
 #include "pyutil.h"
 #include "quick_studio_ui.h"
 #include "responsive_ui.h"
+#include "side_panels.h"
 #include "visual_catalogue.h"
 
 namespace library_panel {
@@ -18,9 +19,11 @@ namespace library_panel {
 namespace {
 
 constexpr int COLUMNS = 3;
-constexpr int PREVIEW_W = 84, PREVIEW_H = 64;
+constexpr int PREVIEW_W = 90, PREVIEW_H = 72;
 
 // Etykiety krótkie, żeby mieściły się w rzędzie przycisków rodzajów.
+const std::string HINT = "⌕  Szukaj modułów, frontów, materiałów…";
+
 const std::vector<std::pair<std::string, std::string>> CHIPS = {
     {"furniture", "Meble"}, {"material", "Materiały"}, {"handle", "Uchwyty"}, {"hinge", "Zawiasy"},
     {"runner", "Prowadnice"}, {"leg", "Nogi"}, {"led", "LED"}, {"appliance", "AGD"}};
@@ -28,13 +31,20 @@ const std::vector<std::pair<std::string, std::string>> CHIPS = {
 }  // namespace
 
 LibraryPanel::LibraryPanel(tk::Widget* parent, App* app) : ttk::Frame(parent, {{"style", "Panel.TFrame"}}), app_(app) {
-    query_ = tk::StringVar("");
+    query_ = tk::StringVar(HINT);
     note_ = tk::StringVar("Kliknij kartę, aby dodać ją do projektu.");
     auto* top = new ttk::Frame(this, {{"style", "Panel.TFrame"}, {"padding", "10 4 10 2"}});
     top->pack({{"fill", "x"}});
-    (new ttk::Entry(top, {{"textvariable", query_}}))->pack({{"fill", "x"}});
-    (new ttk::Label(top, {{"text", "Szukaj modułów, frontów, materiałów…"}, {"style", "Muted.TLabel"}, {"background", forma_theme::PANEL}, {"font", "{Segoe UI} 8"}}))
-        ->pack({{"anchor", "w"}});
+    entry_ = new ttk::Entry(top, {{"textvariable", query_}, {"foreground", forma_theme::MUTED}});
+    entry_->pack({{"fill", "x"}, {"pady", "0 4"}});
+    entry_->bind("<FocusIn>", [this](tk::Event&) {
+        if (query_.get() == HINT) { query_.set(""); entry_->configure({{"foreground", forma_theme::TEXT}}); }
+        return std::string();
+    }, true);
+    entry_->bind("<FocusOut>", [this](tk::Event&) {
+        if (query_.get().empty()) { query_.set(HINT); entry_->configure({{"foreground", forma_theme::MUTED}}); }
+        return std::string();
+    }, true);
     auto* chips = new responsive_ui::WrapToolbar(this, {{"style", "Panel.TFrame"}});
     chips->pack({{"fill", "x"}, {"padx", 8}});
     app_->responsive_toolbars.push_back(chips);
@@ -85,7 +95,8 @@ void LibraryPanel::refresh() {
 void LibraryPanel::show_kind(const std::string& kind) {
     kind_ = visual_catalogue::canonical_kind(kind);
     expanded_.clear();
-    query_.set("");
+    query_.set(HINT);
+    entry_->configure({{"foreground", forma_theme::MUTED}});
     selected_id_.clear();
     note_.set("Kliknij kartę, aby dodać ją do projektu.");
     load_items();
@@ -99,6 +110,7 @@ void LibraryPanel::render() {
     tk::Widget* body = scroll_->body;
     for (tk::Widget* child : body->winfo_children()) child->destroy();
     std::string search = query_.get();
+    if (search == HINT) search.clear();
     json filtered = visual_catalogue::filter_items(items_, search, "Wszystkie");
     bool searching = !search.empty();
 
@@ -117,7 +129,7 @@ void LibraryPanel::render() {
         bool all = searching || expanded_.contains(category) || list.size() <= (size_t)COLUMNS;
         auto* head = new ttk::Frame(body, {{"style", "Panel.TFrame"}});
         head->pack({{"fill", "x"}, {"pady", "10 4"}});
-        (new tk::Label(head, {{"text", category}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::TEXT}, {"font", "{Segoe UI} 10 bold"}}))->pack({{"side", "left"}});
+        (new tk::Label(head, {{"text", category}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::TEXT}, {"font", "{Segoe UI} 11 bold"}}))->pack({{"side", "left"}});
         if (!searching && list.size() > (size_t)COLUMNS) {
             bool open = expanded_.contains(category);
             auto* more = new tk::Label(head, {{"text", open ? "Pokaż mniej ‹" : "Zobacz wszystkie ›"}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::ACCENT},
@@ -146,10 +158,10 @@ void LibraryPanel::render() {
             } catch (const std::exception&) {
             }
             auto* title = new tk::Label(card, {{"text", item.at("title").get<std::string>()}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::TEXT},
-                                               {"font", "{Segoe UI} 8 bold"}, {"wraplength", PREVIEW_W + 6}, {"justify", "center"}, {"cursor", "hand2"}});
+                                               {"font", "{Segoe UI} 9 bold"}, {"wraplength", PREVIEW_W + 10}, {"justify", "center"}, {"cursor", "hand2"}});
             title->pack({{"pady", "3 0"}});
             auto* dims = new tk::Label(card, {{"text", visual_catalogue::dimension_text(item)}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::MUTED},
-                                              {"font", "{Segoe UI} 7"}, {"wraplength", PREVIEW_W + 6}, {"justify", "center"}});
+                                              {"font", "{Segoe UI} 8"}, {"wraplength", PREVIEW_W + 10}, {"justify", "center"}});
             dims->pack();
             json copy = item;
             for (tk::Widget* widget : std::vector<tk::Widget*>{card, image, title, dims})
@@ -173,6 +185,8 @@ void LibraryPanel::activate(const json& item) {
         note_.set(item.at("title").get<std::string>() + " · " + action);
         app_->status.set("Biblioteka: " + item.at("title").get<std::string>() + " · " + action);
         generation_ = app_->project_generation;
+        json shown = item;
+        side_panels::show_item(app_, shown, [this, shown] { activate(shown); });
         render_later();
     } catch (const std::invalid_argument& error) {
         note_.set(error.what());

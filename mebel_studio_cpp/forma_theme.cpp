@@ -41,26 +41,21 @@ void apply(tk::Widget* root) {
     s.configure("TSeparator", {{"background", BORDER}});
 
     // Przyciski: białe z cienką ramką; akcent zielony.
-    s.configure("TButton", {{"padding", "10 6"}, {"background", CARD}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"borderwidth", 1}, {"relief", "flat"}, {"focuscolor", CARD}});
-    s.map("TButton", "background", {{"disabled", BG}, {"pressed", ACCENT_SOFT}, {"active", HOVER}});
+    s.configure("TButton", {{"width", 0}, {"padding", "10 6"}, {"background", PANEL}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"borderwidth", 1}, {"relief", "flat"}, {"focuscolor", CARD}});
     s.map("TButton", "foreground", {{"disabled", MUTED}});
-    s.configure("Ribbon.TButton", {{"padding", "12 8"}, {"anchor", "w"}, {"background", PANEL}, {"bordercolor", PANEL}});
-    s.map("Ribbon.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
-    s.configure("Accent.TButton", {{"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}, {"font", bold}});
-    s.map("Accent.TButton", "background", {{"disabled", "#a8b79c"}, {"pressed", "#3f5a33"}, {"active", ACCENT_HOVER}});
+    // Wiersz listy poleceń w panelu bocznym (jak "Rysuj", "Edytuj szkic" na makiecie).
+    s.configure("Ribbon.TButton", {{"padding", "10 9"}, {"anchor", "w"}, {"background", PANEL}, {"bordercolor", PANEL}, {"borderwidth", 0}, {"font", "{Segoe UI} 10"}});
+    s.configure("RibbonOn.TButton", {{"padding", "10 9"}, {"anchor", "w"}, {"background", PANEL}, {"bordercolor", PANEL}, {"borderwidth", 0}, {"font", "{Segoe UI} 10"}});
+    s.configure("Accent.TButton", {{"background", PANEL}, {"foreground", "white"}, {"bordercolor", PANEL}, {"font", bold}});
     s.map("Accent.TButton", "foreground", {{"disabled", "white"}});
-    s.configure("Chip.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9"}, {"background", CARD}, {"bordercolor", BORDER}});
-    s.map("Chip.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
-    s.configure("ChipOn.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9 bold"}, {"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}});
-    s.map("ChipOn.TButton", "background", {{"active", ACCENT_HOVER}});
+    s.configure("Chip.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9"}, {"background", PANEL}, {"bordercolor", PANEL}});
+    s.configure("ChipOn.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9 bold"}, {"background", PANEL}, {"foreground", "white"}, {"bordercolor", PANEL}});
     s.configure("Tool.TButton", {{"padding", "6 6"}, {"background", PANEL}, {"bordercolor", PANEL}});
-    s.map("Tool.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
     s.configure("Section.TButton", {{"anchor", "w"}, {"padding", "8 6"}, {"font", bold}, {"background", PANEL}, {"bordercolor", PANEL}});
-    s.map("Section.TButton", "background", {{"active", HOVER}});
 
     // Pola tekstowe i listy rozwijane.
     for (const char* name : {"TEntry", "TSpinbox", "TCombobox"})
-        s.configure(name, {{"fieldbackground", CARD}, {"background", CARD}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"padding", "6 5"}, {"arrowcolor", MUTED}, {"insertcolor", TEXT}});
+        s.configure(name, {{"fieldbackground", CARD}, {"background", PANEL}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"padding", "6 5"}, {"arrowcolor", MUTED}, {"insertcolor", TEXT}});
     s.map("TEntry", "bordercolor", {{"focus", ACCENT}});
     s.map("TCombobox", "bordercolor", {{"focus", ACCENT}});
     s.map("TCombobox", "fieldbackground", {{"readonly", CARD}});
@@ -68,17 +63,28 @@ void apply(tk::Widget* root) {
     s.map("TCombobox", "selectforeground", {{"readonly", TEXT}});
     s.configure("TCheckbutton", {{"background", BG}, {"indicatorbackground", CARD}, {"indicatorforeground", ACCENT}, {"padding", 3}});
     s.configure("TRadiobutton", {{"background", BG}, {"indicatorbackground", CARD}, {"indicatorforeground", ACCENT}, {"padding", 3}});
+    s.configure("Panel.TCheckbutton", {{"background", PANEL}, {"indicatorbackground", CARD}, {"indicatorforeground", ACCENT}, {"padding", 5}});
+    s.configure("Panel.TRadiobutton", {{"background", PANEL}, {"indicatorbackground", CARD}, {"indicatorforeground", ACCENT}, {"padding", 5}});
+    s.map("Panel.TCheckbutton", "background", {{"active", PANEL}});
+    s.map("Panel.TRadiobutton", "background", {{"active", PANEL}});
+    s.map("Panel.TCheckbutton", "indicatorbackground", {{"selected", ACCENT}, {"pressed", ACCENT_SOFT}});
+    s.map("Panel.TRadiobutton", "indicatorbackground", {{"selected", ACCENT}, {"pressed", ACCENT_SOFT}});
     s.map("TCheckbutton", "background", {{"active", BG}});
     s.map("TRadiobutton", "background", {{"active", BG}});
     s.map("TCheckbutton", "indicatorbackground", {{"selected", ACCENT}, {"pressed", ACCENT_SOFT}});
     s.map("TRadiobutton", "indicatorbackground", {{"selected", ACCENT}, {"pressed", ACCENT_SOFT}});
 
-    // Zakładki: płaskie, aktywna wyróżniona kolorem akcentu.
-    s.configure("TNotebook", {{"background", BG}, {"bordercolor", BORDER}, {"tabmargins", "0 0 0 0"}, {"borderwidth", 0}});
-    s.configure("TNotebook.Tab", {{"padding", "14 8"}, {"font", bold}, {"background", BG}, {"foreground", MUTED}, {"bordercolor", BG}});
-    s.map("TNotebook.Tab", "background", {{"selected", CARD}, {"active", HOVER}});
-    s.map("TNotebook.Tab", "foreground", {{"selected", ACCENT}});
-    s.configure("Inspector.TNotebook", {{"background", PANEL}});
+    // Zakładki dokumentów (Projekt 3D / Formatki / Kosztorys / Rozkrój / Ustawienia): pastylki, aktywna zielona.
+    s.configure("TNotebook", {{"background", BG}, {"bordercolor", BG}, {"tabmargins", "10 6 10 4"}, {"borderwidth", 0}, {"lightcolor", BG}, {"darkcolor", BG}});
+    s.configure("TNotebook.Tab", {{"padding", "16 6"}, {"font", "{Segoe UI} 10"}, {"background", BG}, {"foreground", TEXT}, {"bordercolor", BG}, {"lightcolor", BG}, {"darkcolor", BG}, {"focuscolor", BG}});
+    s.map("TNotebook.Tab", "background", {{"selected", ACCENT}, {"active", HOVER}});
+    s.map("TNotebook.Tab", "foreground", {{"selected", "white"}});
+    s.map("TNotebook.Tab", "bordercolor", {{"selected", ACCENT}});
+    s.map("TNotebook.Tab", "lightcolor", {{"selected", ACCENT}});
+    s.map("TNotebook.Tab", "darkcolor", {{"selected", ACCENT}});
+    s.configure("Rail.TNotebook", {{"background", PANEL}, {"tabmargins", "0 0 0 0"}, {"borderwidth", 0}});
+    s.configure("HiddenInspector.TNotebook", {{"background", PANEL}, {"tabmargins", "0 0 0 0"}, {"borderwidth", 0}});
+    s.configure("Inspector.TNotebook", {{"background", PANEL}, {"tabmargins", "6 4 6 0"}, {"borderwidth", 0}});
     s.configure("Inspector.TNotebook.Tab", {{"padding", "10 6"}, {"font", bold}, {"background", PANEL}, {"foreground", MUTED}});
     s.map("Inspector.TNotebook.Tab", "background", {{"selected", CARD}, {"active", HOVER}});
     s.map("Inspector.TNotebook.Tab", "foreground", {{"selected", ACCENT}});
@@ -100,6 +106,7 @@ void apply(tk::Widget* root) {
     s.configure("TPanedwindow", {{"background", BG}, {"sashwidth", 7}});
     s.configure("Sash", {{"sashthickness", 7}, {"gripcount", 0}});
     s.configure("RibbonGroup.TLabel", {{"foreground", MUTED}, {"font", "{Segoe UI} 8 bold"}});
+    install_round(root);
 }
 
 }  // namespace forma_theme

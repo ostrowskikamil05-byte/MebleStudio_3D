@@ -1,5 +1,6 @@
 // Optional retained VTK/OpenGL renderer displayed in the existing Tk Canvas.
 #include "gpu_viewport.h"
+#include "view_style.h"
 
 #include <algorithm>
 #include <chrono>
@@ -133,7 +134,7 @@ GPUViewport::GPUViewport() {
     closed = false;
     try {
         backend->window = vtkSmartPointer<vtkRenderWindow>::New(); backend->window->SetOffScreenRendering(1);
-        backend->window->SetMultiSamples(0); backend->window->SetAlphaBitPlanes(1);
+        backend->window->SetMultiSamples(view_style::state.aa); backend->window->SetAlphaBitPlanes(1);
         // No visible VTK window needs buffer presentation/vsync. Canvas owns
         // the displayed image and the readback always uses the back buffer.
         backend->window->SetSwapBuffers(0);

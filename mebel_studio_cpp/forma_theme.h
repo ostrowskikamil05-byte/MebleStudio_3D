@@ -19,5 +19,7 @@ inline constexpr const char* HOVER = "#efece5";
 inline constexpr const char* WARM = "#e8872b";      // wymiary / wyróżnienia
 
 void apply(tk::Widget* root);
+// Zaokrąglone kontrolki (forma_round.cpp); wywoływane z apply.
+void install_round(tk::Widget* root);
 
 }  // namespace forma_theme

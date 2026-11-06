@@ -124,7 +124,7 @@ SettingsDialog* open_settings(App* app) {
     // 2. Panele
     auto* panels_box = section("Panele i paski");
     for (auto [key, label] : std::vector<std::pair<std::string, std::string>>{
-             {"show_inspector", "Pokaż boczny inspektor"}, {"show_ribbon", "Pokaż lewy panel narzędzi"}, {"show_toolbars", "Pokaż paski skrótów nad 3D"}}) {
+             {"show_inspector", "Pokaż boczny inspektor"}, {"show_ribbon", "Pokaż lewy panel narzędzi"}}) {
         auto inserted = sd->interface_flags.emplace(key, tk::BooleanVar(current.at(key).get<bool>()));
         sd->key_order.push_back(key);
         (new ttk::Checkbutton(panels_box, {{"text", label}, {"variable", inserted.first->second}}))->pack({{"anchor", "w"}, {"pady", 2}});
