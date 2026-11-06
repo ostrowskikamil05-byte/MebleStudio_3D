@@ -200,7 +200,12 @@ void LibraryPanel::activate(const json& item) {
         app_->status.set("Biblioteka: " + item.at("title").get<std::string>() + " · " + action);
         generation_ = app_->project_generation;
         json shown = item;
-        side_panels::show_item(app_, shown, [this, shown] { activate(shown); });
+        std::function<void(const json&)> apply_dims;
+        if (item_kind == "appliance" && app_->project->scene.contains("objects") && !app_->project->scene.at("objects").empty()) {
+            std::string object_id = app_->project->scene.at("objects").back().at("id").get<std::string>();
+            apply_dims = [this, object_id](const json& changes) { visual_catalogue::update_object(app_, object_id, changes); };
+        }
+        side_panels::show_item(app_, shown, [this, shown] { activate(shown); }, apply_dims);
         // Zamiast przebudowywać całą listę (ok. 120 ms) przestawiamy tylko podświetlenie.
         if (!previous_id.empty()) highlight(previous_id, false);
         highlight(selected_id_, true);

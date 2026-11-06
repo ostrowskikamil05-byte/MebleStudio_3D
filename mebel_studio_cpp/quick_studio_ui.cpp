@@ -1199,9 +1199,10 @@ void build(App* app) {
         auto it = std::find(tool_modes.begin(), tool_modes.end(), app->edit_mode.get());
         if (it != tool_modes.end()) tools->current((int)(it - tool_modes.begin()));
     });
-    (new ttk::Label(pages["Widok"], {{"text", "Wymiary:"}, {"style", "Panel.TLabel"}}))->pack({{"side", "left"}, {"padx", 4}});
-    auto* dimcombo = new ttk::Combobox(pages["Widok"], {{"textvariable", app->dimension_mode}, {"values", viewport_annotations::MODES}, {"state", "readonly"}, {"width", 18}});
-    dimcombo->pack({{"side", "left"}, {"padx", 4}});
+    auto* dimrow = new ttk::Frame(pages["Widok"], {{"style", "Panel.TFrame"}});  // panel boczny: jeden wiersz = etykieta + lista
+    (new ttk::Label(dimrow, {{"text", "Wymiary:"}, {"style", "Panel.TLabel"}, {"width", 15}}))->pack({{"side", "left"}, {"padx", "4 6"}});
+    auto* dimcombo = new ttk::Combobox(dimrow, {{"textvariable", app->dimension_mode}, {"values", viewport_annotations::MODES}, {"state", "readonly"}});
+    dimcombo->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", "0 4"}});
     dimcombo->bind("<<ComboboxSelected>>", plain([app](tk::Event&) { app->draw(); }));
     (new ttk::Checkbutton(pages["Widok"], {{"text", "Otwory montażowe"}, {"variable", app->show_drills}, {"style", "Panel.TCheckbutton"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 5}});
     auto* trayframe = new ttk::Frame(middle);

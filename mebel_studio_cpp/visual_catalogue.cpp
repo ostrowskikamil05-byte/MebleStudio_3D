@@ -364,6 +364,11 @@ void select_design(App* app) {
     if (app->canvas != nullptr) app->canvas->focus_set();
 }
 
+bool update_object(App* app, const std::string& object_id, const json& changes) {
+    if (!app->flush_parameter_drafts()) return false;
+    return commit(app, room_objects::update_object(*app->project, object_id, changes));  // bez zmiany zaznaczenia: panel pozycji zostaje otwarty
+}
+
 bool apply_item(App* app, const json& item) {
     if (!app->flush_parameter_drafts()) return false;
     std::string kind = canonical_kind(item.at("kind").get<std::string>());
