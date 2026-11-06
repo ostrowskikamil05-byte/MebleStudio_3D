@@ -283,7 +283,8 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         double line = std::clamp(grid_step * 0.015, 1.5, 8.0);
         uint32_t owner_index = (uint32_t)owner_table.size();
         // Pole właściciela z zapasem na szerokość linii siatki (kreski przy krawędzi wystają o pół szerokości).
-        Owner owner{3, ARCHITECTURE, "architecture:viewport.grid", "Siatka", {cx - hx - 10, cy - hy - 10, floor_z - 3}, {cx + hx + 10, cy + hy + 10, floor_z - 1}};
+        const double owner_half_x = 60000 + 10, owner_half_y = 60000 + 10;
+        Owner owner{3, ARCHITECTURE, "architecture:viewport.grid", "Siatka", {cx - owner_half_x, cy - owner_half_y, floor_z - 3}, {cx + owner_half_x, cy + owner_half_y, floor_z - 1}};
         owner_table.push_back(owner);
         auto quad = [&](double x0, double y0, double x1, double y1, double z, const float rgb[3]) {
             const double xs[6] = {x0, x1, x1, x0, x1, x0}, ys[6] = {y0, y0, y1, y0, y1, y1};
@@ -299,7 +300,10 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         const float* floor_rgb = view_style::palette().floor_rgb;
         const float* grid_rgb = view_style::palette().grid_rgb;
         const float axis_rgb[3] = {0.55f, 0.58f, 0.64f};
-        quad(cx - hx, cy - hy, cx + hx, cy + hy, floor_z - 3, floor_rgb);
+        // Podłoga sięga daleko poza siatkę: natywne okno wypełnia tło kolorem DLL (u Ciebie ciemnym), więc płyta musi
+        // zakrywać cały widok przy dowolnym oddaleniu (rzut ortogonalny, brak horyzontu).
+        const double far_half = 60000;
+        quad(cx - far_half, cy - far_half, cx + far_half, cy + far_half, floor_z - 3, floor_rgb);
         int lines = 0;
         for (double x = std::ceil((cx - hx) / grid_step) * grid_step; x <= cx + hx && lines < 200; x += grid_step, ++lines) {
             double w = std::fabs(x) < 1e-6 ? line * 2 : line;
@@ -312,9 +316,9 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         // Natywny renderer sprawdza każdy wierzchołek względem granic sceny z nagłówka — podłoga musi się w nich mieścić,
         // inaczej cała scena jest odrzucana ("Wierzchołek wykracza poza granice sceny") i widok spada do wolnego rysowania.
         for (int a = 0; a < 2; ++a) {
-            double center = a == 0 ? cx : cy, half = a == 0 ? hx : hy;
-            scene_lo[a] = std::min(scene_lo[a], center - half - 10);
-            scene_hi[a] = std::max(scene_hi[a], center + half + 10);
+            double center = a == 0 ? cx : cy;
+            scene_lo[a] = std::min(scene_lo[a], center - far_half - 10);
+            scene_hi[a] = std::max(scene_hi[a], center + far_half + 10);
         }
         scene_lo[2] = std::min(scene_lo[2], floor_z - 3);
         scene_hi[2] = std::max(scene_hi[2], floor_z - 1);

@@ -345,7 +345,34 @@ void put_photo(const std::string& name, int width, int height, const std::vector
 
 void main_loop() {
     require();
-    Tk_MainLoop();
+    if (!g_profile_hook) {
+        Tk_MainLoop();
+        return;
+    }
+    // Pętla z pomiarem: osobno zdarzenia okien, zegary i zadania "bezczynne" (m.in. rysowanie widgetów Tk),
+    // żeby wolne odświeżanie interfejsu, które nie jest żadną naszą procedurą, dało się przypisać do rodzaju zdarzeń.
+    auto timed = [](int flags, const char* kind) {
+        const auto started = std::chrono::steady_clock::now();
+        const int handled = Tcl_DoOneEvent(flags);
+        if (g_profile_hook) {
+            const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+            if (handled) g_profile_hook("loop", kind, ms);
+        }
+        return handled != 0;
+    };
+    while (Tk_GetNumMainWindows() > 0) {
+        bool worked = timed(TCL_WINDOW_EVENTS | TCL_FILE_EVENTS | TCL_DONT_WAIT, "zdarzenia okien");
+        worked = timed(TCL_TIMER_EVENTS | TCL_DONT_WAIT, "zegary (after)") || worked;
+        worked = timed(TCL_IDLE_EVENTS | TCL_DONT_WAIT, "bezczynność (rysowanie/układ Tk)") || worked;
+        // Brak pracy: czekamy na zdarzenie (zegar kontrolny profilera wybudza pętlę co 50 ms).
+        if (!worked) {
+            const auto started = std::chrono::steady_clock::now();
+            Tcl_DoOneEvent(TCL_ALL_EVENTS);
+            const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+            // Zegar kontrolny wybudza pętlę co 50 ms, więc znacznie dłuższe oczekiwanie to blokada w obsłudze komunikatów systemu (np. okno natywnego widoku).
+            if (ms > 120 && g_profile_hook) g_profile_hook("loop", "komunikaty systemu / okna natywne", ms);
+        }
+    }
 }
 
 std::string merge(const Args& items) {

@@ -18,6 +18,7 @@ namespace {
 using Clock = std::chrono::steady_clock;
 
 constexpr double SLOW_CALLBACK_MS = 40;   // wolna akcja interfejsu
+constexpr double SLOW_LOOP_MS = 80;       // wolna obsługa jednego zdarzenia pętli (okna / zegar / rysowanie)
 constexpr double SLOW_EVAL_MS = 25;       // wolne pojedyncze polecenie Tcl
 constexpr double LOOP_LAG_MS = 150;       // blokada pętli zdarzeń
 constexpr double SLOW_TAB_MS = 150;       // przełączenie zakładki
@@ -59,11 +60,11 @@ void record(const std::string& kind, const std::string& what, double ms) {
     ++stat.count;
     stat.total += ms;
     stat.max = std::max(stat.max, ms);
-    double threshold = kind == "eval" ? SLOW_EVAL_MS : SLOW_CALLBACK_MS;
+    double threshold = kind == "eval" ? SLOW_EVAL_MS : kind == "loop" ? SLOW_LOOP_MS : SLOW_CALLBACK_MS;
     if (ms >= threshold) {
         s.last_slow = kind + ": " + what + std::format(" ({:.0f} ms)", ms);
         s.last_slow_time = Clock::now();
-        const char* title = kind == "eval" ? "Wolne polecenie Tcl" : kind == "scope" ? "Wolny blok" : "Wolna akcja";
+        const char* title = kind == "eval" ? "Wolne polecenie Tcl" : kind == "scope" ? "Wolny blok" : kind == "loop" ? "Wolna obsługa zdarzeń" : "Wolna akcja";
         write(developer_logs::WARNING, std::format("[wydajność] {} {:.0f} ms — {}", title, ms, what));
     }
 }
