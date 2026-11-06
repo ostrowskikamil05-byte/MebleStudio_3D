@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <memory>
 #include <format>
 #include <functional>
 #include <numbers>
@@ -59,7 +61,11 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
     const std::string label_font = std::format("{{Segoe UI}} {}", (int)std::round(10 * k));
     const std::string small_font = std::format("{{Segoe UI}} {}", std::max(7, (int)std::round(8 * k)));
     const std::string icon_font = std::format("{{Segoe UI Symbol}} {}", (int)std::round(17 * k));
-    tk::font::Font measure(app, label_font);
+    // Czcionka do pomiaru jest tworzona raz na rozmiar — odtwarzanie jej przy każdym rysowaniu spowalniało widok.
+    static std::map<std::string, std::unique_ptr<tk::font::Font>> fonts;
+    auto& cached = fonts[label_font];
+    if (!cached) cached = std::make_unique<tk::font::Font>(app, label_font);
+    tk::font::Font& measure = *cached;
 
     // Prawy dolny róg paska stanu.
     std::string spacing_text;

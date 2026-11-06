@@ -4,6 +4,7 @@
 #include "quick_studio_ui.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <numbers>
 #include <format>
@@ -422,8 +423,12 @@ void QuickInspector::rebuild_swatches() {
 void QuickInspector::build_swatches_now() {
     if (swatch_row == nullptr) return;
     try {
-        for (tk::Widget* child : swatch_row->winfo_children()) child->destroy();
         std::string current = find("material").text->get();
+        std::string signature = current;
+        for (const auto& m : app->project->materials) signature += "|" + m.name + m.color;
+        if (signature == swatch_signature) return;
+        swatch_signature = signature;
+        for (tk::Widget* child : swatch_row->winfo_children()) child->destroy();
         int index = 0;
         for (const auto& m : app->project->materials) {
             bool on = m.name == current;
@@ -1286,6 +1291,11 @@ void build(App* app) {
         (new ttk::Label(statusbar, {{"textvariable", *var}, {"background", forma_theme::CARD}, {"foreground", color}, {"font", "{Segoe UI} 9 bold"}, {"width", 10}}))->pack({{"side", "right"}, {"padx", 4}});
     app->canvas->bind("<Motion>", [app](tk::Event& e) -> std::string {
         try {
+            // Ruch myszy bywa bardzo częsty — liczymy współrzędne najwyżej ~25 razy na sekundę i tylko przy zmianie wartości.
+            static auto last_time = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
+            if (now - last_time < std::chrono::milliseconds(40)) return "";
+            last_time = now;
             double w = app->canvas->winfo_width(), h = app->canvas->winfo_height();
             const auto& cam = app->camera;
             double a = cam.yaw * std::numbers::pi / 180, b = cam.pitch * std::numbers::pi / 180;
@@ -1294,7 +1304,10 @@ void build(App* app) {
             double u = (e.x - w / 2 - cam.pan[0]) / cam.scale, v = (h / 2 + cam.pan[1] - e.y) / cam.scale;
             double zr = -cam.center[2], d = (v - zr * cb) / sb;
             double x = cam.center[0] + u * ca + d * sa, y = cam.center[1] - u * sa + d * ca;
-            app->status_x.set(std::format("X  {:.0f}", x)); app->status_y.set(std::format("Y  {:.0f}", y)); app->status_z.set("Z  0");
+            static std::string last_x, last_y;
+            std::string tx = std::format("X  {:.0f}", x), ty = std::format("Y  {:.0f}", y);
+            if (tx != last_x) { last_x = tx; app->status_x.set(tx); }
+            if (ty != last_y) { last_y = ty; app->status_y.set(ty); }
         } catch (const tk::TclError&) {
         }
         return "";

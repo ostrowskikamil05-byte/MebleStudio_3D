@@ -176,7 +176,7 @@ void install(App* app) {
     *tick = [app, paint, tick] {
         try {
             paint(false);
-            app->after(300, *tick);
+            app->after(600, *tick);
         } catch (const tk::TclError&) {
         }
     };
