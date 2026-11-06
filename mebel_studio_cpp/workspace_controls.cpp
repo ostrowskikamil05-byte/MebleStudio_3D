@@ -190,9 +190,12 @@ void install(App* app) {
     app->corner_dialog = show_corner;
     quick_studio_ui::_button(app->ribbon_pages.at("Układ"), "Narożnik…", app->corner_dialog);
     quick_studio_ui::_button(app->ribbon_pages.at("Układ"), "Wspólny blat…", app->shared_worktop_dialog);
-    auto* tolerance = new ttk::Spinbox(app->ribbon_pages.at("Układ"), {{"from", 5}, {"to", 200}, {"increment", 5}, {"width", 4}, {"textvariable", app->layout_tolerance}});
-    tolerance->pack({{"side", "left"}, {"padx", 3}});
-    (new ttk::Label(app->ribbon_pages.at("Układ"), {{"text", "mm"}}))->pack({{"side", "left"}});
+    auto* tolerance_row = new ttk::Frame(app->ribbon_pages.at("Układ"), {{"style", "Panel.TFrame"}, {"padding", "10 4"}});
+    tolerance_row->pack({{"side", "left"}});
+    (new ttk::Label(tolerance_row, {{"text", "Tolerancja łączenia"}, {"style", "Panel.TLabel"}}))->pack({{"side", "left"}});
+    (new ttk::Label(tolerance_row, {{"text", "mm"}, {"style", "Panel.TLabel"}}))->pack({{"side", "right"}, {"padx", "4 0"}});
+    auto* tolerance = new ttk::Spinbox(tolerance_row, {{"from", 5}, {"to", 200}, {"increment", 5}, {"width", 5}, {"textvariable", app->layout_tolerance}});
+    tolerance->pack({{"side", "right"}, {"padx", 3}});
     Cmd show_scene = [app, panel] {
         if (app->ui_layout) app->ui_layout->show_inspector(true);
         app->workspace->select(app->design_page);

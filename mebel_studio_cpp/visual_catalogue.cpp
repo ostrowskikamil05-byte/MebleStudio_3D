@@ -667,9 +667,7 @@ void install(App* app) {
         if (parent == app->ribbon_pages.end() || parent->second == nullptr) continue;
         std::string kind = entry.kind;
         if (captioned.insert(entry.page).second) quick_studio_ui::_group(parent->second, "KATALOGI");
-        auto* button = new ttk::Button(parent->second, {{"text", entry.label}, {"command", std::function<void()>([app, kind] { app->visual_catalogue_open(kind, nullptr); })},
-                                                        {"style", "Ribbon.TButton"}, {"padding", "7 4"}});
-        button->pack({{"side", "left"}, {"padx", 2}, {"pady", 3}});
+        auto* button = quick_studio_ui::_button(parent->second, entry.label, [app, kind] { app->visual_catalogue_open(kind, nullptr); });
         app->catalogue_buttons[kind] = button;
     }
     app->_catalogue_buttons_installed = !app->catalogue_buttons.empty();

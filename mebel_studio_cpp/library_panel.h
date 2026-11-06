@@ -41,6 +41,7 @@ private:
     int generation_ = -1;
     tk::StringVar query_, note_;
     std::map<std::string, ttk::Button*> chips_;
+    ttk::Entry* entry_ = nullptr;
     quick_studio_ui::ScrollPanel* scroll_ = nullptr;
     std::set<std::string> expanded_;
     std::optional<std::string> job_;

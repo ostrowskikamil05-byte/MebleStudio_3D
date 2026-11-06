@@ -78,6 +78,7 @@ public:
     json saved = json::object();
     std::optional<json> clipboard;
     tk::StringVar note, groupvar, templatevar, presetvar, runner_note, card_title, card_sub;
+    tk::Canvas* card_icon = nullptr;  // miniatura mebla w karcie na górze panelu
     ttk::Combobox *groupcombo = nullptr, *templatecombo = nullptr, *presetcombo = nullptr;
     ttk::Button* apply_button = nullptr;
     ScrollPanel* scroll = nullptr;

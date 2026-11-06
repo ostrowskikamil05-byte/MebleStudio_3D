@@ -21,6 +21,8 @@ constexpr int COLUMNS = 3;
 constexpr int PREVIEW_W = 84, PREVIEW_H = 64;
 
 // Etykiety krótkie, żeby mieściły się w rzędzie przycisków rodzajów.
+const std::string HINT = "⌕  Szukaj modułów, frontów, materiałów…";
+
 const std::vector<std::pair<std::string, std::string>> CHIPS = {
     {"furniture", "Meble"}, {"material", "Materiały"}, {"handle", "Uchwyty"}, {"hinge", "Zawiasy"},
     {"runner", "Prowadnice"}, {"leg", "Nogi"}, {"led", "LED"}, {"appliance", "AGD"}};
@@ -28,13 +30,20 @@ const std::vector<std::pair<std::string, std::string>> CHIPS = {
 }  // namespace
 
 LibraryPanel::LibraryPanel(tk::Widget* parent, App* app) : ttk::Frame(parent, {{"style", "Panel.TFrame"}}), app_(app) {
-    query_ = tk::StringVar("");
+    query_ = tk::StringVar(HINT);
     note_ = tk::StringVar("Kliknij kartę, aby dodać ją do projektu.");
     auto* top = new ttk::Frame(this, {{"style", "Panel.TFrame"}, {"padding", "10 4 10 2"}});
     top->pack({{"fill", "x"}});
-    (new ttk::Entry(top, {{"textvariable", query_}}))->pack({{"fill", "x"}});
-    (new ttk::Label(top, {{"text", "Szukaj modułów, frontów, materiałów…"}, {"style", "Muted.TLabel"}, {"background", forma_theme::PANEL}, {"font", "{Segoe UI} 8"}}))
-        ->pack({{"anchor", "w"}});
+    entry_ = new ttk::Entry(top, {{"textvariable", query_}, {"foreground", forma_theme::MUTED}});
+    entry_->pack({{"fill", "x"}, {"pady", "0 4"}});
+    entry_->bind("<FocusIn>", [this](tk::Event&) {
+        if (query_.get() == HINT) { query_.set(""); entry_->configure({{"foreground", forma_theme::TEXT}}); }
+        return std::string();
+    }, true);
+    entry_->bind("<FocusOut>", [this](tk::Event&) {
+        if (query_.get().empty()) { query_.set(HINT); entry_->configure({{"foreground", forma_theme::MUTED}}); }
+        return std::string();
+    }, true);
     auto* chips = new responsive_ui::WrapToolbar(this, {{"style", "Panel.TFrame"}});
     chips->pack({{"fill", "x"}, {"padx", 8}});
     app_->responsive_toolbars.push_back(chips);
@@ -85,7 +94,8 @@ void LibraryPanel::refresh() {
 void LibraryPanel::show_kind(const std::string& kind) {
     kind_ = visual_catalogue::canonical_kind(kind);
     expanded_.clear();
-    query_.set("");
+    query_.set(HINT);
+    entry_->configure({{"foreground", forma_theme::MUTED}});
     selected_id_.clear();
     note_.set("Kliknij kartę, aby dodać ją do projektu.");
     load_items();
@@ -99,6 +109,7 @@ void LibraryPanel::render() {
     tk::Widget* body = scroll_->body;
     for (tk::Widget* child : body->winfo_children()) child->destroy();
     std::string search = query_.get();
+    if (search == HINT) search.clear();
     json filtered = visual_catalogue::filter_items(items_, search, "Wszystkie");
     bool searching = !search.empty();
 

@@ -85,10 +85,26 @@ std::optional<std::string> label_of(const json& choices, const json& value) {
     return std::nullopt;
 }
 
+// Ikona z lewej strony wiersza listy poleceń (jak na makiecie); przyciski akcentowane jej nie mają.
+std::string row_label(const std::string& label) {
+    static const std::map<std::string, std::string> glyphs = {
+        {"Rysuj", "✚"}, {"Edytuj szkic", "✎"}, {"Dopasuj element", "⚙"}, {"Zaokrąglenia", "◠"}, {"Dopasuj 3D", "⛶"},
+        {"Biblioteka wszystkich mebli", "▦"}, {"Kształty i style", "◇"}, {"Kolory", "◐"}, {"Fronty / uchwyty", "▭"}, {"Zawiasy / prowadnice", "⚙"},
+        {"Nóżki / blat", "⊓"}, {"Materiały", "▤"}, {"LED", "✦"}, {"Okucia elementu…", "⚙"}, {"−90°", "↶"}, {"+90°", "↷"},
+        {"Łączenie i pozycja…", "⊞"}, {"Narożnik…", "⌐"}, {"Wspólny blat…", "▬"}, {"Drukuj komplet…", "⎙"}, {"Eksport CAD / CNC", "⇪"},
+        {"Logi", "≡"}, {"Wyposażenie i oświetlenie", "☼"}, {"Jasne pomieszczenie", "☀"}, {"Dzienne", "◑"}, {"Ciemne", "●"},
+        {"LED wł. / wył.", "✦"}, {"Lampy wł. / wył.", "☼"}, {"Katalog mebli", "▦"}, {"Katalog okuć", "⚙"}, {"Katalog materiałów", "▤"},
+        {"Katalog AGD", "▣"}, {"Silnik i jakość 3D…", "⚙"}};
+    auto found = glyphs.find(label);
+    return (found != glyphs.end() ? found->second : std::string("›")) + "   " + label;
+}
+
 ttk::Button* make_button(tk::Widget* parent, const std::string& label, Cmd command, bool accent = false) {
-    auto* button = new ttk::Button(parent, {{"text", label}, {"command", command}, {"width", std::max(3, utf8_len(label))},
-                                            {"style", accent ? "Accent.TButton" : "Ribbon.TButton"}, {"padding", "7 4"}});
-    button->pack({{"side", "left"}, {"padx", 2}, {"pady", 3}});
+    auto* toolbar = dynamic_cast<responsive_ui::WrapToolbar*>(parent);
+    bool row = !accent && toolbar != nullptr && toolbar->vertical;  // wiersz listy poleceń w panelu bocznym
+    auto* button = new ttk::Button(parent, {{"text", row ? row_label(label) : label}, {"command", command}, {"width", std::max(3, utf8_len(label))},
+                                            {"style", accent ? "Accent.TButton" : row ? "Ribbon.TButton" : "TButton"}, {"padding", row ? "10 9" : accent ? "7 6" : "7 4"}});
+    button->pack({{"side", "left"}, {"padx", 2}, {"pady", row ? 0 : 3}});
     return button;
 }
 
@@ -146,6 +162,22 @@ std::string ScrollPanel::wheel(tk::Event& event) {
 // Section
 // ---------------------------------------------------------------------------
 
+// Miniatura bryły mebla (rzut izometryczny) o proporcjach szerokość × wysokość × głębokość.
+void draw_card_icon(tk::Canvas* c, double w, double h, double d) {
+    if (c == nullptr) return;
+    try {
+        c->delete_("all");
+        if (w <= 0 || h <= 0 || d <= 0) { w = 3; h = 2; d = 2; }
+        double k = 38.0 / std::max({w, h, d});
+        double W = w * k, H = h * k, D = d * k;
+        double dx = D * 0.8, dy = D * 0.5, x0 = 4, y0 = 60;
+        c->create_polygon({x0, y0, x0 + W, y0, x0 + W, y0 - H, x0, y0 - H}, {{"fill", "#d9b98a"}, {"outline", "#7a6544"}});
+        c->create_polygon({x0 + W, y0, x0 + W + dx, y0 - dy, x0 + W + dx, y0 - H - dy, x0 + W, y0 - H}, {{"fill", "#b99668"}, {"outline", "#7a6544"}});
+        c->create_polygon({x0, y0 - H, x0 + W, y0 - H, x0 + W + dx, y0 - H - dy, x0 + dx, y0 - H - dy}, {{"fill", "#e8d2ab"}, {"outline", "#7a6544"}});
+    } catch (const tk::TclError&) {
+    }
+}
+
 Section::Section(tk::Widget* parent, const std::string& title_, bool opened_) : ttk::Frame(parent), opened(opened_), title(title_) {
     pack({{"fill", "x"}, {"pady", "3 2"}});
     toggle = new ttk::Button(this, {{"command", Cmd([this] { flip(); })}, {"style", "Section.TButton"}});
@@ -180,10 +212,15 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     top->pack({{"fill", "x"}});
     card_title.set("Mebel");
     card_sub.set("Wybierz mebel albo dodaj nowy");
-    auto* card = new ttk::Frame(top, {{"style", "Card.TFrame"}, {"padding", "12 9"}});
+    auto* card = new ttk::Frame(top, {{"style", "Card.TFrame"}, {"padding", "10 8"}});
     card->pack({{"fill", "x"}, {"pady", "0 6"}});
-    (new ttk::Label(card, {{"textvariable", card_title}, {"font", "{Segoe UI} 13 bold"}, {"background", forma_theme::CARD}}))->pack({{"anchor", "w"}});
-    (new ttk::Label(card, {{"textvariable", card_sub}, {"foreground", forma_theme::MUTED}, {"background", forma_theme::CARD}}))->pack({{"anchor", "w"}});
+    card_icon = new tk::Canvas(card, {{"width", 64}, {"height", 64}, {"bg", forma_theme::CARD}, {"highlightthickness", 0}});
+    card_icon->pack({{"side", "left"}, {"padx", "0 10"}});
+    draw_card_icon(card_icon, 0, 0, 0);
+    auto* card_text = new tk::Frame(card, {{"bg", forma_theme::CARD}});
+    card_text->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}});
+    (new ttk::Label(card_text, {{"textvariable", card_title}, {"font", "{Segoe UI} 12 bold"}, {"background", forma_theme::CARD}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(card_text, {{"textvariable", card_sub}, {"foreground", forma_theme::MUTED}, {"background", forma_theme::CARD}}))->pack({{"anchor", "w"}});
     groupcombo = new ttk::Combobox(top, {{"textvariable", groupvar}, {"state", "readonly"}});
     groupcombo->pack({{"fill", "x"}, {"pady", 4}});
     groupcombo->bind("<<ComboboxSelected>>", plain([this](tk::Event&) { choose_group(); }));
@@ -536,9 +573,15 @@ void QuickInspector::set_config(const json& cfg_in) {
             json v = jget(cfg, key, json());
             return v.is_number() ? std::format("{:g}", v.get<double>()) : std::string("—");
         };
+        auto number_value = [&](const char* key) -> double {
+            json v = jget(cfg, key, json());
+            return v.is_number() ? v.get<double>() : 0.0;
+        };
         json name = jget(cfg, "name", json());
         card_title.set(name.is_string() && !name.get<std::string>().empty() ? name.get<std::string>() : std::string("Mebel"));
         card_sub.set(number_of("width") + " × " + number_of("height") + " × " + number_of("depth") + " mm");
+        draw_card_icon(card_icon, number_value("width"), number_value("height"), number_value("depth"));
+        app->props_title.set(card_title.get() == "Mebel" ? std::string("Właściwości") : "Właściwości: " + card_title.get());
     }
     draw_preview();
 }
@@ -880,6 +923,27 @@ void QuickInspector::draw_preview() {
     c->create_text(117, 99, {{"text", "Schemat przekroju · frez od frontu"}, {"anchor", "w"}, {"fill", "#6b7266"}, {"font", "{Segoe UI} 8"}});
 }
 
+// Zakładka „Ustawienia" (po prawej od Rozkroju): program, dane produkcyjne, informacje.
+static void build_settings_page(App* app) {
+    auto* page = new ttk::Frame(app->tabs, {{"padding", "40 24"}});
+    app->tabs->add(page, {{"text", "Ustawienia"}});
+    (new ttk::Label(page, {{"text", "Ustawienia"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(page, {{"text", "Ustawienia programu zapisują się na tym komputerze i nie zmieniają projektu mebla."}, {"style", "Muted.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "2 14"}});
+    struct Card { std::string title, text, button; Cmd command; bool accent; };
+    std::vector<Card> cards = {
+        {"Okno, skala i panele", "Rozmiar okna, skala interfejsu, widoczność paneli. Silnik i jakość 3D ustawisz też w panelu Widok.", "Otwórz ustawienia", [app] { ui_settings::open_settings(app); }, true},
+        {"Materiały i ceny produkcji", "Ceny płyt, obrzeży i robocizny, narzut oraz koszty używane w kosztorysie.", "Zmień ceny i materiały", [app] { app->settings(); }, false},
+        {"Pomoc", "Skróty myszy, opis trybów pracy i podstawowe procedury.", "Otwórz pomoc", [app] { app->help(); }, false},
+        {"Silnik C++ i stan migracji", "Informacje o silniku, module CAD i zgodności z wersją pierwotną.", "Pokaż stan", [app] { migration_status::open_status(app); }, false}};
+    for (auto& card : cards) {
+        auto* box = new ttk::Frame(page, {{"style", "Card.TFrame"}, {"padding", "16 12"}});
+        box->pack({{"anchor", "w"}, {"fill", "x"}, {"pady", 5}});
+        (new ttk::Label(box, {{"text", card.title}, {"background", forma_theme::CARD}, {"font", "{Segoe UI} 11 bold"}}))->pack({{"anchor", "w"}});
+        (new ttk::Label(box, {{"text", card.text}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"wraplength", 640}}))->pack({{"anchor", "w"}, {"pady", "2 8"}});
+        (new ttk::Button(box, {{"text", card.button}, {"command", card.command}, {"style", card.accent ? "Accent.TButton" : "TButton"}}))->pack({{"anchor", "w"}});
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Okno główne
 // ---------------------------------------------------------------------------
@@ -891,20 +955,20 @@ void build(App* app) {
     auto* head = new ttk::Frame(app, {{"style", "Header.TFrame"}, {"padding", "10 6"}});
     head->pack({{"fill", "x"}});
     app->header = head;
-    (new tk::Label(head, {{"text", "MEBEL"}, {"fg", forma_theme::ACCENT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 15 bold"}}))->pack({{"side", "left"}});
-    (new tk::Label(head, {{"text", " Studio"}, {"fg", forma_theme::TEXT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 13"}}))->pack({{"side", "left"}, {"padx", "0 16"}});
+    (new tk::Label(head, {{"text", "⬡ "}, {"fg", forma_theme::ACCENT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI Symbol} 17"}}))->pack({{"side", "left"}});
+    (new tk::Label(head, {{"text", "MEBEL"}, {"fg", forma_theme::TEXT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 14 bold"}}))->pack({{"side", "left"}});
+    (new tk::Label(head, {{"text", " Studio"}, {"fg", forma_theme::TEXT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 14"}}))->pack({{"side", "left"}, {"padx", "0 16"}});
     app->header_menus = new ttk::Frame(head, {{"style", "Header.TFrame"}});
     app->header_menus->pack({{"side", "left"}});
     Cmd interface_settings = [app] { ui_settings::open_settings(app); };
     Cmd do_export = [app] { app->export_(); };
-    make_button(head, "Eksportuj", do_export, true)->pack({{"side", "right"}, {"padx", "6 0"}});
-    for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"⚙", interface_settings}, {"?", [app] { app->help(); }},
-                                                                       {"↷", [app] { app->redo(); }}, {"↶", [app] { app->undo(); }}}) {
+    make_button(head, "⇪  Eksportuj", do_export, true)->pack({{"side", "right"}, {"padx", "6 0"}});
+    for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"?", [app] { app->help(); }}, {"↷", [app] { app->redo(); }}, {"↶", [app] { app->undo(); }}}) {
         auto* b = make_button(head, label, fn);
         b->configure({{"style", "Tool.TButton"}, {"width", 3}});
         b->pack({{"side", "right"}});
     }
-    app->header_title = tk::StringVar(app->project ? app->project->name : std::string("Mój projekt"));
+    app->header_title = tk::StringVar("▭  " + (app->project ? app->project->name : std::string("Mój projekt")));
     (new tk::Label(head, {{"textvariable", app->header_title}, {"fg", forma_theme::TEXT}, {"bg", forma_theme::CARD}, {"font", "{Segoe UI} 11 bold"}}))
         ->pack({{"side", "left"}, {"expand", true}});
     auto* workspacepane = new ttk::Panedwindow(app, {{"orient", "vertical"}});
@@ -928,7 +992,23 @@ void build(App* app) {
     app->main_pane = pane;
     app->inspector_frame = left;
     app->view_frame = middle;
-    (new ttk::Label(left, {{"text", "Właściwości"}, {"style", "Title.TLabel"}, {"padding", "14 10 8 4"}}))->pack({{"fill", "x"}});
+    // Prawy panel ma dwie strony: "Właściwości" (domyślna) i kontekstową dla narzędzia (np. Zaokrąglenia, Silnik i jakość 3D).
+    app->props_title = tk::StringVar("Właściwości");
+    app->context_title = tk::StringVar("");
+    auto* props_page = new ttk::Frame(left, {{"style", "Panel.TFrame"}});
+    props_page->pack({{"fill", "both"}, {"expand", true}});
+    app->props_page = props_page;
+    (new ttk::Label(props_page, {{"textvariable", app->props_title}, {"style", "Title.TLabel"}, {"padding", "14 10 8 4"}}))->pack({{"fill", "x"}});
+    auto* context_page = new ttk::Frame(left, {{"style", "Panel.TFrame"}});
+    app->context_page = context_page;
+    auto* context_head = new ttk::Frame(context_page, {{"style", "Panel.TFrame"}});
+    context_head->pack({{"fill", "x"}});
+    (new ttk::Label(context_head, {{"textvariable", app->context_title}, {"style", "Title.TLabel"}, {"padding", "14 10 8 4"}}))->pack({{"side", "left"}});
+    auto* context_close = new tk::Label(context_head, {{"text", "✕"}, {"bg", forma_theme::PANEL}, {"fg", forma_theme::MUTED}, {"font", "{Segoe UI} 12"}, {"cursor", "hand2"}});
+    context_close->pack({{"side", "right"}, {"padx", 14}});
+    context_close->bind("<Button-1>", plain([app](tk::Event&) { side_panels::hide(app); }));
+    app->context_body = new ttk::Frame(context_page, {{"style", "Panel.TFrame"}, {"padding", "14 4"}});
+    app->context_body->pack({{"fill", "both"}, {"expand", true}});
     // Dawna wstążka: strony poleceń w panelu po lewej, przełączane ikonami (strony zachowują nazwy dla innych modułów).
     ttk::Style(app).layout("Rail.TNotebook.Tab", {});
     auto* rail = new tk::Frame(library, {{"bg", forma_theme::BG}, {"width", 64}});
@@ -943,7 +1023,7 @@ void build(App* app) {
     std::vector<responsive_ui::WrapToolbar*> unique_pages;
     app->library = new library_panel::LibraryPanel(ribbon, app);
     ribbon->add(app->library, {{"text", "Biblioteka"}});
-    for (const char* name : {"Mebel", "CAD", "Układ", "Scena", "Produkcja", "Widok", "Ustawienia"}) {
+    for (const char* name : {"Mebel", "CAD", "Układ", "Scena", "Produkcja", "Widok"}) {
         auto* page = new responsive_ui::RibbonPage(ribbon);
         page->body->vertical = true;
         ribbon->add(page, {{"text", name}});
@@ -958,7 +1038,7 @@ void build(App* app) {
         static const std::vector<RailItem> items = {{"Biblioteka", "\u25A6", "Biblioteka", "Biblioteka"}, {"Mebel", "\u270E", "Mebel", "Mebel i wyposażenie"},
                                                     {"CAD", "\u2316", "CAD", "Szkic i element"}, {"Układ", "\u229E", "Układ", "Układ mebli"},
                                                     {"Scena", "\u2302", "Scena", "Pomieszczenie i światło"}, {"Produkcja", "\u2399", "Produkcja", "Dokumenty i eksport"},
-                                                    {"Widok", "\u25C9", "Widok", "Widok i silnik 3D"}, {"Ustawienia", "\u2699", "Ustawienia", "Ustawienia programu"}};
+                                                    {"Widok", "\u25C9", "Widok", "Widok i silnik 3D"}};
         auto holders = std::make_shared<std::vector<std::vector<tk::Widget*>>>();
         auto select = std::make_shared<std::function<void(size_t)>>();
         *select = [app, ribbon, panel_title, holders](size_t index) {
@@ -984,7 +1064,7 @@ void build(App* app) {
         };
         (*select)(0);
     }
-    auto* lefttabs = new ttk::Notebook(left, {{"style", "Inspector.TNotebook"}});
+    auto* lefttabs = new ttk::Notebook(props_page, {{"style", "Inspector.TNotebook"}});
     lefttabs->pack({{"fill", "both"}, {"expand", true}});
     app->inspector_tabs = lefttabs;
     auto* quick = new QuickInspector(lefttabs, app);
@@ -1049,7 +1129,7 @@ void build(App* app) {
     make_button(pages["Widok"], "Dopasuj 3D", [app] { app->fit(); });
     make_group(pages["Widok"], "POKAŻ");
     for (auto& [label, var] : std::vector<std::pair<std::string, tk::BooleanVar*>>{{"Rozstrzelony", &app->explode}, {"Wymiary", &app->dimensions}, {"X-ray", &app->xray}})
-        (new ttk::Checkbutton(pages["Widok"], {{"text", label}, {"variable", *var}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 4}});
+        (new ttk::Checkbutton(pages["Widok"], {{"text", label}, {"variable", *var}, {"style", "Panel.TCheckbutton"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 4}});
     auto* details = new responsive_ui::WrapToolbar(middle);
     details->pack({{"fill", "x"}, {"padx", 5}});
     app->detail_toolbar = details;
@@ -1064,11 +1144,11 @@ void build(App* app) {
         auto it = std::find(tool_modes.begin(), tool_modes.end(), app->edit_mode.get());
         if (it != tool_modes.end()) tools->current((int)(it - tool_modes.begin()));
     });
-    (new ttk::Label(pages["Widok"], {{"text", "Wymiary:"}}))->pack({{"side", "left"}});
+    (new ttk::Label(pages["Widok"], {{"text", "Wymiary:"}, {"style", "Panel.TLabel"}}))->pack({{"side", "left"}, {"padx", 4}});
     auto* dimcombo = new ttk::Combobox(pages["Widok"], {{"textvariable", app->dimension_mode}, {"values", viewport_annotations::MODES}, {"state", "readonly"}, {"width", 18}});
     dimcombo->pack({{"side", "left"}, {"padx", 4}});
     dimcombo->bind("<<ComboboxSelected>>", plain([app](tk::Event&) { app->draw(); }));
-    (new ttk::Checkbutton(pages["Widok"], {{"text", "Otwory montażowe"}, {"variable", app->show_drills}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 5}});
+    (new ttk::Checkbutton(pages["Widok"], {{"text", "Otwory montażowe"}, {"variable", app->show_drills}, {"style", "Panel.TCheckbutton"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 5}});
     auto* trayframe = new ttk::Frame(middle);
     auto toggle_tray = [app, trayframe] {
         if (!trayframe->winfo_manager().empty()) trayframe->pack_forget();
@@ -1119,23 +1199,23 @@ void build(App* app) {
     make_button(pages["Fronty i okucia"], "Okucia elementu…", [app] { if (app->fittings_dialog) app->fittings_dialog(); });
     // Zakładka „CAD": szkic, element, tryb pracy myszą.
     make_group(pages["Szkic / CAD"], "SZKIC");
-    make_button(pages["Szkic / CAD"], "+ Rysuj", [app] { new Sketch(app, nullptr); });
+    make_button(pages["Szkic / CAD"], "Rysuj", [app] { new Sketch(app, nullptr); });
     make_button(pages["Szkic / CAD"], "Edytuj szkic", [app] { app->edit_sketch(); });
     make_group(pages["Szkic / CAD"], "ELEMENT");
     make_button(pages["Szkic / CAD"], "Dopasuj element", [app] { if (app->fit_selected) app->fit_selected(); });
-    make_button(pages["Szkic / CAD"], "Zaokrąglenia", [app] { app->round_edges(); });
+    side_panels::register_row("fillet", make_button(pages["Szkic / CAD"], "Zaokrąglenia", [app] { side_panels::show_fillet(app); }));
     make_group(pages["Szkic / CAD"], "TRYB MYSZY");
     auto* modes = new ttk::Combobox(pages["Szkic / CAD"], {{"state", "readonly"}, {"width", 24}, {"values", std::vector<std::string>{"Wybór / obrót", "Rozciągaj część", "Rozciągaj mebel", "Kanty"}}});
     modes->current(0);
     modes->pack({{"side", "left"}, {"padx", 5}});
     static const std::vector<std::string> cad_modes = {"camera", "resize", "furniture", "fillet"};
     modes->bind("<<ComboboxSelected>>", plain([app, modes](tk::Event&) { app->edit_mode.set(cad_modes.at(modes->current())); app->draw(); }));
-    (new ttk::Checkbutton(pages["Szkic / CAD"], {{"text", "Krok 32 mm"}, {"variable", app->resize_step}}))->pack({{"side", "left"}});
+    (new ttk::Checkbutton(pages["Szkic / CAD"], {{"text", "Krok 32 mm"}, {"variable", app->resize_step}, {"style", "Panel.TCheckbutton"}}))->pack({{"side", "left"}});
     // Zakładka „Układ": tryb, obrót, pozycja (narożniki i blaty dopisuje workspace_controls).
     make_group(pages["Układ"], "TRYB");
-    (new ttk::Radiobutton(pages["Układ"], {{"text", "Wybór / obrót"}, {"variable", app->edit_mode}, {"value", "camera"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 6}});
-    (new ttk::Radiobutton(pages["Układ"], {{"text", "Przesuwaj meble"}, {"variable", app->edit_mode}, {"value", "layout"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}});
-    (new ttk::Checkbutton(pages["Układ"], {{"text", "Magnes"}, {"variable", app->layout_magnet}}))->pack({{"side", "left"}, {"padx", 6}});
+    (new ttk::Radiobutton(pages["Układ"], {{"text", "Wybór / obrót"}, {"variable", app->edit_mode}, {"value", "camera"}, {"style", "Panel.TRadiobutton"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 6}});
+    (new ttk::Radiobutton(pages["Układ"], {{"text", "Przesuwaj meble"}, {"variable", app->edit_mode}, {"value", "layout"}, {"style", "Panel.TRadiobutton"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}});
+    (new ttk::Checkbutton(pages["Układ"], {{"text", "Magnes"}, {"variable", app->layout_magnet}, {"style", "Panel.TCheckbutton"}}))->pack({{"side", "left"}, {"padx", 6}});
     make_group(pages["Układ"], "POZYCJA");
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"−90°", [app] { if (app->rotate_furniture) app->rotate_furniture(-90); }},
                                                                        {"+90°", [app] { if (app->rotate_furniture) app->rotate_furniture(90); }},
@@ -1149,14 +1229,8 @@ void build(App* app) {
         make_button(pages["Produkcja"], label, fn);
     make_group(pages["Produkcja"], "DIAGNOSTYKA");
     // Zakładka „Widok" jest budowana wyżej (kamera, pokaż) i w view_modes_ui (silnik 3D).
-    // Zakładka „Ustawienia": program i dane.
-    make_group(pages["Ustawienia"], "PROGRAM");
-    make_button(pages["Ustawienia"], "Okno, skala, panele i silnik 3D", interface_settings, true);
-    make_button(pages["Ustawienia"], "Materiały i ceny produkcji", [app] { app->settings(); });
-    make_group(pages["Ustawienia"], "INFORMACJE");
-    make_button(pages["Ustawienia"], "Pomoc", [app] { app->help(); });
-    make_button(pages["Ustawienia"], "Silnik C++ i stan migracji", [app] { migration_status::open_status(app); });
     build_production(app);
+    build_settings_page(app);
     auto* statusbar = new ttk::Frame(app, {{"style", "Header.TFrame"}, {"padding", "12 5"}});
     statusbar->pack({{"side", "bottom"}, {"fill", "x"}, {"before", workspacepane->path()}});
     (new ttk::Label(statusbar, {{"textvariable", app->status}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "left"}});

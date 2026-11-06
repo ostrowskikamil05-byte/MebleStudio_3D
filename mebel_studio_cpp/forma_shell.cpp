@@ -89,7 +89,7 @@ void finish(App* app) {
     auto tick = std::make_shared<Command>();
     *tick = [app, tick] {
         try {
-            if (app->project) app->header_title.set(app->project->name + (app->dirty ? " •" : ""));
+            if (app->project) app->header_title.set("▭  " + app->project->name + (app->dirty ? " *" : ""));
             app->after(500, *tick);
         } catch (const tk::TclError&) {
         }

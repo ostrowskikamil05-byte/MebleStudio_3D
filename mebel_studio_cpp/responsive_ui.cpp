@@ -215,7 +215,7 @@ UiLayout::UiLayout(App* app_, const json& preferences, const std::optional<std::
     prefs = ui_preferences::validate_preferences(!preferences.is_null() && py::truthy(preferences) ? preferences : ui_preferences::load_preferences(path));
     if (app->inspector_tabs != nullptr) {
         panel_var = std::make_unique<tk::StringVar>(app, "");
-        panel_selector = new ttk::Combobox(app->inspector_frame, {{"textvariable", *panel_var}, {"state", "readonly"}});
+        panel_selector = new ttk::Combobox(app->props_page != nullptr ? app->props_page : app->inspector_frame, {{"textvariable", *panel_var}, {"state", "readonly"}});
         panel_selector->bind("<<ComboboxSelected>>", [this](tk::Event&) { select_panel(); return std::string(); });
         app->inspector_tabs->bind("<<NotebookTabChanged>>", [this](tk::Event&) { sync_panel(); return std::string(); }, true);
         ttk::Style(app).layout("HiddenInspector.TNotebook.Tab", {});
@@ -361,7 +361,7 @@ void UiLayout::apply(const json& preferences_, bool geometry) {
         }
         show_inspector(py::truthy(p.at("show_inspector")), false);
         show_ribbon(py::truthy(p.at("show_ribbon")), false);
-        show_toolbars(py::truthy(p.at("show_toolbars")), false);
+        show_toolbars(false, false);  // paski skrótów zastąpiła nakładka na widoku 3D (viewport_hud)
         app->apply_viewport_preferences(p);
         // Existing detached and snapshot documents use the same setting;
         // they retain their independent cameras and source projects.

@@ -1,5 +1,6 @@
 // Tłumaczenie 1:1 viewport_scene.py (patrz viewport_scene.h).
 #include "viewport_scene.h"
+#include "view_style.h"
 
 #include <algorithm>
 #include <cmath>
@@ -391,6 +392,9 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
         sky_top = SKY_TOP; sky_bottom = SKY_BOTTOM; floor = FLOOR; grid_color = GRID;
         shadow_colors = {"#dcd6ca", "#cfc6b7"};
     }
+    if (const auto& palette = view_style::palette(); palette.sky_top != nullptr) {  // tło wybrane w panelu "Silnik i jakość 3D"
+        sky_top = palette.sky_top; sky_bottom = palette.sky_bottom; floor = palette.floor; grid_color = palette.grid;
+    }
     int count = 0;
     int bands = options.interactive ? 10 : 20;
     for (int i = 0; i < bands; ++i) {
@@ -429,7 +433,7 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
             }
         }
     }
-    if (options.shadows) {
+    if (options.shadows && view_style::state.shadows) {
         // Contact shadows should not suggest a hanging cabinet touches the floor.
         auto& cache = context->shadow_hulls;
         if (!cache.contains(options.include_fittings)) {
@@ -463,7 +467,7 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
     }
     // Pools are a lightweight floor approximation of LED spill. Direction and
     // height decide whether a strip can illuminate the floor beneath it.
-    if (!options.interactive) {
+    if (!options.interactive && view_style::state.lighting) {
         size_t limit = std::min<size_t>(32, context->lights.size());
         for (size_t l = 0; l < limit; ++l) {
             const json& light = context->lights[l];

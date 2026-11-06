@@ -1,5 +1,6 @@
 // Native C++ DirectX/Vulkan viewport inside the existing CAD workspace.
 #include "native_viewport.h"
+#include "view_style.h"
 
 #include <algorithm>
 #include <cmath>
@@ -209,7 +210,8 @@ public:
         if (request.selected && !request.selected->empty()) selection.insert(*request.selected);
         CacheKey key{prepared.get(), request.interactive, request.explode,
                      request.explode != 0 ? std::vector<double>(camera.center.begin(), camera.center.end()) : std::vector<double>{},
-                     std::vector<std::string>(selection.begin(), selection.end()), std::vector<std::string>(ghosts.begin(), ghosts.end()), request.quality};
+                     std::vector<std::string>(selection.begin(), selection.end()), std::vector<std::string>(ghosts.begin(), ghosts.end()),
+                     request.quality + "|bg" + std::to_string(view_style::state.background)};
         if (!size || *size != request.size) {
             uint32_t w = static_cast<uint32_t>(std::max(1, static_cast<int>(request.size.first)));
             uint32_t h = static_cast<uint32_t>(std::max(1, static_cast<int>(request.size.second)));
