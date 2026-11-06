@@ -49,6 +49,10 @@ void apply(tk::Widget* root) {
     s.configure("Accent.TButton", {{"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}, {"font", bold}});
     s.map("Accent.TButton", "background", {{"disabled", "#a8b79c"}, {"pressed", "#3f5a33"}, {"active", ACCENT_HOVER}});
     s.map("Accent.TButton", "foreground", {{"disabled", "white"}});
+    s.configure("Chip.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9"}, {"background", CARD}, {"bordercolor", BORDER}});
+    s.map("Chip.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
+    s.configure("ChipOn.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9 bold"}, {"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}});
+    s.map("ChipOn.TButton", "background", {{"active", ACCENT_HOVER}});
     s.configure("Tool.TButton", {{"padding", "6 6"}, {"background", PANEL}, {"bordercolor", PANEL}});
     s.map("Tool.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
     s.configure("Section.TButton", {{"anchor", "w"}, {"padding", "8 6"}, {"font", bold}, {"background", PANEL}, {"bordercolor", PANEL}});

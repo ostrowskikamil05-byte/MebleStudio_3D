@@ -7,6 +7,7 @@
 #include <set>
 
 #include "app.h"
+#include "library_panel.h"
 #include "quick_studio_ui.h"
 #include "catalogue_previews.h"
 #include "corner_furniture.h"
@@ -651,7 +652,11 @@ VisualCatalogue* show(App* app, const std::string& kind_in, OnSelect on_select) 
 }
 
 void install(App* app) {
-    app->visual_catalogue_open = [app](const std::string& kind, OnSelect on_select) { return show(app, kind, on_select); };
+    app->visual_catalogue_open = [app](const std::string& kind, OnSelect on_select) -> VisualCatalogue* {
+        // Bez własnej akcji wyboru katalog otwiera się w lewym panelu (biblioteka); z akcją — jako zakładka.
+        if (!on_select && app->library != nullptr) { app->library->show_kind(kind); return nullptr; }
+        return show(app, kind, on_select);
+    };
     if (app->_catalogue_buttons_installed) return;
     app->catalogue_buttons.clear();
     std::set<std::string> captioned;

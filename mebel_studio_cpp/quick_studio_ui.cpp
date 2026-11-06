@@ -338,9 +338,19 @@ bool QuickInspector::flush_draft() {
 tk::StringVar* QuickInspector::field(tk::Widget* parent, const std::string& key, const std::string& label, bool integer, bool text) {
     auto var = std::make_shared<tk::StringVar>();
     fields.push_back({key, var, nullptr, text ? "text" : integer ? "int" : "number"});
-    auto* row = new responsive_ui::FieldRow(parent, label, {{"textvariable", *var}, {"width", text ? 22 : 10}});
+    // Wiersz: etykieta po lewej, pole po prawej, jednostka za polem (mm / ° / zł).
+    auto* row = new ttk::Frame(parent);
     row->pack({{"fill", "x"}, {"pady", 2}});
-    auto* entry = row->entry;
+    (new ttk::Label(row, {{"text", label}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "left"}});
+    std::string unit;
+    if (!text && !integer) {
+        if (label.find("Kąt") != std::string::npos) unit = "°";
+        else if (label.find("Cena") != std::string::npos) unit = label.find("zł / m") != std::string::npos ? "zł/m" : "zł";
+        else unit = "mm";
+    }
+    if (!unit.empty()) (new ttk::Label(row, {{"text", unit}, {"foreground", forma_theme::MUTED}, {"width", 4}}))->pack({{"side", "right"}, {"padx", "4 0"}});
+    auto* entry = new ttk::Entry(row, {{"textvariable", *var}, {"width", text ? 22 : 9}, {"justify", text ? "left" : "right"}});
+    entry->pack({{"side", "right"}});
     entry->bind("<Return>", plain([this](tk::Event&) { apply(true); }));
     entry->bind("<FocusOut>", plain([this](tk::Event&) { schedule(); }));
     entry->bind("<Escape>", plain([this](tk::Event&) { reset_fields(); }));
@@ -931,6 +941,8 @@ void build(App* app) {
     app->ribbon = ribbon;
     auto& pages = app->ribbon_pages;
     std::vector<responsive_ui::WrapToolbar*> unique_pages;
+    app->library = new library_panel::LibraryPanel(ribbon, app);
+    ribbon->add(app->library, {{"text", "Biblioteka"}});
     for (const char* name : {"Mebel", "CAD", "Układ", "Scena", "Produkcja", "Widok", "Ustawienia"}) {
         auto* page = new responsive_ui::RibbonPage(ribbon);
         page->body->vertical = true;
@@ -940,13 +952,13 @@ void build(App* app) {
     }
     pages["Fronty i okucia"] = pages["Mebel"];
     pages["Szkic / CAD"] = pages["CAD"];
-    app->responsive_toolbars = unique_pages;
+    app->responsive_toolbars.insert(app->responsive_toolbars.end(), unique_pages.begin(), unique_pages.end());
     {
         struct RailItem { const char* page; const char* glyph; const char* caption; const char* title; };
-        static const std::vector<RailItem> items = {{"Mebel", "\uE8F1", "Mebel", "Biblioteka i wyposażenie"}, {"CAD", "\uE70F", "CAD", "Szkic i element"},
-                                                    {"Układ", "\uE80A", "Układ", "Układ mebli"}, {"Scena", "\uE80F", "Scena", "Pomieszczenie i światło"},
-                                                    {"Produkcja", "\uE8A5", "Produkcja", "Dokumenty i eksport"}, {"Widok", "\uE7B3", "Widok", "Widok i silnik 3D"},
-                                                    {"Ustawienia", "\uE713", "Ustawienia", "Ustawienia programu"}};
+        static const std::vector<RailItem> items = {{"Biblioteka", "\u25A6", "Biblioteka", "Biblioteka"}, {"Mebel", "\u270E", "Mebel", "Mebel i wyposażenie"},
+                                                    {"CAD", "\u2316", "CAD", "Szkic i element"}, {"Układ", "\u229E", "Układ", "Układ mebli"},
+                                                    {"Scena", "\u2302", "Scena", "Pomieszczenie i światło"}, {"Produkcja", "\u2399", "Produkcja", "Dokumenty i eksport"},
+                                                    {"Widok", "\u25C9", "Widok", "Widok i silnik 3D"}, {"Ustawienia", "\u2699", "Ustawienia", "Ustawienia programu"}};
         auto holders = std::make_shared<std::vector<std::vector<tk::Widget*>>>();
         auto select = std::make_shared<std::function<void(size_t)>>();
         *select = [app, ribbon, panel_title, holders](size_t index) {
@@ -957,7 +969,7 @@ void build(App* app) {
         };
         for (size_t i = 0; i < items.size(); ++i) {
             auto* cell = new tk::Frame(rail, {{"bg", forma_theme::BG}, {"cursor", "hand2"}});
-            auto* glyph = new tk::Label(cell, {{"text", items[i].glyph}, {"font", "{Segoe MDL2 Assets} 17"}, {"bg", forma_theme::BG}, {"fg", forma_theme::TEXT}});
+            auto* glyph = new tk::Label(cell, {{"text", items[i].glyph}, {"font", "{Segoe UI Symbol} 16"}, {"bg", forma_theme::BG}, {"fg", forma_theme::TEXT}});
             auto* caption = new tk::Label(cell, {{"text", items[i].caption}, {"font", "{Segoe UI} 8"}, {"bg", forma_theme::BG}, {"fg", forma_theme::MUTED}});
             glyph->pack({{"pady", "8 0"}});
             caption->pack({{"pady", "0 6"}});
@@ -966,6 +978,10 @@ void build(App* app) {
             for (tk::Widget* w : std::vector<tk::Widget*>{cell, glyph, caption})
                 w->bind("<Button-1>", plain([select, i](tk::Event&) { (*select)(i); }));
         }
+        app->select_tool_page = [select](const std::string& page) {
+            for (size_t i = 0; i < items.size(); ++i)
+                if (page == items[i].page) { (*select)(i); return; }
+        };
         (*select)(0);
     }
     auto* lefttabs = new ttk::Notebook(left, {{"style", "Inspector.TNotebook"}});

@@ -23,6 +23,7 @@
 #include <vector>
 #include "pyutil.h"
 #include "forma_shell.h"
+#include "library_panel.h"
 #include "viewport_hud.h"
 #include "forma_theme.h"
 #include "tk.h"            // tk::Tk, tk::StringVar, tk::DoubleVar, tk::BooleanVar, tk::Event, tk::Opts,
@@ -199,6 +200,7 @@ public:
     visual_catalogue::VisualCatalogue* _visual_catalogue_panel = nullptr;
     std::map<std::string, ttk::Button*> catalogue_buttons;
     bool _catalogue_buttons_installed = false;
+    library_panel::LibraryPanel* library = nullptr; std::function<void(const std::string&)> select_tool_page;  // biblioteka w lewym panelu; przełączanie stron panelu narzędzi
     std::function<std::optional<json>(double, double)> pick_attachment_target;  // hasattr(app, 'pick_attachment_target')
     std::function<void()> layout_dialog;                // furniture_layout_ui.install
     std::function<void()> print_project;                // furniture_layout_ui.install
