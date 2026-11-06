@@ -46,6 +46,8 @@ private:
     std::set<std::string> expanded_;
     std::optional<std::string> job_;
     std::string selected_id_;
+    std::map<std::string, tk::Canvas*> cards_;  // miniatury kart (do szybkiego podświetlenia zaznaczenia bez przebudowy listy)
+    void highlight(const std::string& id, bool on);
 };
 
 }  // namespace library_panel
