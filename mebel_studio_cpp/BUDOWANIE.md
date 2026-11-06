@@ -58,3 +58,18 @@ zwrotnych trafiają do `Tk::report_callback_exception`. Katalog projektu **nie m
 
 Skrypty Tcl/Tk program szuka kolejno w: `TCL_LIBRARY`/`TK_LIBRARY`, `_internal/_tcl_data` i
 `_internal/_tk_data` (układ PyInstallera z repozytorium), `lib/tcl8.6`, `lib/tk8.6` obok programu.
+
+
+## Szybki cykl pracy (bez ciągłego budowania od zera)
+
+W powłoce MSYS2 UCRT64, w folderze `mebel_studio_cpp`:
+
+```bash
+./dev.sh          # git pull + budowanie tylko zmienionych plików (ninja) + self-test
+./dev.sh run      # jw. i od razu start aplikacji
+./dev.sh fast     # kompilacja -O0 w build-dev: najszybsza przy poprawkach interfejsu
+./dev.sh test     # sam self-test bez budowania
+```
+
+Dodatkowo `pacman -S --needed mingw-w64-ucrt-x86_64-ccache` przyspiesza ponowne budowanie
+(CMake sam wykrywa ccache). Zmiana jednego pliku `.cpp` oznacza ponowną kompilację tylko tego pliku i linkowanie.

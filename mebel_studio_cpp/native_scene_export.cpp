@@ -1,6 +1,7 @@
 // Presentation-only snapshots for the integrated native C++ viewport.
 #include "native_scene_export.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -259,6 +260,51 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         }
     }
 
+    // Podłoga i siatka jako zwykła geometria sceny: natywne renderery D3D11/D3D12/Vulkan
+    // nie mają własnej siatki, a ich okno zasłania tło rysowane przez Tk. Geometria jest
+    // oznaczona jako ARCHITECTURE (ten sam wycinek kamery co podłoga pokoju: patrząc od
+    // dołu płyta znika), leży tuż pod meblami i nie wchodzi do granic sceny (Dopasuj).
+    double grid_step = 0;
+    if (options.ground && vertex_count) {
+        const double margin = 1200;
+        double floor_z = std::min(0.0, scene_lo[2]);
+        double cx = (scene_lo[0] + scene_hi[0]) / 2, cy = (scene_lo[1] + scene_hi[1]) / 2;
+        double hx = std::max(300.0, (scene_hi[0] - scene_lo[0]) / 2) + margin;
+        double hy = std::max(300.0, (scene_hi[1] - scene_lo[1]) / 2) + margin;
+        double target = std::max(hx, hy) / 9;
+        double power = std::pow(10.0, std::floor(std::log10(target)));
+        grid_step = 10 * power;
+        for (double multiplier : {1.0, 2.0, 5.0, 10.0})
+            if (multiplier * power >= target) { grid_step = multiplier * power; break; }
+        grid_step = std::max(grid_step, 100.0);
+        double line = std::clamp(grid_step * 0.015, 1.5, 8.0);
+        uint32_t owner_index = (uint32_t)owner_table.size();
+        Owner owner{3, ARCHITECTURE, "architecture:viewport.grid", "Siatka", {cx - hx, cy - hy, floor_z - 3}, {cx + hx, cy + hy, floor_z - 1}};
+        owner_table.push_back(owner);
+        auto quad = [&](double x0, double y0, double x1, double y1, double z, const float rgb[3]) {
+            const double xs[6] = {x0, x1, x1, x0, x1, x0}, ys[6] = {y0, y0, y1, y0, y1, y1};
+            for (int i = 0; i < 6; ++i) {
+                put_f32(vertices, (float)xs[i]); put_f32(vertices, (float)ys[i]); put_f32(vertices, (float)z);
+                put_f32(vertices, 0.f); put_f32(vertices, 0.f); put_f32(vertices, 1.f);
+                put_f32(vertices, rgb[0]); put_f32(vertices, rgb[1]); put_f32(vertices, rgb[2]); put_f32(vertices, 1.f);
+                put_u32(vertices, owner_index); put_u32(vertices, ARCHITECTURE);
+                ++vertex_count;
+            }
+        };
+        // Kolory z zapasem na cieniowanie shadera (.40+.52*diffuse+.16*secondary).
+        const float floor_rgb[3] = {0.93f, 0.92f, 0.89f}, grid_rgb[3] = {0.66f, 0.65f, 0.62f}, axis_rgb[3] = {0.55f, 0.58f, 0.64f};
+        quad(cx - hx, cy - hy, cx + hx, cy + hy, floor_z - 3, floor_rgb);
+        int lines = 0;
+        for (double x = std::ceil((cx - hx) / grid_step) * grid_step; x <= cx + hx && lines < 200; x += grid_step, ++lines) {
+            double w = std::fabs(x) < 1e-6 ? line * 2 : line;
+            quad(x - w / 2, cy - hy, x + w / 2, cy + hy, floor_z - 2, std::fabs(x) < 1e-6 ? axis_rgb : grid_rgb);
+        }
+        for (double y = std::ceil((cy - hy) / grid_step) * grid_step; y <= cy + hy && lines < 400; y += grid_step, ++lines) {
+            double w = std::fabs(y) < 1e-6 ? line * 2 : line;
+            quad(cx - hx, y - w / 2, cx + hx, y + w / 2, floor_z - 2, std::fabs(y) < 1e-6 ? axis_rgb : grid_rgb);
+        }
+    }
+
     if (!vertex_count) for (int a = 0; a < 3; ++a) { scene_lo[a] = 0.0; scene_hi[a] = 0.0; }
     std::string result(MAGIC, 8);
     put_u32(result, (uint32_t)VERSION);
@@ -288,7 +334,7 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
     json diagnostics = {{"format", "MS3DNAT1"}, {"version", VERSION}, {"vertices", vertex_count}, {"triangles", vertex_count / 3},
                         {"owners", owner_table.size()}, {"kinds", kinds_json},
                         {"bounds", json::array({json::array({scene_lo[0], scene_lo[1], scene_lo[2]}), json::array({scene_hi[0], scene_hi[1], scene_hi[2]})})},
-                        {"brightness", brightness}, {"bytes", result.size()}, {"project_unchanged", true}, {"owner_sources", sources}};
+                        {"brightness", brightness}, {"grid_step", grid_step}, {"bytes", result.size()}, {"project_unchanged", true}, {"owner_sources", sources}};
     return {std::move(result), std::move(diagnostics)};
 }
 

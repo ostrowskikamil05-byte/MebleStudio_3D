@@ -393,7 +393,7 @@ class Direct3D11Renderer final:public Renderer {
         frame.options[3]=0;
         ID3D11RenderTargetView* target=target_.get();
         context_->OMSetRenderTargets(1,&target,depth_.get());
-        const float background[]={0.075f,0.095f,0.135f,1};
+        const float background[]={0.953f,0.957f,0.945f,1};
         context_->ClearRenderTargetView(target_.get(),background);
         context_->ClearDepthStencilView(depth_.get(),D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL,1,0);
         D3D11_VIEWPORT viewport{};
