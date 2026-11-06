@@ -41,29 +41,21 @@ void apply(tk::Widget* root) {
     s.configure("TSeparator", {{"background", BORDER}});
 
     // Przyciski: białe z cienką ramką; akcent zielony.
-    s.configure("TButton", {{"padding", "10 6"}, {"background", CARD}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"borderwidth", 1}, {"relief", "flat"}, {"focuscolor", CARD}});
-    s.map("TButton", "background", {{"disabled", BG}, {"pressed", ACCENT_SOFT}, {"active", HOVER}});
+    s.configure("TButton", {{"width", 0}, {"padding", "10 6"}, {"background", PANEL}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"borderwidth", 1}, {"relief", "flat"}, {"focuscolor", CARD}});
     s.map("TButton", "foreground", {{"disabled", MUTED}});
     // Wiersz listy poleceń w panelu bocznym (jak "Rysuj", "Edytuj szkic" na makiecie).
     s.configure("Ribbon.TButton", {{"padding", "10 9"}, {"anchor", "w"}, {"background", PANEL}, {"bordercolor", PANEL}, {"borderwidth", 0}, {"font", "{Segoe UI} 10"}});
-    s.map("Ribbon.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
-    s.configure("RibbonOn.TButton", {{"padding", "10 9"}, {"anchor", "w"}, {"background", ACCENT_SOFT}, {"bordercolor", ACCENT_SOFT}, {"borderwidth", 0}, {"font", "{Segoe UI} 10"}});
-    s.map("RibbonOn.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", ACCENT_SOFT}});
-    s.configure("Accent.TButton", {{"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}, {"font", bold}});
-    s.map("Accent.TButton", "background", {{"disabled", "#a8b79c"}, {"pressed", "#3f5a33"}, {"active", ACCENT_HOVER}});
+    s.configure("RibbonOn.TButton", {{"padding", "10 9"}, {"anchor", "w"}, {"background", PANEL}, {"bordercolor", PANEL}, {"borderwidth", 0}, {"font", "{Segoe UI} 10"}});
+    s.configure("Accent.TButton", {{"background", PANEL}, {"foreground", "white"}, {"bordercolor", PANEL}, {"font", bold}});
     s.map("Accent.TButton", "foreground", {{"disabled", "white"}});
-    s.configure("Chip.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9"}, {"background", CARD}, {"bordercolor", BORDER}});
-    s.map("Chip.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
-    s.configure("ChipOn.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9 bold"}, {"background", ACCENT}, {"foreground", "white"}, {"bordercolor", ACCENT}});
-    s.map("ChipOn.TButton", "background", {{"active", ACCENT_HOVER}});
+    s.configure("Chip.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9"}, {"background", PANEL}, {"bordercolor", PANEL}});
+    s.configure("ChipOn.TButton", {{"padding", "8 3"}, {"font", "{Segoe UI} 9 bold"}, {"background", PANEL}, {"foreground", "white"}, {"bordercolor", PANEL}});
     s.configure("Tool.TButton", {{"padding", "6 6"}, {"background", PANEL}, {"bordercolor", PANEL}});
-    s.map("Tool.TButton", "background", {{"pressed", ACCENT_SOFT}, {"active", HOVER}});
     s.configure("Section.TButton", {{"anchor", "w"}, {"padding", "8 6"}, {"font", bold}, {"background", PANEL}, {"bordercolor", PANEL}});
-    s.map("Section.TButton", "background", {{"active", HOVER}});
 
     // Pola tekstowe i listy rozwijane.
     for (const char* name : {"TEntry", "TSpinbox", "TCombobox"})
-        s.configure(name, {{"fieldbackground", CARD}, {"background", CARD}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"padding", "6 5"}, {"arrowcolor", MUTED}, {"insertcolor", TEXT}});
+        s.configure(name, {{"fieldbackground", CARD}, {"background", PANEL}, {"foreground", TEXT}, {"bordercolor", BORDER}, {"padding", "6 5"}, {"arrowcolor", MUTED}, {"insertcolor", TEXT}});
     s.map("TEntry", "bordercolor", {{"focus", ACCENT}});
     s.map("TCombobox", "bordercolor", {{"focus", ACCENT}});
     s.map("TCombobox", "fieldbackground", {{"readonly", CARD}});
@@ -114,6 +106,7 @@ void apply(tk::Widget* root) {
     s.configure("TPanedwindow", {{"background", BG}, {"sashwidth", 7}});
     s.configure("Sash", {{"sashthickness", 7}, {"gripcount", 0}});
     s.configure("RibbonGroup.TLabel", {{"foreground", MUTED}, {"font", "{Segoe UI} 8 bold"}});
+    install_round(root);
 }
 
 }  // namespace forma_theme

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app.h"
+#include "forma_tabs.h"
 #include "ui_settings.h"
 
 namespace forma_shell {
@@ -82,6 +83,8 @@ void finish(App* app) {
 
     // Skróty widoku i narzędzia są teraz w nakładce na widoku 3D (viewport_hud); stare paski nad widokiem chowamy.
     if (app->ui_layout != nullptr) app->ui_layout->show_toolbars(false, false);
+
+    forma_tabs::install(app);
 
     if (app->library != nullptr) app->library->refresh();
 

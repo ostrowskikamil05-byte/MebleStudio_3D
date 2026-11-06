@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <format>
 #include <set>
 
@@ -1235,6 +1236,25 @@ void build(App* app) {
     statusbar->pack({{"side", "bottom"}, {"fill", "x"}, {"before", workspacepane->path()}});
     (new ttk::Label(statusbar, {{"textvariable", app->status}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "left"}});
     (new ttk::Label(statusbar, {{"textvariable", app->status_right}, {"background", forma_theme::CARD}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"side", "right"}});
+    // Współrzędne kursora na podłodze sceny (rzut ortogonalny odwrócony do płaszczyzny z = 0), kolory osi jak w gizmo.
+    app->status_x.set("X  —"); app->status_y.set("Y  —"); app->status_z.set("Z  0");
+    for (auto [var, color] : {std::pair{&app->status_z, "#527cae"}, std::pair{&app->status_y, "#4a9275"}, std::pair{&app->status_x, "#bd6559"}})
+        (new ttk::Label(statusbar, {{"textvariable", *var}, {"background", forma_theme::CARD}, {"foreground", color}, {"font", "{Segoe UI} 9 bold"}, {"width", 10}}))->pack({{"side", "right"}, {"padx", 4}});
+    app->canvas->bind("<Motion>", [app](tk::Event& e) -> std::string {
+        try {
+            double w = app->canvas->winfo_width(), h = app->canvas->winfo_height();
+            const auto& cam = app->camera;
+            double a = cam.yaw * std::numbers::pi / 180, b = cam.pitch * std::numbers::pi / 180;
+            double sb = std::sin(b), cb = std::cos(b), ca = std::cos(a), sa = std::sin(a);
+            if (std::fabs(sb) < 0.05 || std::fabs(cam.scale) < 1e-9) { app->status_x.set("X  —"); app->status_y.set("Y  —"); return ""; }
+            double u = (e.x - w / 2 - cam.pan[0]) / cam.scale, v = (h / 2 + cam.pan[1] - e.y) / cam.scale;
+            double zr = -cam.center[2], d = (v - zr * cb) / sb;
+            double x = cam.center[0] + u * ca + d * sa, y = cam.center[1] - u * sa + d * ca;
+            app->status_x.set(std::format("X  {:.0f}", x)); app->status_y.set(std::format("Y  {:.0f}", y)); app->status_z.set("Z  0");
+        } catch (const tk::TclError&) {
+        }
+        return "";
+    }, true);
     app->workspace = new dock_workspace::DockWorkspace(app, app->tabs);
     app->workspace->add_existing(design, "Projekt 3D", false);
     hardware_ui::install(app);

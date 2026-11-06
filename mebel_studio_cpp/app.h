@@ -172,7 +172,7 @@ public:
     ttk::Notebook* inspector_tabs = nullptr;
     tk::Widget* design_page = nullptr;
     // quick_studio_ui::build: układ okna (nagłówek, wstążka, panele, paski narzędzi)
-    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; tk::StringVar status_right; ttk::Frame* library_panel = nullptr;
+    ttk::Frame* header = nullptr; ttk::Frame* header_menus = nullptr; tk::StringVar header_title; tk::StringVar status_right; tk::StringVar status_x, status_y, status_z; ttk::Frame* library_panel = nullptr;
     ttk::Frame* props_page = nullptr; ttk::Frame* context_page = nullptr; ttk::Frame* context_body = nullptr;  // prawy panel: Właściwości albo panel kontekstowy narzędzia
     tk::StringVar context_title; tk::StringVar props_title;
     ttk::Panedwindow* workspace_pane = nullptr; ttk::Notebook* ribbon = nullptr;
@@ -649,8 +649,6 @@ public:
             return camera.project({position[0] + shift[0], position[1] + shift[1], position[2] + shift[2]}, w, h);
         };
         viewport_annotations::paint(this, display);
-        c->create_text(18, 20, {{"text", std::format("{} elementów   /   {}", project->parts.size(), project->name)}, {"anchor", "w"}, {"font", "{Segoe UI} 11"}, {"fill", "#6b7266"}});
-        viewport_scene::paint_overlay(c, camera, {w, h}, background["spacing"]);
         viewport_hud::paint(this, w, h, background["spacing"]);
         handles = {}; edge_handles = {};
         bool any_open = false; for (auto& [k, v] : open_amounts) if (v) any_open = true;
