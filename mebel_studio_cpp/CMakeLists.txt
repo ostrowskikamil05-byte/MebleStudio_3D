@@ -131,15 +131,36 @@ if(WIN32)
 endif()
 
 # ---------------------------------------------------------------- po zbudowaniu
+# Pierwszeństwo ma native-dll/ (wynik ./dev.sh dll — świeże DLL ze źródeł), potem MEBEL_NATIVE_DIR.
+# Plik poniżej 4 KB to wskaźnik Git LFS (nie prawdziwa biblioteka) — wtedy ostrzegamy.
 foreach(dll MebelModel.dll MebelNative3D.dll)
-    if(EXISTS "${MEBEL_NATIVE_DIR}/${dll}")
+    set(dll_src "")
+    foreach(dir "${CMAKE_CURRENT_SOURCE_DIR}/native-dll" "${MEBEL_NATIVE_DIR}")
+        if(NOT dll_src AND EXISTS "${dir}/${dll}")
+            file(SIZE "${dir}/${dll}" dll_size)
+            if(dll_size GREATER 4096)
+                set(dll_src "${dir}/${dll}")
+            else()
+                message(WARNING "${dir}/${dll} ma ${dll_size} B — to wskaźnik Git LFS, nie biblioteka. Zbuduj ją: ./dev.sh dll")
+            endif()
+        endif()
+    endforeach()
+    if(dll_src)
+        message(STATUS "${dll}: ${dll_src}")
         add_custom_command(TARGET MebelStudio3D_cpp POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MEBEL_NATIVE_DIR}/${dll}" "$<TARGET_FILE_DIR:MebelStudio3D_cpp>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${dll_src}" "$<TARGET_FILE_DIR:MebelStudio3D_cpp>"
             VERBATIM)
     else()
-        message(WARNING "Brak ${MEBEL_NATIVE_DIR}/${dll}: ustaw -DMEBEL_NATIVE_DIR=<katalog z DLL>")
+        message(WARNING "Brak działającego ${dll}: uruchom ./dev.sh dll albo ustaw -DMEBEL_NATIVE_DIR=<katalog z DLL>")
     endif()
 endforeach()
+
+# Manifest migracji (panel „stan migracji”) leży w korzeniu repozytorium — kopiujemy obok programu.
+if(EXISTS "${MEBEL_NATIVE_DIR}/MIGRACJA_CPP.json")
+    add_custom_command(TARGET MebelStudio3D_cpp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MEBEL_NATIVE_DIR}/MIGRACJA_CPP.json" "$<TARGET_FILE_DIR:MebelStudio3D_cpp>"
+        VERBATIM)
+endif()
 
 if(WIN32 AND MEBEL_BUNDLE_RUNTIME)
     get_filename_component(MEBEL_TOOLCHAIN_BIN "${CMAKE_CXX_COMPILER}" DIRECTORY)
