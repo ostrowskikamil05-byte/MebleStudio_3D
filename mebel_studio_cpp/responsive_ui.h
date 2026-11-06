@@ -62,6 +62,8 @@ public:
 private:
     std::optional<std::string> _idle;
     std::optional<bool> _stacked;
+    int _last_width = -1;
+    int _label_width = -1;
 };
 
 // Read current monitor work area and DPI; never change Windows settings.

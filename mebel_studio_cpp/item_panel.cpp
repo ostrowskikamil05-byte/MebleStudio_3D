@@ -205,10 +205,10 @@ void show_item(App* app, const json& item, std::function<void()> add) {
                                         {"command", std::function<void()>([url] { py::webbrowser_open(url); })}}))->pack({{"fill", "x"}, {"pady", "4 0"}});
         }
         if (add) {
-            auto* button = new ttk::Button(body, {{"text", "＋  Dodaj do projektu"}, {"style", "Accent.TButton"}, {"padding", "10 10"}, {"command", std::function<void()>(add)}});
+            auto* button = new ttk::Button(body, {{"text", "＋  Dodaj do projektu"}, {"style", "Accent.TButton"}, {"padding", "10 10"}, {"command", std::function<void()>([app, add] { app->after(1, add); })}});
             button->pack({{"fill", "x"}, {"pady", "14 4"}});
         }
-        auto* back = new ttk::Button(body, {{"text", "Wróć do właściwości mebla"}, {"style", "Tool.TButton"}, {"command", std::function<void()>([app] { hide(app); })}});
+        auto* back = new ttk::Button(body, {{"text", "Wróć do właściwości mebla"}, {"style", "Tool.TButton"}, {"command", std::function<void()>([app] { app->after(1, [app] { hide(app); }); })}});
         back->pack({{"fill", "x"}});
     });
 }
@@ -276,7 +276,7 @@ void show_layers(App* app) {
         });
         (new ttk::Label(body, {{"text", "Kliknij, aby zaznaczyć. Dwuklik pokazuje / ukrywa element lub cały mebel."}, {"style", "Panel.TLabel"},
                                {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 8"}, {"wraplength", 280}}))->pack({{"anchor", "w"}, {"pady", "6 0"}});
-        auto* back = new ttk::Button(body, {{"text", "Wróć do właściwości"}, {"style", "Tool.TButton"}, {"command", std::function<void()>([app] { hide(app); })}});
+        auto* back = new ttk::Button(body, {{"text", "Wróć do właściwości"}, {"style", "Tool.TButton"}, {"command", std::function<void()>([app] { app->after(1, [app] { hide(app); }); })}});
         back->pack({{"fill", "x"}, {"pady", "6 0"}});
     });
 }

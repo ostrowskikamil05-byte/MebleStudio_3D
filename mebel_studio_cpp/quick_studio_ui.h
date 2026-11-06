@@ -74,7 +74,10 @@ public:
     std::map<std::string, std::pair<ttk::Combobox*, json>> combos;
     std::map<std::string, Section*> sections;
     tk::Frame* swatch_row = nullptr;   // próbki materiałów projektu (kliknięcie ustawia materiał korpusu)
-    void rebuild_swatches();
+    bool swatches_pending = false;
+    std::string swatch_signature;
+    void rebuild_swatches();       // odroczone: nie niszczy kafelka w trakcie jego własnego kliknięcia
+    void build_swatches_now();
     bool has_draft = false;
     std::vector<int> template_indices;
     json saved = json::object();

@@ -265,6 +265,8 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
     // nie mają własnej siatki, a ich okno zasłania tło rysowane przez Tk. Geometria jest
     // oznaczona jako ARCHITECTURE (ten sam wycinek kamery co podłoga pokoju: patrząc od
     // dołu płyta znika), leży tuż pod meblami i nie wchodzi do granic sceny (Dopasuj).
+    // Granice samych brył (do "Dopasuj" i diagnostyki), zanim doliczymy podłogę.
+    double fit_lo[3] = {scene_lo[0], scene_lo[1], scene_lo[2]}, fit_hi[3] = {scene_hi[0], scene_hi[1], scene_hi[2]};
     double grid_step = 0;
     if (options.ground && vertex_count) {
         const double margin = 1200;
@@ -280,7 +282,8 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         grid_step = std::max(grid_step, 100.0);
         double line = std::clamp(grid_step * 0.015, 1.5, 8.0);
         uint32_t owner_index = (uint32_t)owner_table.size();
-        Owner owner{3, ARCHITECTURE, "architecture:viewport.grid", "Siatka", {cx - hx, cy - hy, floor_z - 3}, {cx + hx, cy + hy, floor_z - 1}};
+        // Pole właściciela z zapasem na szerokość linii siatki (kreski przy krawędzi wystają o pół szerokości).
+        Owner owner{3, ARCHITECTURE, "architecture:viewport.grid", "Siatka", {cx - hx - 10, cy - hy - 10, floor_z - 3}, {cx + hx + 10, cy + hy + 10, floor_z - 1}};
         owner_table.push_back(owner);
         auto quad = [&](double x0, double y0, double x1, double y1, double z, const float rgb[3]) {
             const double xs[6] = {x0, x1, x1, x0, x1, x0}, ys[6] = {y0, y0, y1, y0, y1, y1};
@@ -306,6 +309,15 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
             double w = std::fabs(y) < 1e-6 ? line * 2 : line;
             quad(cx - hx, y - w / 2, cx + hx, y + w / 2, floor_z - 2, std::fabs(y) < 1e-6 ? axis_rgb : grid_rgb);
         }
+        // Natywny renderer sprawdza każdy wierzchołek względem granic sceny z nagłówka — podłoga musi się w nich mieścić,
+        // inaczej cała scena jest odrzucana ("Wierzchołek wykracza poza granice sceny") i widok spada do wolnego rysowania.
+        for (int a = 0; a < 2; ++a) {
+            double center = a == 0 ? cx : cy, half = a == 0 ? hx : hy;
+            scene_lo[a] = std::min(scene_lo[a], center - half - 10);
+            scene_hi[a] = std::max(scene_hi[a], center + half + 10);
+        }
+        scene_lo[2] = std::min(scene_lo[2], floor_z - 3);
+        scene_hi[2] = std::max(scene_hi[2], floor_z - 1);
     }
 
     if (!vertex_count) for (int a = 0; a < 3; ++a) { scene_lo[a] = 0.0; scene_hi[a] = 0.0; }
@@ -336,7 +348,7 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
     }
     json diagnostics = {{"format", "MS3DNAT1"}, {"version", VERSION}, {"vertices", vertex_count}, {"triangles", vertex_count / 3},
                         {"owners", owner_table.size()}, {"kinds", kinds_json},
-                        {"bounds", json::array({json::array({scene_lo[0], scene_lo[1], scene_lo[2]}), json::array({scene_hi[0], scene_hi[1], scene_hi[2]})})},
+                        {"bounds", json::array({json::array({fit_lo[0], fit_lo[1], fit_lo[2]}), json::array({fit_hi[0], fit_hi[1], fit_hi[2]})})},
                         {"brightness", brightness}, {"grid_step", grid_step}, {"bytes", result.size()}, {"project_unchanged", true}, {"owner_sources", sources}};
     return {std::move(result), std::move(diagnostics)};
 }

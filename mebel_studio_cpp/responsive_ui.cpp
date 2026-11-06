@@ -1,7 +1,10 @@
 // Responsive toolbar layout and user controlled panes, independent of projects.
 #include "responsive_ui.h"
+#include "perf_monitor.h"
 
 #include <algorithm>
+#include <memory>
+#include <map>
 #include <cmath>
 #include <format>
 #include <sstream>
@@ -65,6 +68,7 @@ void WrapToolbar::schedule() {
 }
 
 void WrapToolbar::reflow() {
+    perf::Scope perf_scope("WrapToolbar::reflow");
     _job.reset();
     if (!winfo_exists()) return;
     std::vector<tk::Widget*> children = winfo_children();
@@ -129,7 +133,17 @@ void FieldRow::destroyed(tk::Event& event) {
 
 void FieldRow::arrange() {
     int width = std::max(1, winfo_width());
-    int label_width = tk::font::Font(this, label->cget("font")).measure(label->cget("text")) + 4;
+    if (width == _last_width && _stacked) return;  // Configure przychodzi przy każdym pokazaniu strony — bez zmiany szerokości nic do liczenia
+    _last_width = width;
+    if (_label_width < 0) {
+        // Czcionka pomiarowa jest tworzona raz na opis (wcześniej tworzono ją przy każdym odświeżeniu każdego wiersza).
+        static std::map<std::string, std::unique_ptr<tk::font::Font>> fonts;
+        std::string spec = label->cget("font");
+        auto& cached = fonts[spec];
+        if (!cached) cached = std::make_unique<tk::font::Font>(this, spec);
+        _label_width = cached->measure(label->cget("text")) + 4;
+    }
+    int label_width = _label_width;
     bool stack = width < label_width + entry->winfo_reqwidth() + 8;
     label->configure({{"wraplength", stack ? std::max(80, width - 4) : 0}});
     if (_stacked && stack == *_stacked) return;
@@ -238,6 +252,7 @@ void UiLayout::schedule() {
 }
 
 void UiLayout::reflow() {
+    perf::Scope perf_scope("UiLayout::reflow");
     job.reset();
     auto panes_contain = [](ttk::Panedwindow* pane, tk::Widget* child) {
         auto panes = pane->panes();
@@ -259,17 +274,29 @@ void UiLayout::reflow() {
     if (panel_selector != nullptr) {
         std::vector<std::string> tabs = app->inspector_tabs->tabs(), labels;
         for (const auto& tab : tabs) labels.push_back(app->inspector_tabs->tab(tab, "text"));
-        panel_selector->configure({{"values", labels}});
+        // Zmiana stylu lub wartości przebudowuje cały panel — robimy to tylko wtedy, gdy coś faktycznie się zmieniło.
+        static std::map<std::string, std::vector<std::string>> last_values;
+        auto& previous = last_values[panel_selector->path()];
+        if (previous != labels) {
+            panel_selector->configure({{"values", labels}});
+            previous = labels;
+        }
         std::string spec = ttk::Style(app).lookup("Inspector.TNotebook.Tab", "font");
-        tk::font::Font font(app, spec.empty() ? std::string("{Segoe UI} 9") : spec);
+        if (spec.empty()) spec = "{Segoe UI} 9";
+        static std::map<std::string, std::unique_ptr<tk::font::Font>> fonts;
+        auto& font = fonts[spec];
+        if (!font) font = std::make_unique<tk::font::Font>(app, spec);
         int needed = 0;
-        for (const auto& label : labels) needed += font.measure(label) + 24;
+        for (const auto& label : labels) needed += font->measure(label) + 24;
+        auto set_style = [&](const char* style) {
+            if (app->inspector_tabs->cget("style") != style) app->inspector_tabs->configure({{"style", style}});
+        };
         if (needed > app->inspector_frame->winfo_width() - 12) {
-            app->inspector_tabs->configure({{"style", "HiddenInspector.TNotebook"}});
+            set_style("HiddenInspector.TNotebook");
             if (panel_selector->winfo_manager().empty()) panel_selector->pack({{"fill", "x"}, {"padx", 5}, {"pady", 4}, {"before", app->inspector_tabs->path()}});
         } else {
-            panel_selector->pack_forget();
-            app->inspector_tabs->configure({{"style", "Inspector.TNotebook"}});
+            if (!panel_selector->winfo_manager().empty()) panel_selector->pack_forget();
+            set_style("Inspector.TNotebook");
         }
         sync_panel();
     }

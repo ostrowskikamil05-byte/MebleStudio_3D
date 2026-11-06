@@ -10,6 +10,7 @@
 #include "forma_theme.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
+#include "perf_monitor.h"
 #include "responsive_ui.h"
 #include "side_panels.h"
 #include "visual_catalogue.h"
@@ -106,8 +107,10 @@ void LibraryPanel::show_kind(const std::string& kind) {
 }
 
 void LibraryPanel::render() {
+    perf::Scope perf_scope("LibraryPanel::render");
     for (const auto& [kind, chip] : chips_) chip->configure({{"style", kind == kind_ ? "ChipOn.TButton" : "Chip.TButton"}});
     tk::Widget* body = scroll_->body;
+    cards_.clear();
     for (tk::Widget* child : body->winfo_children()) child->destroy();
     std::string search = query_.get();
     if (search == HINT) search.clear();
@@ -153,6 +156,7 @@ void LibraryPanel::render() {
             auto* image = new tk::Canvas(card, {{"width", PREVIEW_W}, {"height", PREVIEW_H}, {"bg", selected ? forma_theme::ACCENT_SOFT : forma_theme::CARD},
                                                 {"highlightthickness", 1}, {"highlightbackground", selected ? forma_theme::ACCENT : forma_theme::BORDER}, {"cursor", "hand2"}});
             image->pack();
+            cards_[item.at("id").get<std::string>()] = image;
             try {
                 catalogue_previews::draw_preview(image, item, PREVIEW_W, PREVIEW_H);
             } catch (const std::exception&) {
@@ -171,6 +175,15 @@ void LibraryPanel::render() {
     scroll_->install_wheel(body);
 }
 
+void LibraryPanel::highlight(const std::string& id, bool on) {
+    auto found = cards_.find(id);
+    if (found == cards_.end()) return;
+    try {
+        found->second->configure({{"bg", on ? forma_theme::ACCENT_SOFT : forma_theme::CARD}, {"highlightbackground", on ? forma_theme::ACCENT : forma_theme::BORDER}});
+    } catch (const tk::TclError&) {
+    }
+}
+
 void LibraryPanel::activate(const json& item) {
     try {
         if (generation_ != app_->project_generation) {
@@ -178,6 +191,7 @@ void LibraryPanel::activate(const json& item) {
             throw py::ValueError("Projekt zmienił się. Lista została odświeżona — kliknij kartę jeszcze raz.");
         }
         if (!visual_catalogue::apply_item(app_, item)) return;
+        std::string previous_id = selected_id_;
         selected_id_ = item.at("id").get<std::string>();
         std::string item_kind = item.at("kind").get<std::string>();
         bool mounting = (item_kind == "hinge" || item_kind == "runner" || item_kind == "led" || item_kind == "handle") && !item.at("payload").contains("option");
@@ -187,7 +201,9 @@ void LibraryPanel::activate(const json& item) {
         generation_ = app_->project_generation;
         json shown = item;
         side_panels::show_item(app_, shown, [this, shown] { activate(shown); });
-        render_later();
+        // Zamiast przebudowywać całą listę (ok. 120 ms) przestawiamy tylko podświetlenie.
+        if (!previous_id.empty()) highlight(previous_id, false);
+        highlight(selected_id_, true);
     } catch (const std::invalid_argument& error) {
         note_.set(error.what());
     } catch (const std::out_of_range& error) {

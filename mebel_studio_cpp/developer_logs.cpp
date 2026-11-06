@@ -12,6 +12,7 @@
 #endif
 
 #include "app.h"
+#include "perf_monitor.h"
 #include "pyutil.h"
 
 namespace fs = std::filesystem;
@@ -283,6 +284,9 @@ LogDocument::LogDocument(App* app_) : dock_workspace::DockDocument(app_) {
     (new ttk::Label(bar, {{"text", "Zielony: OK / informacje   Żółty: ostrzeżenie   Czerwony: błąd"}}))->pack({{"side", "left"}});
     (new ttk::Button(bar, {{"text", "Zapisz log…"}, {"command", std::function<void()>([this] { export_(); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Historia pliku"}, {"command", std::function<void()>([this] { history(); })}}))->pack({{"side", "right"}, {"padx", 4}});
+    (new ttk::Button(bar, {{"text", "Zeruj statystyki"}, {"command", std::function<void()>([this] { perf::reset(); this->app->log->info("[wydajność] Statystyki wyzerowane"); })}}))->pack({{"side", "right"}, {"padx", 4}});
+    (new ttk::Button(bar, {{"text", "Test zakładek"}, {"command", std::function<void()>([this] { perf::self_test(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});
+    (new ttk::Button(bar, {{"text", "Raport wydajności"}, {"command", std::function<void()>([this] { perf::report(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Zamknij panel"}, {"command", std::function<void()>([this] { destroy(); })}}))->pack({{"side", "right"}});
     (new ttk::Label(this, {{"text", "Plik: " + py::path_str(app->developer_log_path)}, {"padding", 6}}))->pack({{"fill", "x"}});
     auto* box = new ttk::Frame(this); box->pack({{"fill", "both"}, {"expand", true}});

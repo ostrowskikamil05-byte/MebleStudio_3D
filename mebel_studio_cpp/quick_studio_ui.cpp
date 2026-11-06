@@ -1,9 +1,11 @@
 // One persistent inspector and a compact ribbon for cabinet configuration.
 #include "forma_theme.h"
 #include "forma_widgets.h"
+#include "perf_monitor.h"
 #include "quick_studio_ui.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <numbers>
 #include <format>
@@ -411,10 +413,23 @@ ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key,
 }
 
 void QuickInspector::rebuild_swatches() {
+    if (swatch_row == nullptr || swatches_pending) return;
+    swatches_pending = true;
+    app->after(1, [this] {
+        swatches_pending = false;
+        build_swatches_now();
+    });
+}
+
+void QuickInspector::build_swatches_now() {
     if (swatch_row == nullptr) return;
     try {
-        for (tk::Widget* child : swatch_row->winfo_children()) child->destroy();
         std::string current = find("material").text->get();
+        std::string signature = current;
+        for (const auto& m : app->project->materials) signature += "|" + m.name + m.color;
+        if (signature == swatch_signature) return;
+        swatch_signature = signature;
+        for (tk::Widget* child : swatch_row->winfo_children()) child->destroy();
         int index = 0;
         for (const auto& m : app->project->materials) {
             bool on = m.name == current;
@@ -427,7 +442,6 @@ void QuickInspector::rebuild_swatches() {
                 try {
                     find("material").text->set(name);
                     choice_changed("material");
-                    rebuild_swatches();
                 } catch (const tk::TclError&) {
                 }
                 return std::string();
@@ -568,6 +582,7 @@ json QuickInspector::draft() {
 }
 
 void QuickInspector::set_config(const json& cfg_in) {
+    perf::Scope perf_scope("QuickInspector::set_config");
     json cfg = cfg_in;
     syncing = true;
     config = cfg;
@@ -622,6 +637,7 @@ void QuickInspector::set_config(const json& cfg_in) {
 }
 
 void QuickInspector::refresh() {
+    perf::Scope perf_scope("QuickInspector::refresh");
     using namespace furniture_configurator;
     cancel_pending();
     if (generation != app->project_generation) clipboard.reset();
@@ -934,6 +950,7 @@ void QuickInspector::delete_preset() {
 }
 
 void QuickInspector::draw_preview() {
+    perf::Scope perf_scope("QuickInspector::draw_preview");
     auto* c = preview;
     c->delete_("all");
     int w = std::max(280, c->winfo_width());
@@ -1052,6 +1069,7 @@ void build(App* app) {
     auto* panel_title = new ttk::Label(library, {{"text", "Mebel"}, {"style", "Title.TLabel"}, {"padding", "12 10 8 4"}});
     panel_title->pack({{"side", "top"}, {"fill", "x"}});
     auto* ribbon = new ttk::Notebook(library, {{"style", "Rail.TNotebook"}});
+    perf::watch_notebook(app, ribbon, "panel boczny");
     ribbon->pack({{"side", "top"}, {"fill", "both"}, {"expand", true}});
     app->ribbon = ribbon;
     auto& pages = app->ribbon_pages;
@@ -1278,6 +1296,11 @@ void build(App* app) {
         (new ttk::Label(statusbar, {{"textvariable", *var}, {"background", forma_theme::CARD}, {"foreground", color}, {"font", "{Segoe UI} 9 bold"}, {"width", 10}}))->pack({{"side", "right"}, {"padx", 4}});
     app->canvas->bind("<Motion>", [app](tk::Event& e) -> std::string {
         try {
+            // Ruch myszy bywa bardzo częsty — liczymy współrzędne najwyżej ~25 razy na sekundę i tylko przy zmianie wartości.
+            static auto last_time = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
+            if (now - last_time < std::chrono::milliseconds(40)) return "";
+            last_time = now;
             double w = app->canvas->winfo_width(), h = app->canvas->winfo_height();
             const auto& cam = app->camera;
             double a = cam.yaw * std::numbers::pi / 180, b = cam.pitch * std::numbers::pi / 180;
@@ -1286,7 +1309,10 @@ void build(App* app) {
             double u = (e.x - w / 2 - cam.pan[0]) / cam.scale, v = (h / 2 + cam.pan[1] - e.y) / cam.scale;
             double zr = -cam.center[2], d = (v - zr * cb) / sb;
             double x = cam.center[0] + u * ca + d * sa, y = cam.center[1] - u * sa + d * ca;
-            app->status_x.set(std::format("X  {:.0f}", x)); app->status_y.set(std::format("Y  {:.0f}", y)); app->status_z.set("Z  0");
+            static std::string last_x, last_y;
+            std::string tx = std::format("X  {:.0f}", x), ty = std::format("Y  {:.0f}", y);
+            if (tx != last_x) { last_x = tx; app->status_x.set(tx); }
+            if (ty != last_y) { last_y = ty; app->status_y.set(ty); }
         } catch (const tk::TclError&) {
         }
         return "";
