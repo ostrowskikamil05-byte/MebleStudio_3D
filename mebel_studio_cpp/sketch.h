@@ -64,6 +64,11 @@ public:
     std::vector<Point> pending;                   // punkty rozpoczętego okręgu / wieloboku / łuku
     tk::StringVar value_text, value_prompt, value_live, sides, profile_name, profile_width, profile_height, profile_param, profile_param_label;
     std::vector<Point> centers;                   // środki narysowanych okręgów (wskazówka „środek okręgu”)
+    std::vector<Segment> guides;                  // linie pomocnicze (z miarki), widoczne jako przerywane i łapane przez wskazówki
+    std::optional<Segment> measured;              // ostatni pomiar miarką
+    std::optional<size_t> drag_index;             // przeciągany punkt (narzędzie Przesuń)
+    std::optional<Point> drag_origin;
+    bool drag_moved = false;
     tk::BooleanVar automatic, replace_existing;
     std::map<std::string, tk::StringVar> fields;  // name, group, t
 
@@ -108,6 +113,13 @@ public:
     std::vector<Point> shape_preview(const Point& cursor) const;   // podgląd okręgu / wieloboku / łuku pod kursorem
     void finish_shape(const std::vector<Point>& shape, const std::string& what, std::optional<Point> center = std::nullopt);
     void insert_profile();
+    // --- przesuwanie punktów, miarka i linie pomocnicze
+    void press(const tk::Event& event);
+    void drag(const tk::Event& event);
+    void release(const tk::Event& event);
+    void move_point(size_t index, const Point& to);
+    void add_guide(const Point& a, const Point& b);
+    void clear_guides();
     void fillet_point(size_t index, double value, bool chamfer);
     void fillet_selected(bool chamfer);
     void remove_point_at(size_t index);

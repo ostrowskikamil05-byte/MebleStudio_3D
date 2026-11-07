@@ -201,7 +201,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     auto* toolbar = new ttk::Frame(this, {{"padding", 8}});
     toolbar->pack({{"fill", "x"}});
     mode = tk::StringVar(!part_ ? "Prostokąt" : "Wielokąt");
-    for (auto& [name, hint] : std::vector<std::pair<std::string, std::string>>{{"Wielokąt", "L"}, {"Prostokąt", "R"}, {"Okrąg", "C"}, {"Wielobok", "P"}, {"Łuk", "A"}})
+    for (auto& [name, hint] : std::vector<std::pair<std::string, std::string>>{{"Wielokąt", "L"}, {"Prostokąt", "R"}, {"Okrąg", "C"}, {"Wielobok", "P"}, {"Łuk", "A"}, {"Przesuń", "M"}, {"Miarka", "T"}})
         (new ttk::Radiobutton(toolbar, {{"text", name + " (" + hint + ")"}, {"variable", mode}, {"value", name}, {"command", Cmd([this] { change_mode(); })}}))
             ->pack({{"side", "left"}, {"padx", 4}});
     sides = tk::StringVar("6");
@@ -250,7 +250,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     for (auto& [label_, action] : std::vector<std::pair<std::string, Cmd>>{
              {"Zaokrąglij narożnik…", [this] { fillet_selected(false); }}, {"Sfazuj narożnik…", [this] { fillet_selected(true); }},
              {"Usuń punkt (Del)", [this] { remove_selected_point(); }}, {"Odsuń kontur (F)", [this] { offset_sketch(); }},
-             {"Importuj DXF…", [this] { import_dxf(); }}})
+             {"Importuj DXF…", [this] { import_dxf(); }}, {"Usuń linie pomocnicze", [this] { clear_guides(); }}})
         (new ttk::Button(sketch_tools2, {{"text", label_}, {"command", action}}))->pack({{"side", "left"}, {"padx", 2}});
 
     (new ttk::Label(side, {{"text", "1. Wybierz mebel i funkcję"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "0 8"}});
@@ -363,7 +363,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
         (new ttk::Label(row, {{"text", label_}}))->pack({{"side", "left"}, {"padx", 3}});
     }
     (new ttk::Button(side, {{"text", "Dodaj odcinek: długość + kąt"}, {"command", Cmd([this] { segment(); })}}))->pack({{"fill", "x"}, {"pady", 5}});
-    (new ttk::Label(side, {{"text", "0° = +U, 90° = +V.\nRolka: zoom · PPM: przesuwanie\nEnter: zamknij · Backspace: cofnij\nKliknij pierwszy punkt, aby zamknąć.\nEdycja punktów: wybierz na liście.\nObrzeża konturu zostaną wyłączone.\n\nSkróty: L linia · R prostokąt · C okrąg · P wielobok · A łuk · F odsuń · Del usuń punkt.\nStrzałki blokują oś U/V, Shift blokuje wykryty kierunek, Esc anuluje.\nPo zamknięciu konturu kliknij napis wymiaru, aby zmienić długość odcinka."},
+    (new ttk::Label(side, {{"text", "0° = +U, 90° = +V.\nRolka: zoom · PPM: przesuwanie\nEnter: zamknij · Backspace: cofnij\nKliknij pierwszy punkt, aby zamknąć.\nEdycja punktów: wybierz na liście.\nObrzeża konturu zostaną wyłączone.\n\nSkróty: L linia · R prostokąt · C okrąg · P wielobok · A łuk · F odsuń · M przesuń punkt · T miarka (G = linia pomocnicza) · Del usuń punkt.\nStrzałki blokują oś U/V, Shift blokuje wykryty kierunek, Esc anuluje.\nPo zamknięciu konturu kliknij napis wymiaru, aby zmienić długość odcinka."},
                                   {"wraplength", 270}}))->pack({{"anchor", "w"}, {"pady", 8}});
     auto* footer = new ttk::Frame(this, {{"padding", 6}});
     footer->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
@@ -387,6 +387,8 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     status = tk::StringVar("Kliknij pierwszy punkt lub wpisz U i V. Wszystkie wymiary w mm.");
     (new ttk::Label(this, {{"textvariable", status}, {"padding", 8}}))->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
     canvas->bind("<Motion>", [this](tk::Event& e) { motion(e); return std::string(); });
+    canvas->bind("<B1-Motion>", [this](tk::Event& e) { drag(e); return std::string(); });
+    canvas->bind("<ButtonRelease-1>", [this](tk::Event& e) { release(e); return std::string(); });
     canvas->bind("<Button-1>", [this](tk::Event& e) { click(e); return std::string(); });
     canvas->bind("<MouseWheel>", [this](tk::Event& e) { zoom(e); return std::string(); });
     canvas->bind("<ButtonPress-3>", [this](tk::Event& e) { pan_start(e); return std::string(); });
@@ -627,13 +629,15 @@ void Sketch::change_mode() {
     if (tool == "Prostokąt") status.set(!points.empty() && !closed ? "Kliknij przeciwległy narożnik prostokąta albo wpisz szer;wys i Enter." : "Kliknij pierwszy narożnik prostokąta (potem drugi albo szer;wys + Enter).");
     else if (tool == "Okrąg") status.set("Kliknij środek okręgu, potem promień (albo wpisz promień i Enter).");
     else if (tool == "Wielobok") status.set("Kliknij środek wieloboku, potem promień (liczba boków w polu „boki”; można wpisać promień;boki + Enter).");
+    else if (tool == "Przesuń") status.set(points.empty() ? "Najpierw narysuj kontur. Potem przeciągaj jego punkty myszą (przyciągają się do wskazówek)." : "Przeciągnij punkt konturu myszą. Zwolnij przycisk, aby zatwierdzić; kontur musi pozostać poprawny.");
+    else if (tool == "Miarka") status.set("Miarka: kliknij dwa punkty, aby zmierzyć odległość. Klawisz G zamienia pomiar w linię pomocniczą (łapaną przez wskazówki).");
     else if (tool == "Łuk") status.set("Łuk przez trzy punkty: początek, punkt pośredni, koniec (początek = ostatni punkt konturu, jeśli jest).");
     else status.set(!points.empty() && !closed ? "Klikaj kolejne punkty; wpisz długość (np. 250 albo 250<45) i Enter." : "Klikaj kolejne punkty wielokąta.");
     draw();
 }
 
 void Sketch::set_tool(const std::string& tool) {
-    static const std::set<std::string> known{"Wielokąt", "Prostokąt", "Okrąg", "Wielobok", "Łuk"};
+    static const std::set<std::string> known{"Wielokąt", "Prostokąt", "Okrąg", "Wielobok", "Łuk", "Przesuń", "Miarka"};
     if (!known.contains(tool)) throw ValueError("Nieznane narzędzie szkicu: " + tool);
     mode.set(tool);
     change_mode();
@@ -641,7 +645,7 @@ void Sketch::set_tool(const std::string& tool) {
 
 std::string Sketch::value_prompt_text() const {
     const std::string tool = mode.get();
-    return tool == "Prostokąt" ? "Wymiary" : tool == "Okrąg" || tool == "Wielobok" ? "Promień" : tool == "Łuk" ? "Łuk" : "Długość";
+    return tool == "Prostokąt" ? "Wymiary" : tool == "Okrąg" || tool == "Wielobok" ? "Promień" : tool == "Łuk" ? "Łuk" : tool == "Przesuń" ? "Punkt" : tool == "Miarka" ? "Odległość" : "Długość";
 }
 
 void Sketch::cancel_pending() {
@@ -714,11 +718,15 @@ Point Sketch::local(const tk::Event& event) {
     in.tolerance = 9 / scale;
     in.points = points;
     in.closed = closed;
+    if (drag_index && *drag_index < in.points.size()) in.points.erase(in.points.begin() + (long)*drag_index);
     for (auto& s : guide_geometry()) in.reference.push_back({s.first, s.second});
+    for (auto& g : guides) in.reference.push_back({g.first, g.second});
     for (auto& q : pending) in.reference.push_back({q, q});
     in.centers = centers;
     if (tool == "Wielokąt" && !points.empty() && !closed) in.anchor = points.back();
     else if (tool == "Prostokąt" && !points.empty() && !closed) in.anchor = points.front();
+    else if (tool == "Miarka" && !pending.empty()) in.anchor = pending.front();
+    else if (tool == "Przesuń" && drag_index && points.size() > 1) in.anchor = points[(*drag_index + points.size() - 1) % points.size()];
     else if ((tool == "Okrąg" || tool == "Wielobok") && !pending.empty()) in.anchor = pending.front();
     else if (tool == "Łuk") in.anchor = !pending.empty() ? std::optional<Point>(pending.back()) : (!points.empty() && !closed ? std::optional<Point>(points.back()) : std::nullopt);
     in.snap_points = point_snap.get();
@@ -731,7 +739,7 @@ Point Sketch::local(const tk::Event& event) {
     const bool shift = (event.state & 1) != 0;
     if (arrow_lock && in.anchor) in.lock_direction = arrow_lock;
     else if (shift && in.anchor && inference.direction && sketch_inference::is_direction(inference.kind)) in.lock_direction = inference.direction;
-    else in.ortho = (ortho.get() || shift) && tool == "Wielokąt" && in.anchor;
+    else in.ortho = (ortho.get() || shift) && (tool == "Wielokąt" || tool == "Przesuń") && in.anchor;
     inference = sketch_inference::infer(in);
     snap_reason = inference.kind == sketch_inference::Kind::None || inference.kind == sketch_inference::Kind::Grid ? std::string() : inference.tip;
     return inference.point;
@@ -762,6 +770,7 @@ void Sketch::motion(const tk::Event& event) {
 
 void Sketch::click(const tk::Event& event) {
     canvas->focus_set();
+    if (mode.get() == "Przesuń") { press(event); return; }
     try {
         if (closed) {
             int edge = dimension_at(event.x, event.y);
@@ -789,6 +798,25 @@ void Sketch::add_point(const Point& p_in) {
     }
     Point p{core::finite(p_in[0]), core::finite(p_in[1])};
     const std::string tool = mode.get();
+    if (tool == "Przesuń") return;  // w tym narzędziu klik obsługuje press()/release()
+    if (tool == "Miarka") {
+        if (pending.empty()) {
+            pending.push_back(p);
+            status.set("Początek pomiaru ustawiony. Kliknij drugi punkt.");
+            draw();
+            return;
+        }
+        Point a = pending[0];
+        pending.clear();
+        measured = Segment{a, p};
+        double du = p[0] - a[0], dv = p[1] - a[1];
+        std::string text = std::format("{:.2f} mm (ΔU {:.2f}, ΔV {:.2f}, kąt {:.1f}°)", std::hypot(du, dv), du, dv, degrees(std::atan2(dv, du)));
+        journal::event(app, "szkic", "pomiar miarką: " + text);
+        status.set("Pomiar: " + text + " · G = zamień w linię pomocniczą.");
+        value_live.set(std::format("{:.2f} mm", std::hypot(du, dv)));
+        draw();
+        return;
+    }
     if (tool == "Okrąg" || tool == "Wielobok") {
         if (pending.empty()) {
             pending.push_back(p);
@@ -953,6 +981,8 @@ void Sketch::clear() {
     pending.clear();
     centers.clear();
     arrow_lock.reset();
+    guides.clear();
+    measured.reset();
     update_list();
     draw();
 }
@@ -1027,6 +1057,15 @@ void Sketch::draw() {
     for (auto& [a, b] : guide_geometry()) {
         auto sa = screen(a), sb = screen(b);
         c->create_line({sa.first, sa.second, sb.first, sb.second}, {{"fill", "#b4bec9"}, {"dash", "3 4"}});
+    }
+    for (auto& [ga_point, gb_point] : guides) {
+        auto ga = screen(ga_point), gb = screen(gb_point);
+        c->create_line({ga.first, ga.second, gb.first, gb.second}, {{"fill", "#c2399c"}, {"dash", "6 3"}});
+    }
+    if (measured) {
+        auto ma = screen(measured->first), mb = screen(measured->second);
+        c->create_line({ma.first, ma.second, mb.first, mb.second}, {{"fill", "#b06d27"}, {"width", 2}, {"arrow", "both"}});
+        label((ma.first + mb.first) / 2, (ma.second + mb.second) / 2 - 12, std::format("{:.2f} mm", dist(measured->first, measured->second)), "#986022");
     }
     if (cursor) {
         for (const auto& guide : inference.guides) {
@@ -1141,6 +1180,8 @@ bool Sketch::new_element(bool discard_confirmed) {
     closed = false;
     pending.clear();
     centers.clear();
+    guides.clear();
+    measured.reset();
     arrow_lock.reset();
     value_text.set("");
     cursor.reset();
@@ -1365,10 +1406,21 @@ bool Sketch::key(const std::string& keysym, int state) {
     }
     if (!typing) {
         static const std::map<std::string, std::string> tools{{"l", "Wielokąt"}, {"L", "Wielokąt"}, {"r", "Prostokąt"}, {"R", "Prostokąt"}, {"c", "Okrąg"}, {"C", "Okrąg"},
-                                                              {"p", "Wielobok"}, {"P", "Wielobok"}, {"a", "Łuk"}, {"A", "Łuk"}};
+                                                              {"p", "Wielobok"}, {"P", "Wielobok"}, {"a", "Łuk"}, {"A", "Łuk"},
+                                                              {"m", "Przesuń"}, {"M", "Przesuń"}, {"t", "Miarka"}, {"T", "Miarka"}};
         auto it = tools.find(keysym);
         if (it != tools.end()) { set_tool(it->second); return true; }
         if (keysym == "f" || keysym == "F") { offset_sketch(); return true; }
+        if (keysym == "g" || keysym == "G") {
+            if (!measured) {
+                journal::event(app, "szkic", "G: brak pomiaru do zamiany w linię pomocniczą");
+                status.set("Najpierw zmierz odległość narzędziem Miarka (T), potem naciśnij G.");
+                return true;
+            }
+            try { add_guide(measured->first, measured->second); }
+            catch (const ValueError& e) { journal::event(app, "szkic", std::string("linia pomocnicza odrzucona: ") + e.what()); status.set(e.what()); }
+            return true;
+        }
     }
     return false;
 }
@@ -1434,6 +1486,102 @@ bool Sketch::value_apply() {
     }
     value_text.set("");
     return true;
+}
+
+void Sketch::add_guide(const Point& a, const Point& b) {
+    double length = dist(a, b);
+    if (length < 0.01) throw ValueError("Linia pomocnicza wymaga dwóch różnych punktów.");
+    if (guides.size() >= 40) throw ValueError("Maksymalnie 40 linii pomocniczych — usuń je przyciskiem „Wyczyść”.");
+    Point d{(b[0] - a[0]) / length, (b[1] - a[1]) / length};
+    constexpr double reach = 5000;
+    guides.push_back({{a[0] - d[0] * reach, a[1] - d[1] * reach}, {a[0] + d[0] * reach, a[1] + d[1] * reach}});
+    journal::event(app, "szkic", std::format("linia pomocnicza przez ({:.1f}; {:.1f}) i ({:.1f}; {:.1f}) · razem {}", a[0], a[1], b[0], b[1], guides.size()));
+    status.set(std::format("Dodano linię pomocniczą ({}). Wskazówki łapią ją jak krawędź.", guides.size()));
+    draw();
+}
+
+void Sketch::clear_guides() {
+    journal::event(app, "szkic", std::format("usunięto linie pomocnicze ({})", guides.size()));
+    guides.clear();
+    measured.reset();
+    draw();
+}
+
+void Sketch::move_point(size_t index, const Point& to) {
+    if (index >= points.size()) throw ValueError("Nie ma takiego punktu.");
+    Point from = points[index];
+    std::vector<Point> edited = points;
+    edited[index] = {core::finite(to[0]), core::finite(to[1])};
+    if (closed) {
+        core::Part base = part;
+        json kept = json::array();
+        for (auto& op : base.operations)
+            if (!py::truthy(py::get(op, "owner_id"))) kept.push_back(op);
+        base.operations = kept;
+        normalized_part(base, edited);
+    }
+    checkpoint();
+    points = edited;
+    journal::event(app, "szkic", std::format("przesunięto punkt {}: ({:.2f}; {:.2f}) → ({:.2f}; {:.2f})", index + 1, from[0], from[1], edited[index][0], edited[index][1]));
+    update_list();
+    draw();
+}
+
+void Sketch::press(const tk::Event& event) {
+    int best = -1;
+    double best_distance = 11;
+    for (size_t i = 0; i < points.size(); ++i) {
+        auto s = screen(points[i]);
+        double d = std::hypot(event.x - s.first, event.y - s.second);
+        if (d < best_distance) { best_distance = d; best = (int)i; }
+    }
+    if (best < 0) {
+        journal::event(app, "szkic", points.empty() ? "Przesuń: brak punktów do przesunięcia" : "Przesuń: kliknięto poza punktami konturu");
+        status.set(points.empty() ? "Najpierw narysuj kontur." : "Kliknij blisko punktu konturu, aby go przesunąć.");
+        return;
+    }
+    drag_index = (size_t)best;
+    drag_origin = points[best];
+    drag_moved = false;
+    status.set(std::format("Przeciągasz punkt {}. Zwolnij przycisk, aby zatwierdzić.", best + 1));
+}
+
+void Sketch::drag(const tk::Event& event) {
+    if (!drag_index || *drag_index >= points.size()) return;
+    try {
+        Point p = local(event);
+        if (dist(p, points[*drag_index]) < 1e-9) return;
+        points[*drag_index] = p;
+        drag_moved = true;
+        cursor = p;
+        status.set(std::format("Punkt {}: U {:.2f} · V {:.2f} mm{}", *drag_index + 1, p[0], p[1], snap_reason.empty() ? "" : " · przyciąganie: " + snap_reason));
+        draw();
+    } catch (const ValueError& e) {
+        status.set(e.what());
+    }
+}
+
+void Sketch::release(const tk::Event&) {
+    if (!drag_index) return;
+    size_t index = *drag_index;
+    Point from = drag_origin.value_or(points[index]);
+    Point to = index < points.size() ? points[index] : from;
+    drag_index.reset();
+    drag_origin.reset();
+    bool moved = drag_moved;
+    drag_moved = false;
+    if (index >= points.size()) return;
+    points[index] = from;  // przywróć, move_point sprawdzi poprawność i zapisze historię
+    if (!moved || dist(from, to) < 0.01) { draw(); return; }
+    try {
+        move_point(index, to);
+        status.set(std::format("Przesunięto punkt {} do ({:.2f}; {:.2f}).", index + 1, to[0], to[1]));
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::format("przesunięcie punktu {} odrzucone: {}", index + 1, e.what()));
+        status.set(std::string("Przesunięcie odrzucone: ") + e.what());
+        update_list();
+        draw();
+    }
 }
 
 void Sketch::insert_profile() {

@@ -2343,7 +2343,7 @@ public:
         run(area, "edytor: skróty klawiszowe przełączają narzędzia i trafiają do dziennika", where, [=, this](Ctx&) {
             auto* sk = open_sketch();
             auto from = log_mark();
-            for (auto [keysym, tool] : std::vector<std::pair<const char*, const char*>>{{"c", "Okrąg"}, {"p", "Wielobok"}, {"a", "Łuk"}, {"r", "Prostokąt"}, {"l", "Wielokąt"}}) {
+            for (auto [keysym, tool] : std::vector<std::pair<const char*, const char*>>{{"c", "Okrąg"}, {"p", "Wielobok"}, {"a", "Łuk"}, {"m", "Przesuń"}, {"t", "Miarka"}, {"r", "Prostokąt"}, {"l", "Wielokąt"}}) {
                 need(sk->key(keysym), std::string("klawisz ") + keysym + " nie został obsłużony");
                 need(sk->mode.get() == tool, std::string("klawisz ") + keysym + " nie przełączył narzędzia na " + tool);
             }
@@ -2553,6 +2553,71 @@ public:
             need(has_text(log_since(from), "import DXF odrzucony:"), "odrzucony import nie zostawił powodu w dzienniku");
             std::error_code ec;
             fs::remove(path, ec);
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: przeciąganie punktu myszą (Przesuń) zatwierdza zmianę z dziennikiem, odrzuca zły kontur", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_sketch_points({{0, 0}, {400, 0}, {400, 300}, {0, 300}});
+            sk->close_contour();
+            sk->scale = 1; sk->origin = {65, 540};
+            sk->set_tool("Przesuń");
+            auto from = log_mark();
+            auto start = sk->screen(sk->points[2]);
+            tk::Event press; press.x = (int)start.first; press.y = (int)start.second; press.widget = sk->canvas;
+            sk->press(press);
+            need(sk->drag_index && *sk->drag_index == 2, "naciśnięcie przy narożniku nie wybrało punktu 3");
+            auto target = sk->screen({450, 330});
+            tk::Event move = press; move.x = (int)target.first; move.y = (int)target.second;
+            sk->drag(move);
+            need(sk->drag_moved, "przeciągnięcie nie oznaczyło ruchu");
+            sk->release(move);
+            ctx.note(std::format("punkt 3 → ({:.1f}; {:.1f})", sk->points[2][0], sk->points[2][1]));
+            need(!sk->drag_index && std::hypot(sk->points[2][0] - 450, sk->points[2][1] - 330) < 12, "po zwolnieniu punkt nie leży w miejscu docelowym");
+            need(sk->closed && sk->points.size() == 4, "przesunięcie punktu zmieniło liczbę punktów lub otwarło kontur");
+            need(has_text(log_since(from), "przesunięto punkt 3:"), "przesunięcie nie zostało zapisane w dzienniku");
+            sk->undo();
+            need(near_to(sk->points[2][0], 400) && near_to(sk->points[2][1], 300), "cofnięcie nie przywróciło punktu 3");
+            // kliknięcie poza punktami: bez zmian, ale z powodem w dzienniku
+            from = log_mark();
+            tk::Event miss = press; miss.x = 3; miss.y = 3;
+            sk->press(miss);
+            need(!sk->drag_index && has_text(log_since(from), "Przesuń: kliknięto poza punktami konturu"), "kliknięcie poza punktami nie zostawiło powodu w dzienniku");
+            // niepoprawne przesunięcie (punkt na punkt sąsiada) jest odrzucane i kontur zostaje bez zmian
+            auto before = sk->points;
+            bool rejected = false;
+            try { sk->move_point(2, sk->points[1]); } catch (const std::invalid_argument&) { rejected = true; }
+            need(rejected && sk->points == before, "przesunięcie punktu na sąsiada powinno być odrzucone bez zmiany konturu");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: miarka mierzy odległość, G tworzy linię pomocniczą łapaną przez wskazówki", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->scale = 1; sk->origin = {65, 540};
+            sk->set_tool("Miarka");
+            auto from = log_mark();
+            sk->add_point({0, 0});
+            need(sk->pending.size() == 1, "pierwszy klik miarki nie ustawił początku");
+            sk->add_point({300, 400});
+            need(sk->measured && near_to(std::hypot(sk->measured->second[0] - sk->measured->first[0], sk->measured->second[1] - sk->measured->first[1]), 500), "pomiar nie wynosi 500 mm");
+            need(sk->points.empty(), "miarka nie może dodawać punktów do konturu");
+            need(has_text(log_since(from), "pomiar miarką: 500.00 mm"), "pomiar nie został zapisany w dzienniku");
+            need(sk->key("g") && sk->guides.size() == 1, "klawisz G nie utworzył linii pomocniczej");
+            need(has_text(log_since(from), "linia pomocnicza przez"), "linia pomocnicza nie została zapisana w dzienniku");
+            sk->set_tool("Wielokąt");
+            auto spot = sk->screen({150, 200});
+            tk::Event ev; ev.x = (int)spot.first + 1; ev.y = (int)spot.second + 1; ev.widget = sk->canvas;
+            sk->local(ev);
+            ctx.note(sk->inference.tip);
+            need(sk->inference.kind == Kind::OnEdge, "kursor przy linii pomocniczej nie złapał punktu na jej krawędzi");
+            from = log_mark();
+            sk->guides.clear(); sk->measured.reset();
+            sk->key("g");
+            need(has_text(log_since(from), "G: brak pomiaru"), "G bez pomiaru nie zostawiło powodu w dzienniku");
+            sk->set_tool("Miarka");
+            sk->add_point({10, 10});
+            sk->key("Escape");
+            need(sk->pending.empty(), "Esc nie anulował rozpoczętego pomiaru");
             close_sketch(sk);
         });
     }
