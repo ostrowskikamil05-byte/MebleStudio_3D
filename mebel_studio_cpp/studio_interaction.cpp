@@ -34,6 +34,14 @@ bool starts_with(const std::optional<std::string>& value, const char* prefix) {
 
 }  // namespace
 
+bool allow_press(App* app) {
+    if (app->flush_parameter_drafts()) return true;
+    // Niezatwierdzona zmiana w panelu nie może po cichu blokować widoku — podaj powód w dzienniku i pasku stanu.
+    journal::event(app, "zaznaczenie", "kliknięcie w widoku wstrzymane: panel ma niezatwierdzoną zmianę, której nie da się zastosować");
+    app->status.set("Kliknięcie wstrzymane: popraw albo zatwierdź zmianę w panelu mebla (Enter) i spróbuj ponownie");
+    return false;
+}
+
 std::optional<std::string> pick(App* app, int x, int y) {
     auto* canvas = app->canvas;
     if (canvas->_native_pick) return depth_raster::pick_visible(canvas, x, y);
@@ -84,6 +92,7 @@ void configure_change(App* app, const json& changes) {
     json cfg = furniture_configurator::read_config(*app->project, group);
     if (!py::truthy(cfg)) throw ValueError("Otwórz właściwości elementu lub edytor narożnika dla tego mebla.");
     for (auto& [key, value] : changes.items()) cfg[key] = value;
+    journal::event(app, "konfiguracja", "zmiana z menu / narzędzia dla " + group + ": " + changes.dump());
     auto result = furniture_configurator::configure(*app->project, cfg, group);
     app->snapshot();
     app->project = result.first;
@@ -324,11 +333,7 @@ void install(App* app) {
     });
     app->canvas->bind("<ButtonPress-1>", [app, st](tk::Event& event) -> std::string {
         if (viewport_hud::press(app, event)) return "break";
-        if (!app->flush_parameter_drafts()) {
-            // Niezatwierdzona zmiana w panelu nie może po cichu blokować widoku — podaj powód w dzienniku i pasku stanu.
-            journal::event(app, "zaznaczenie", "kliknięcie w widoku wstrzymane: panel ma niezatwierdzoną zmianę, której nie da się zastosować");
-            return "break";
-        }
+        if (!allow_press(app)) return "break";
         if (app->hardware_drag && app->hardware_drag->active()) {
             st->hardware_click = true;
             return app->hardware_drag->target_click(event).value_or("");

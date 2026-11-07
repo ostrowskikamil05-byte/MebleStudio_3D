@@ -13,6 +13,9 @@ namespace studio_interaction {
 using json = core::json;
 
 // Identyfikator ściany pod kursorem (bufor identyfikatorów, natywne trafienie albo lista narysowanych ścian).
+// Czy kliknięcie w widoku może się odbyć (panel nie ma niezatwierdzonej, niemożliwej do zastosowania zmiany). Gdy nie — wpis w dzienniku i komunikat.
+bool allow_press(App* app);
+
 std::optional<std::string> pick(App* app, int x, int y);
 
 void select(App* app, const std::optional<std::string>& identity);

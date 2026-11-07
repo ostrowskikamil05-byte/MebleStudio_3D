@@ -50,6 +50,27 @@ void card(tk::Canvas* c, double x0, double y0, double x1, double y1, double r) {
 
 }  // namespace
 
+void activate_tool(App* app, const std::string& target, const std::string& tool_label) {
+    journal::event(app, "narzędzie", "kliknięto „" + tool_label + "” (tryb " + target + ", poprzedni " + app->edit_mode.get() + ")");
+    // Wybór narzędzia kończy wstawianie okucia (zawias / prowadnica / LED / uchwyt) — inaczej każde kliknięcie w widoku trafiałoby do tego trybu i nic nie dałoby się zaznaczyć.
+    if (app->hardware_drag != nullptr && app->hardware_drag->active()) {
+        journal::event(app, "okucia", "anulowano wstawianie okucia (wybrano narzędzie)");
+        app->hardware_drag->cancel();
+        app->draw();
+    }
+    if (target == "tray") { if (app->toggle_hardware_tray) app->toggle_hardware_tray(); }
+    else if (target == "rotate") { if (app->rotate_furniture) app->rotate_furniture(90); }
+    else if (target == "dimensions") { app->dimensions.set(!app->dimensions.get()); app->draw(); }
+    else {
+        app->edit_mode.set(target);
+        app->draw();
+        if (target == "furniture") app->status.set(app->selected ? "Rozciąganie mebla: przeciągnij zielone uchwyty na jego ściankach (Krok 32 mm w CAD)" : "Rozciąganie mebla: zaznacz mebel, potem przeciągnij uchwyty na jego ściankach");
+        else if (target == "configure") app->status.set("Konfiguracja: kliknij mebel, aby otworzyć okno z uchwytami, nóżkami, zawiasami, materiałami i dodatkami");
+        else if (target == "resize") app->status.set(app->selected ? "Rozciąganie części: przeciągnij kolorowe uchwyty (U / V / T) zaznaczonego elementu" : "Rozciąganie części: zaznacz element, potem przeciągnij uchwyty");
+    }
+    journal::event(app, "narzędzie", "stan po kliknięciu „" + tool_label + "”: " + journal::interaction_state(app));
+}
+
 void paint(App* app, double width, double height, const core::json& grid_spacing) {
     g_areas.clear();
     tk::Canvas* c = app->canvas;
@@ -104,26 +125,7 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.80, {{"text", tools[i].label}, {"fill", active ? forma_theme::ACCENT : forma_theme::MUTED}, {"font", small_font}, {"tags", "hud"}});
             std::string target = tools[i].mode;
             std::string tool_label = tools[i].label;
-            g_areas.push_back({cx, cy, cx + cell_w, cy + cell_h, [app, target, tool_label] {
-                journal::event(app, "narzędzie", "kliknięto „" + tool_label + "” (tryb " + target + ", poprzedni " + app->edit_mode.get() + ")");
-                // Wybór narzędzia kończy wstawianie okucia (zawias / prowadnica / LED / uchwyt) — inaczej każde kliknięcie w widoku trafiałoby do tego trybu i nic nie dałoby się zaznaczyć.
-                if (app->hardware_drag != nullptr && app->hardware_drag->active()) {
-                    journal::event(app, "okucia", "anulowano wstawianie okucia (wybrano narzędzie)");
-                    app->hardware_drag->cancel();
-                    app->draw();
-                }
-                if (target == "tray") { if (app->toggle_hardware_tray) app->toggle_hardware_tray(); }
-                else if (target == "rotate") { if (app->rotate_furniture) app->rotate_furniture(90); }
-                else if (target == "dimensions") { app->dimensions.set(!app->dimensions.get()); app->draw(); }
-                else {
-                    app->edit_mode.set(target);
-                    app->draw();
-                    if (target == "furniture") app->status.set(app->selected ? "Rozciąganie mebla: przeciągnij zielone uchwyty na jego ściankach (Krok 32 mm w CAD)" : "Rozciąganie mebla: zaznacz mebel, potem przeciągnij uchwyty na jego ściankach");
-                    else if (target == "configure") app->status.set("Konfiguracja: kliknij mebel, aby otworzyć okno z uchwytami, nóżkami, zawiasami, materiałami i dodatkami");
-                    else if (target == "resize") app->status.set(app->selected ? "Rozciąganie części: przeciągnij kolorowe uchwyty (U / V / T) zaznaczonego elementu" : "Rozciąganie części: zaznacz element, potem przeciągnij uchwyty");
-                }
-                journal::event(app, "narzędzie", "stan po kliknięciu „" + tool_label + "”: " + journal::interaction_state(app));
-            }});
+            g_areas.push_back({cx, cy, cx + cell_w, cy + cell_h, [app, target, tool_label] { activate_tool(app, target, tool_label); }});
         }
     }
 

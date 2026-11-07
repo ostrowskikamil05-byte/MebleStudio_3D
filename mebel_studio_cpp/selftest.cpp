@@ -44,6 +44,9 @@
 #include "production_docs.h"
 #include "production_inspector.h"
 #include "journal.h"
+#include "corner_quick_ui.h"
+#include "studio_interaction.h"
+#include "viewport_hud.h"
 #include "project_print.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
@@ -2226,19 +2229,27 @@ public:
             need(has(text, "anulowano montaż: hinge"), "anulowanie montażu nie zostało zapisane");
         });
 
-        run(area, "narożniki: tworzenie z panelu zostawia wpisy [narożnik] i [zmiana]", "corner_quick_ui.cpp (new_corner, commit)", [=, this](Ctx& ctx) {
+        run(area, "narożniki: tworzenie z panelu zostawia wpisy [narożnik] i [zmiana]", "corner_quick_ui.cpp (new_corner, commit, quick_shape)", [=, this](Ctx& ctx) {
             if (app->corner_panel == nullptr) { ctx.note("panel narożnika niedostępny — pominięto"); return; }
-            app->project = fresh(); app->refresh(); app->update();
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            app->corner_panel->set_config(corner_furniture::default_corner_config(app->project.get(), "cabinet"));
             auto from = mark();
+            app->corner_panel->quick_shape("L");
+            need(has(since(from), "[operacja:narożnik] szybki wybór kształtu: L"), "szybki wybór kształtu narożnika nie został zapisany");
+            from = mark();
             bool ok = false;
             try { ok = app->corner_panel->new_corner(); } catch (const std::exception& error) { ctx.note(std::string("wyjątek: ") + error.what()); }
             std::string text = since(from);
-            ctx.note(ok ? "narożnik utworzony" : "kreator odrzucił domyślne wartości");
             need(has(text, "[operacja:narożnik] nowy narożnik:"), "tworzenie narożnika nie zostało zapisane w dzienniku");
             if (ok) {
+                ctx.note("narożnik utworzony");
                 need(has(text, "[operacja:narożnik] zapis narożnika"), "zapis narożnika nie został zapisany w dzienniku");
                 need(has(text, "[operacja:zmiana]"), "utworzenie narożnika nie wygenerowało wpisu [zmiana]");
                 need(has(text, "nowe meble"), "wpis [zmiana] nie mówi o nowym meblu (narożniku)");
+            } else {
+                need(has(text, "tworzenie odrzucone:"), "odrzucone tworzenie narożnika nie ma powodu w dzienniku");
+                ctx.warn("kreator odrzucił narożnik z wartościami domyślnymi: " + text.substr(text.find("tworzenie odrzucone")));
             }
             app->project = fresh(); app->refresh();
         });
@@ -2254,6 +2265,147 @@ public:
             ctx.note(ok ? "skonwertowano" : "konwersja odrzucona");
             need(has(text, "[operacja:narożnik] konwersja") || has(text, "odrzucone"), "konwersja do narożnika nie zostawiła wpisu w dzienniku");
             app->project = fresh(); app->refresh();
+        });
+
+        run(area, "rozciąganie: zaznaczona część skrzynki szuflady daje uchwyty mebla (generated_by)", "app.h (draw_original — właściciel części generowanej)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["drawers"] = 2; });
+            app->project = p; app->refresh(); app->update();
+            const core::Part* generated = nullptr;
+            for (const auto& part : p->parts) if (py::truthy(py::get(part.assembly, "generated_by"))) { generated = &part; break; }
+            if (!generated) { ctx.note("konfiguracja nie wygenerowała skrzynek szuflad — pominięto"); app->project = fresh(); app->refresh(); return; }
+            ctx.note("zaznaczona część: " + generated->name);
+            app->selected = generated->id;
+            app->edit_mode.set("furniture"); app->draw();
+            size_t count = app->handles.size();
+            app->edit_mode.set("camera"); app->selected.reset();
+            app->project = fresh(); app->refresh();
+            need(count > 0, "zaznaczenie skrzynki szuflady w trybie Rozciągnij nie daje uchwytów mebla");
+        });
+
+        run(area, "narzędzia: Rozciągnij → Konfiguruj (z oknem) → Rozciągnij znów daje działające uchwyty", "viewport_hud.cpp (activate_tool), app.h (draw_original, mouse_down)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            app->selected = p->parts.front().id;
+            auto from = mark();
+            for (const char* mode : {"camera", "furniture", "configure", "furniture"}) {
+                viewport_hud::activate_tool(app, mode, mode);
+                need(app->edit_mode.get() == mode, std::string("narzędzie nie ustawiło trybu ") + mode);
+                if (std::string(mode) == "configure") { stretch_choice::open_configuration(app, g); app->update(); }
+            }
+            std::string text = since(from);
+            need(has(text, "[operacja:narzędzie] kliknięto „furniture” (tryb furniture, poprzedni configure)"), "brak wpisu o przejściu Konfiguruj → Rozciągnij");
+            need(has(text, "stan po kliknięciu „furniture”:"), "brak zrzutu stanu po przełączeniu narzędzia");
+            need(!app->handles.empty(), "po Konfiguruj → Rozciągnij brak uchwytów rozciągania");
+            const auto handle = app->handles.front();
+            tk::Event down; down.x = (int)handle.x; down.y = (int)handle.y; down.widget = app->canvas;
+            app->mouse_down(down);
+            bool began = (bool)app->drag_edit;
+            app->drag_edit.reset();
+            ctx.note(std::format("uchwytów: {}, okno konfiguracji: {}", app->handles.size(), stretch_choice::configuration_dialog() ? "otwarte" : "zamknięte"));
+            need(began, "po Konfiguruj → Rozciągnij kliknięcie w uchwyt nie rozpoczęło rozciągania");
+            close_extra_windows();
+            app->edit_mode.set("camera"); app->selected.reset();
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "narzędzia: każdy tryb palety zapisuje kliknięcie i stan interakcji", "viewport_hud.cpp (activate_tool)", [=, this](Ctx&) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            for (const char* mode : {"camera", "layout", "furniture", "resize", "configure", "fillet", "camera"}) {
+                auto from = mark();
+                viewport_hud::activate_tool(app, mode, std::string("Test ") + mode);
+                std::string text = since(from);
+                need(has(text, std::string("kliknięto „Test ") + mode + "”"), std::string("brak wpisu o kliknięciu narzędzia ") + mode);
+                need(has(text, std::string("stan po kliknięciu „Test ") + mode + "”: tryb " + mode), std::string("brak stanu po przełączeniu na ") + mode);
+            }
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "kliknięcie w widoku zapisuje wynik zaznaczania", "app.h (mouse_up)", [=, this](Ctx&) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            auto from = mark();
+            tk::Event click; click.x = 3; click.y = 3; click.widget = app->canvas;
+            app->mouse_down(click);
+            app->mouse_up(click);
+            need(has(since(from), "[operacja:zaznaczenie] kliknięcie w widoku (3, 3)"), "kliknięcie w widoku nie zostało zapisane w dzienniku");
+            app->selected.reset();
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "niezatwierdzona zmiana w panelu wstrzymuje kliknięcie i jest to zapisane", "studio_interaction.cpp (allow_press), app.h (flush_parameter_drafts)", [=, this](Ctx& ctx) {
+            if (app->quick_inspector == nullptr) { ctx.note("panel mebla niedostępny — pominięto"); return; }
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            auto* inspector = app->quick_inspector;
+            auto saved_group = inspector->group; bool saved_draft = inspector->has_draft, saved_sync = inspector->syncing;
+            inspector->group = g; inspector->has_draft = true; inspector->syncing = true;  // apply() zwraca wtedy false bez okna
+            auto from = mark();
+            bool allowed = studio_interaction::allow_press(app);
+            inspector->group = saved_group; inspector->has_draft = saved_draft; inspector->syncing = saved_sync;
+            std::string text = since(from);
+            app->project = fresh(); app->refresh();
+            need(!allowed, "kliknięcie powinno zostać wstrzymane przy niezatwierdzonej zmianie");
+            need(has(text, "kliknięcie w widoku wstrzymane"), "wstrzymane kliknięcie nie zostało zapisane w dzienniku");
+        });
+
+        run(area, "okno konfiguracji: rozwinięcie sekcji i kafelek zapisane w dzienniku", "stretch_choice.cpp (build_settings)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            stretch_choice::open_configuration(app, g); app->update();
+            tk::Widget* dialog = stretch_choice::configuration_dialog();
+            need(dialog != nullptr, "okno konfiguracji się nie otworzyło");
+            std::vector<tk::Widget*> all;
+            std::function<void(tk::Widget*)> collect = [&](tk::Widget* w) { for (auto* c : w->winfo_children()) { all.push_back(c); collect(c); } };
+            collect(dialog);
+            tk::Widget* title = nullptr; tk::Widget* tile = nullptr;
+            for (auto* w : all) {
+                try {
+                    if (!title && w->winfo_class() == "TLabel" && w->cget("text") == "Korpus") title = w;
+                    if (w->winfo_class() == "Canvas" && w->cget("width") == "74") tile = w;
+                } catch (const tk::TclError&) {}
+            }
+            need(title != nullptr, "w oknie konfiguracji nie znaleziono nagłówka sekcji Korpus");
+            need(tile != nullptr, "w oknie konfiguracji nie znaleziono kafelków wyboru");
+            auto from = mark();
+            title->event_generate("<Button-1>"); app->update();  // rozwija sekcję
+            tile->event_generate("<Button-1>"); app->update();   // kafelek (sekcja Fronty jest domyślnie rozwinięta)
+            title->event_generate("<Button-1>"); app->update();  // zwija sekcję
+            std::string text = since(from);
+            ctx.note("kliknięto nagłówek (2×) i kafelek");
+            close_extra_windows();
+            app->project = fresh(); app->refresh();
+            need(has(text, "sekcja „Korpus” rozwinięta"), "rozwinięcie sekcji nie zostało zapisane");
+            need(has(text, "sekcja „Korpus” zwinięta"), "zwinięcie sekcji nie zostało zapisane");
+            need(has(text, "[operacja:konfiguracja] kafelek „"), "kliknięcie kafelka nie zostało zapisane");
+        });
+
+        run(area, "zmiana konfiguracji z menu (LED) zostawia wpisy [konfiguracja] i [zmiana] z okuciami", "studio_interaction.cpp (configure_change), journal.cpp", [=, this](Ctx&) {
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { c["led"] = false; });
+            app->project = p; app->refresh(); app->update();
+            app->selected = p->parts.front().id;
+            auto from = mark();
+            studio_interaction::configure_change(app, json{{"led", true}});
+            std::string text = since(from);
+            app->selected.reset(); app->project = fresh(); app->refresh();
+            need(has(text, "[operacja:konfiguracja] zmiana z menu / narzędzia dla " + g), "zmiana z menu nie została zapisana");
+            need(has(text, "[operacja:zmiana]") && has(text, "LED"), "włączenie LED nie zostawiło wpisu [zmiana] z okuciami LED");
+            need(has(text, "źródło studio_interaction.cpp:"), "wpis [zmiana] nie wskazuje miejsca w kodzie");
+        });
+
+        run(area, "montaż zawiasu na drzwiach zostawia opis okuć w dzienniku", "drag_hardware.cpp (attach), journal.cpp (describe_difference)", [](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& m = section(c, "main"); m["front"] = "doors"; m["doors"] = 1; });
+            const core::Part* door = nullptr;
+            for (const auto& part : p->parts) if (part.role == "door") { door = &part; break; }
+            if (!door) { ctx.note("brak drzwi w szafce — pominięto"); return; }
+            json hit = {{"u", door->u / 2}, {"v", door->v / 2}, {"w", door->t}, {"face", "top"}};
+            ProjectPtr with;
+            try { with = drag_hardware::attach(*p, "hinge", door->id, hit, json::object()); }
+            catch (const std::exception& error) { ctx.warn(std::string("nie udało się dołożyć zawiasu: ") + error.what()); return; }
+            std::string d = journal::describe_difference(*p, *with);
+            ctx.note(d);
+            need(!d.empty(), "dołożenie zawiasu nie zostało opisane");
+            need(has_text(d, "zawias") || has_text(d, "wiercenia"), "opis nie wspomina o zawiasie ani o wierceniach: " + d);
         });
     }
 

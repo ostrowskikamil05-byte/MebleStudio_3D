@@ -11,6 +11,10 @@ namespace viewport_hud {
 // Rysuje nakładkę na końcu rysowania widoku; zapamiętuje obszary klikalne.
 void paint(App* app, double width, double height, const core::json& grid_spacing);
 
+// Wybór narzędzia z palety (tryb: camera, layout, furniture, resize, configure, tray, rotate, dimensions…) — to samo, co kliknięcie w kafelek;
+// zapisuje w dzienniku kliknięcie i stan interakcji po przełączeniu.
+void activate_tool(App* app, const std::string& mode, const std::string& label);
+
 // Kliknięcie w element nakładki: wykonuje akcję i zwraca true (zdarzenie obsłużone).
 bool press(App* app, const tk::Event& event);
 
