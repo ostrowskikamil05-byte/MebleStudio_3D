@@ -1265,11 +1265,15 @@ public:
             for (const auto& q : p->parts) if (q.group == g && assembly::inferred_role(q) == "drawer") { front_id = q.id; break; }
             need(!front_id.empty(), "brak frontu cargo");
             auto posed = mechanisms::posed_project(p, {{front_id, 1.0}});
+            // Front szuflady wysuwa się w stronę ujemnego Y (jak w wersji Python); kosze muszą przejechać dokładnie tyle samo co front.
+            double front_shift = 0;
+            for (const auto& q : p->parts) if (q.id == front_id) for (const auto& r : posed->parts) if (r.id == q.id) front_shift = r.y - q.y;
+            need(std::abs(front_shift) > 50, std::format("front cargo nie wysunął się (przesunięcie {:.1f} mm)", front_shift));
             int moved = 0, children = 0;
             for (const auto& q : p->parts) {
                 if (py::get(q.assembly, "generated_by") != json(front_id)) continue;
                 ++children;
-                for (const auto& r : posed->parts) if (r.id == q.id && r.y > q.y + 50) ++moved;
+                for (const auto& r : posed->parts) if (r.id == q.id && std::abs((r.y - q.y) - front_shift) < 1e-6) ++moved;
             }
             need(children >= 15, std::format("kosze (części skrzynek) nie zostały utworzone: {}", children));
             need(moved == children, std::format("z frontem przesunęło się {} z {} części koszy", moved, children));
