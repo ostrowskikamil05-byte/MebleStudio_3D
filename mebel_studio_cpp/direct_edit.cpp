@@ -39,6 +39,51 @@ Part* find_part(Project& project, const std::string& id) {
     throw py::StopIteration();
 }
 
+
+// Rozciągnięcie szafki w bok tworzy rząd połączonych modułów: nowa komora dochodzi, gdy dodatek szerokości zbliża się do typowego modułu,
+// a skrajny moduł rośnie lub maleje, dopóki zmiana jest mniejsza. Szerokości można potem zmienić w panelu (pole „Moduły w rzędzie”).
+json with_modules(json config, double old_width, double new_width, bool left_edge) {
+    json* main = nullptr;
+    for (auto& s : config["sections"]) if (py::get(s, "key") == json("main")) main = &s;
+    if (main == nullptr) return config;
+    long long n0 = std::max<long long>(1, py::get(*main, "columns", 1).get<long long>());
+    std::vector<double> v;
+    json stored = py::get(*main, "column_widths");
+    if (stored.is_array() && (long long)stored.size() == n0) for (const auto& x : stored) v.push_back(num(x));
+    else v.assign((size_t)n0, old_width / (double)n0);
+    double sum = 0; for (double x : v) sum += x;
+    if (sum <= 0) return config;
+    for (double& x : v) x *= old_width / sum;
+    const double typical = old_width / (double)n0;
+    const double delta = new_width - old_width;
+    auto edge = [&]() -> double& { return left_edge ? v.front() : v.back(); };
+    if (delta >= 0) {
+        if (delta < 0.5 * typical || v.size() >= 8) edge() += delta;
+        else {
+            long long k = std::min<long long>(std::max<long long>(1, std::llround(delta / typical)), 8 - (long long)v.size());
+            for (long long i = 0; i < k; ++i) {
+                if (left_edge) v.insert(v.begin(), delta / (double)k); else v.push_back(delta / (double)k);
+            }
+        }
+    } else {
+        double remaining = -delta;
+        while (remaining > 1e-9) {
+            double& e = edge();
+            if (v.size() > 1 && e - remaining < 0.5 * typical) {
+                remaining -= e;
+                if (left_edge) v.erase(v.begin()); else v.pop_back();
+                if (remaining < 0) { edge() += -remaining; remaining = 0; }
+            } else { e -= remaining; remaining = 0; }
+        }
+    }
+    json widths = json::array(); for (double x : v) widths.push_back(std::round(x * 10) / 10);
+    for (auto& s : config["sections"]) {
+        if (!py::truthy(py::get(s, "enabled", true)) || py::get(s, "columns", 1).get<long long>() != n0) continue;
+        s["columns"] = (long long)v.size(); s["column_widths"] = widths;
+    }
+    return config;
+}
+
 }  // namespace
 
 ProjectPtr resize_part(const Project& project, const std::string& part_id, const std::string& face, const json& distance_) {
@@ -200,6 +245,14 @@ ProjectPtr resize_furniture_face(const Project& project, const std::string& grou
     if (py::truthy(config)) {
         json origin = config.at("origin");
         if (minimum) origin[axis] = num(origin[axis]) + distance;
+        if (axis == 0) {
+            // Szerokość: rząd modułów (jak resize_furniture, ale z nową liczbą i szerokościami komór).
+            double old_width = hi[0] - lo[0];
+            json modified = with_modules(config, old_width, size[0], minimum);
+            modified["width"] = finite(size[0], .1, 10000); modified["depth"] = finite(size[1], .1, 10000);
+            modified["height"] = finite(size[2], .1, 10000) + num(modified.at("leg_height")) + (py::truthy(py::get(modified, "worktop")) ? num(modified.at("worktop_thickness")) : 0);
+            return furniture_configurator::configure(project, modified, group, origin).first;
+        }
         return resize_furniture(project, group, size[0], size[2], size[1], origin);
     }
     ProjectPtr result = resize_furniture(project, group, size[0], size[2], size[1]);

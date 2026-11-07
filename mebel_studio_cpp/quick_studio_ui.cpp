@@ -267,6 +267,8 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     field(type_section->body, "name", "Nazwa", false, true);
     field_pair(type_section->body, "width", "Szerokość", "height", "Wysokość");
     field_pair(type_section->body, "depth", "Głębokość", "thickness", "Grubość korpusu");
+    field(type_section->body, "modules", "Moduły w rzędzie [mm]", false, true);
+    (new ttk::Label(type_section->body, {{"text", "Np. 600 + 800 + 600: każdy moduł ma własną szerokość, suma = szerokość mebla. Rozciągnięcie mebla w bok dodaje kolejne moduły."}, {"wraplength", 280}, {"font", "{Segoe UI} 8"}, {"foreground", forma_theme::MUTED}}))->pack({{"anchor", "w"}, {"pady", "0 3"}});
     (new ttk::Label(type_section->body, {{"text", "Wysokość obejmuje nóżki i blat."}, {"font", "{Segoe UI} 9"}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     // A visible shortcut strip changes geometry in one click, like the reference tool.
     auto* quick = new ttk::Frame(top);
@@ -714,6 +716,52 @@ void QuickInspector::change_template() {
     apply(false);
 }
 
+namespace {
+
+// Szerokości modułów głównej strefy: zapisane albo równy podział szerokości mebla.
+std::vector<double> module_widths_of(const json& cfg) {
+    std::vector<double> out;
+    double total = 0;
+    json width = jget(cfg, "width", json());
+    if (width.is_number()) total = width.get<double>();
+    for (auto& s : jget(cfg, "sections", json::array())) {
+        if (jget(s, "key", json()) != json("main")) continue;
+        long long n = std::max<long long>(1, jget(s, "columns", 1).is_number() ? jget(s, "columns", 1).get<long long>() : 1);
+        json stored = jget(s, "column_widths", json());
+        if (stored.is_array() && (long long)stored.size() == n) {
+            for (auto& v : stored) out.push_back(v.is_number() ? v.get<double>() : 0.0);
+            return out;
+        }
+        for (long long i = 0; i < n; ++i) out.push_back(total / (double)n);
+    }
+    return out;
+}
+
+std::string modules_text_of(const std::vector<double>& widths) {
+    std::string text;
+    for (double w : widths) text += (text.empty() ? "" : " + ") + std::format("{:g}", std::round(w * 10) / 10);
+    return text;
+}
+
+std::vector<double> parse_modules(const std::string& raw) {
+    std::string text = py::replace_all(raw, ",", ".");
+    std::vector<double> out;
+    std::string current;
+    auto flush = [&] {
+        if (current.empty()) return;
+        try { out.push_back(py::to_float(current)); } catch (const py::ValueError&) { throw py::ValueError("Moduły w rzędzie: wpisz liczby oddzielone plusem, np. 600 + 800 + 600."); }
+        current.clear();
+    };
+    for (char ch : text) {
+        if (ch == '+' || ch == ';' || ch == ' ' || ch == '\t' || ch == 'x' || ch == '/') flush();
+        else current += ch;
+    }
+    flush();
+    return out;
+}
+
+}  // namespace
+
 json QuickInspector::draft() {
     json cfg = config;
     // sections = {s['key']: s for s in cfg.get('sections', [])}
@@ -724,9 +772,11 @@ json QuickInspector::draft() {
         if (it == secs.end()) secs.emplace_back(skey, s);
         else it->second = s;
     }
+    std::string modules_raw;
     for (auto& f : fields) {
         const std::string& key = f.key;
         json value;
+        if (key == "modules") { modules_raw = f.text->get(); continue; }
         if (f.kind == "bool") {
             value = f.flag->get();
         } else {
@@ -765,6 +815,26 @@ json QuickInspector::draft() {
             cfg[key] = value;
         }
     }
+    // Moduły w rzędzie: zmiana w polu jest nadrzędna nad szerokością (suma modułów = szerokość mebla).
+    {
+        std::vector<double> typed = parse_modules(modules_raw);
+        std::vector<double> before = module_widths_of(config);
+        if (!typed.empty() && modules_text_of(typed) != modules_text_of(before)) {
+            if (typed.size() > 8) throw py::ValueError("Najwyżej 8 modułów w rzędzie.");
+            double sum = 0;
+            for (double w : typed) { if (w <= 0) throw py::ValueError("Każdy moduł musi mieć dodatnią szerokość."); sum += w; }
+            long long old_columns = (long long)before.size();
+            json widths = json::array();
+            for (double w : typed) widths.push_back(std::round(w * 10) / 10);
+            for (auto& [k, s] : secs) {
+                bool is_main = k == "main";
+                if (!is_main && (!py::truthy(jget(s, "enabled", false)) || jget(s, "columns", 1) != json(old_columns))) continue;
+                s["columns"] = (long long)typed.size();
+                s["column_widths"] = widths;
+            }
+            cfg["width"] = std::round(sum * 10) / 10;
+        }
+    }
     json list = json::array();
     for (auto& [k, s] : secs) list.push_back(s);
     cfg["sections"] = list;
@@ -785,6 +855,7 @@ void QuickInspector::set_config(const json& cfg_in) {
         const std::string& key = f.key;
         json value;
         auto dot = key.find('.');
+        if (key == "modules") { f.text->set(modules_text_of(module_widths_of(cfg))); continue; }
         if (dot != std::string::npos) value = jget(jget(sections_, key.substr(0, dot), json::object()), key.substr(dot + 1), 0);
         else value = jget(cfg, key, jget(defaults, key, ""));
         if (f.kind == "choice") {

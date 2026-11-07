@@ -193,7 +193,21 @@ json normalize_config(const json& config, const Project* project) {
         json defaults = section_defaults(c["template_index"], project, key_name);
         json s = py::merged(defaults, section); s["key"] = key_name;
         if (!s["enabled"].is_boolean()) throw ValueError("Włączenie strefy wymaga TAK / NIE.");
-        s["columns"] = _integer(s["columns"], 1, 4, "Liczba kolumn"); s["shelves"] = _integer(s["shelves"], 0, 8, "Liczba półek");
+        s["columns"] = _integer(s["columns"], 1, 8, "Liczba kolumn");
+        {
+            // Szerokości modułów w rzędzie [mm]: gdy liczba się nie zgadza lub są nieprawidłowe, moduły są równe; suma zawsze równa szerokości mebla.
+            long long n = s["columns"].get<long long>();
+            double total_width = num(c["width"]);
+            std::vector<double> widths;
+            const json cw = py::get(s, "column_widths");
+            bool valid = cw.is_array() && (long long)cw.size() == n;
+            double sum = 0;
+            if (valid) for (const auto& v : cw) { if (!v.is_number() || v.get<double>() <= 0) { valid = false; break; } sum += v.get<double>(); }
+            for (long long i = 0; i < n; ++i) widths.push_back(valid ? cw[(size_t)i].get<double>() * total_width / sum : total_width / n);
+            json out = json::array();
+            for (double v : widths) out.push_back(std::round(v * 10) / 10);
+            s["column_widths"] = out;
+        } s["shelves"] = _integer(s["shelves"], 0, 8, "Liczba półek");
         s["doors"] = _integer(s["doors"], 1, 2, "Liczba drzwi"); s["drawers"] = _integer(s["drawers"], 1, 8, "Liczba szuflad");
         if (!string_in(s["front"], {"open", "doors", "drawers"})) throw ValueError("Strefa: otwarta, drzwi albo szuflady.");
         s["height"] = finite(s["height"], 0, 10000);
@@ -289,11 +303,14 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
         const std::string lower_id = boards[row], upper_id = boards[row + 1]; std::string key = section["key"].get<std::string>();
         std::vector<std::string> column_parts{core_ids["carcass.left"]};
         long long columns = section["columns"].get<long long>();
+        const json& module_widths = section["column_widths"];
+        double module_edge = 0;
         for (long long col = 1; col < columns; ++col) {
+            module_edge += module_widths[(size_t)(col - 1)].get<double>();
             const Part& lower = need(*result, lower_id); const Part& upper = need(*result, upper_id);
             double lower_z = lower.z, lower_t = lower.t, upper_z = upper.z;
             column_parts.push_back(add(key + std::format(".divider.{}", col), "Przegroda pionowa — " + key + std::format(" {}", col), d, upper_z - lower_z - lower_t, t, "YZ",
-                                       ox + w * col / columns - t / 2, oy, lower_z + lower_t, "partition"));
+                                       ox + module_edge - t / 2, oy, lower_z + lower_t, "partition"));
         }
         column_parts.push_back(core_ids["carcass.right"]);
         for (long long col = 0; col < columns; ++col) {
