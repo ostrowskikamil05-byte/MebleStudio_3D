@@ -4,6 +4,7 @@
 #include "perf_monitor.h"
 #include "quick_studio_ui.h"
 #include "production_docs.h"
+#include "production_inspector.h"
 #include "sheet_nesting.h"
 #include "journal.h"
 #include "tile_glyphs.h"
@@ -1532,6 +1533,7 @@ void build(App* app) {
             {"Eksport CAD / CNC", "DXF, pliki do cięcia i obróbki", [app] { app->export_(); }},
             {"Lista formatek", "Wymiary do cięcia, obrzeża, materiały", [show_tab] { show_tab("Formatki"); }},
             {"Rozkrój płyt", "Układ formatek na płytach, odpad, arkusze do druku i DXF", [show_tab] { show_tab("Rozkrój"); }},
+            {"Inspektor produkcyjny", "Ugięcie półek, otwory przy krawędziach, kolizje okuć, brakujące obrzeża", [show_tab] { show_tab("Inspektor"); }},
             {"Kosztorys", "Materiały, okucia, robocizna i narzut", [show_tab] { show_tab("Kosztorys"); }},
             {"Ceny, robocizna i narzut", "Ustawienia kosztorysu", [app] { app->settings(); }}};
         for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Drukuj komplet…", [app] { if (app->print_project) app->print_project(); }},
@@ -1680,6 +1682,110 @@ void build_production(App* app) {
     app->cutcanvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 10}});
     app->cutcanvas->bind("<Configure>", plain([app](tk::Event&) { app->draw_cut(); }));
     (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony (tryb optymalny wybiera najlepszy z wielu wariantów); nieregularne kontury używają prostokątnych półfabrykatów."}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}});
+
+    {
+        // Inspektor produkcyjny: lista uwag technologa (ugięcie półek, otwory, obrzeża, kolizje) z naprawą jednym kliknięciem.
+        namespace pi = production_inspector;
+        struct State {
+            pi::Report report;
+            pi::Settings settings;
+            ttk::Frame* page = nullptr;
+            ttk::Label* summary = nullptr;
+            ttk::Treeview* table = nullptr;
+        };
+        auto state = std::make_shared<State>();
+        auto* page = new ttk::Frame(app->tabs, {{"padding", "18 14"}});
+        app->tabs->add(page, {{"text", "Inspektor"}});
+        state->page = page;
+        (new ttk::Label(page, {{"text", "Inspektor produkcyjny"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}});
+        state->summary = new ttk::Label(page, {{"text", ""}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}, {"wraplength", 900}, {"justify", "left"}});
+        state->summary->pack({{"anchor", "w"}, {"pady", "2 10"}});
+        auto run = [app, state] {
+            try {
+                app->project->validate();
+                state->report = pi::inspect(*app->project, state->settings);
+                journal::event(app, "inspektor", pi::summary_line(state->report));
+                state->summary->configure({{"text", pi::summary_line(state->report) + std::format(" · sprawdzono {} części · obciążenie półek {:g} kg/m²", state->report.parts_checked, state->settings.shelf_load_kg_m2)}});
+                state->table->delete_(state->table->get_children());
+                int index = 0;
+                for (const auto& f : state->report.findings) {
+                    const char* tag = f.severity == pi::Severity::Error ? "error" : f.severity == pi::Severity::Warning ? "warning" : "info";
+                    state->table->insert("", "end", {{"iid", "f" + std::to_string(index++)},
+                                                     {"values", std::vector<std::string>{pi::severity_name(f.severity), pi::rule_title(f.rule), f.part_name, f.message + (f.hint.empty() ? "" : "  →  " + f.hint)}},
+                                                     {"tags", tag}});
+                }
+            } catch (const std::exception& error) {
+                state->summary->configure({{"text", std::string("Inspektor nie mógł sprawdzić projektu: ") + error.what()}});
+            }
+        };
+        auto tools = new ttk::Frame(page);
+        tools->pack({{"anchor", "w"}, {"pady", "0 8"}});
+        make_button(tools, "Sprawdź projekt", run, true)->pack({{"side", "left"}, {"padx", "0 6"}});
+        make_button(tools, "Napraw automatycznie", [app, state, run] {
+            if (!app->flush_parameter_drafts()) return;
+            try {
+                int fixed = 0;
+                auto result = pi::apply_fixes(*app->project, state->report, &fixed);
+                if (!fixed) { app->status.set("Inspektor: żadna uwaga nie ma automatycznej poprawki."); return; }
+                app->snapshot(); app->project = result; app->refresh(); app->draw();
+                run();
+                journal::event(app, "inspektor", std::format("naprawa automatyczna: {} poprawek", fixed));
+                app->status.set(std::format("Inspektor: wprowadzono {} poprawek (obrzeża, głębokość otworów) — Ctrl+Z je cofa.", fixed));
+            } catch (const std::exception& error) { tk::messagebox::showerror("Inspektor produkcyjny", error.what(), app); }
+        })->pack({{"side", "left"}, {"padx", "0 6"}});
+        make_button(tools, "Raport · druk", [app, state] {
+            std::string path = tk::filedialog::asksaveasfilename({{"parent", app}, {"defaultextension", ".html"}, {"initialfile", app->project->name + " — inspektor.html"}, {"filetypes", tk::FileTypes{{"Raport", "*.html"}}}});
+            if (path.empty()) return;
+            try {
+                pi::report_export(*app->project, state->report, path);
+                app->status.set("Zapisano raport inspektora: " + path);
+                py::webbrowser_open(py::as_uri(std::filesystem::weakly_canonical(py::to_path(path))));
+            } catch (const std::exception& error) { tk::messagebox::showerror("Raport inspektora", error.what(), app); }
+        })->pack({{"side", "left"}, {"padx", "0 14"}});
+        (new ttk::Label(tools, {{"text", "Obciążenie półek:"}}))->pack({{"side", "left"}, {"padx", "0 4"}});
+        static const std::pair<const char*, double> LOADS[] = {{"Lekkie — ubrania, dekoracje (40 kg/m²)", 40}, {"Standardowe — naczynia, pojemniki (80 kg/m²)", 80}, {"Ciężkie — książki, segregatory (150 kg/m²)", 150}};
+        auto* load_var = new tk::StringVar(LOADS[1].first);
+        auto* load_combo = new ttk::Combobox(tools, {{"textvariable", *load_var}, {"state", "readonly"}, {"width", 44}, {"values", std::vector<std::string>{LOADS[0].first, LOADS[1].first, LOADS[2].first}}});
+        load_combo->pack({{"side", "left"}});
+        load_combo->bind("<<ComboboxSelected>>", plain([state, load_var, run](tk::Event&) {
+            for (const auto& [label, kg] : LOADS) if (load_var->get() == label) state->settings.shelf_load_kg_m2 = kg;
+            run();
+        }));
+        auto* card = new tk::Frame(page, {{"bg", forma_theme::BORDER}});
+        card->pack({{"fill", "both"}, {"expand", true}});
+        auto* inner = new tk::Frame(card, {{"bg", forma_theme::CARD}});
+        inner->pack({{"fill", "both"}, {"expand", true}, {"padx", 1}, {"pady", 1}});
+        auto* table = new ttk::Treeview(inner, {{"columns", std::vector<std::string>{"severity", "rule", "part", "message"}}, {"show", "headings"}, {"selectmode", "browse"}});
+        auto* vsb = new ttk::Scrollbar(inner, {{"orient", "vertical"}, {"command", table->path() + " yview"}});
+        vsb->pack({{"side", "right"}, {"fill", "y"}});
+        table->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
+        table->configure({{"yscrollcommand", vsb->path() + " set"}});
+        for (const auto& [col, title, width] : std::vector<std::tuple<std::string, std::string, int>>{{"severity", "Waga", 90}, {"rule", "Kontrola", 170}, {"part", "Część", 200}, {"message", "Opis i podpowiedź", 900}}) {
+            table->heading(col, {{"text", title}, {"anchor", "w"}});
+            table->column(col, {{"width", width}, {"anchor", "w"}, {"stretch", col == "message"}});
+        }
+        table->tag_configure("error", {{"foreground", "#b03a2e"}});
+        table->tag_configure("warning", {{"foreground", "#9a6700"}});
+        table->tag_configure("info", {{"foreground", forma_theme::MUTED}});
+        state->table = table;
+        table->bind("<Double-1>", plain([app, state](tk::Event&) {
+            auto selection = state->table->selection();
+            if (selection.empty()) return;
+            size_t index = static_cast<size_t>(std::stoul(selection[0].substr(1)));
+            if (index >= state->report.findings.size()) return;
+            const auto& f = state->report.findings[index];
+            for (const auto& p : app->project->parts) {
+                if (p.id != f.part_id) continue;
+                app->selected = p.id; app->refresh(); app->draw();
+                app->status.set("Inspektor: zaznaczono „" + p.name + "” — przełącz się na widok projektu, aby ją poprawić.");
+                return;
+            }
+        }));
+        (new ttk::Label(page, {{"text", "Dwuklik na uwadze zaznacza część w projekcie. Ugięcie liczone jest dla płyty swobodnie podpartej na końcach (przegrody skracają przęsło); kontrole to wskazówki technologiczne, nie atest."}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}, {"wraplength", 900}, {"justify", "left"}}))->pack({{"anchor", "w"}, {"pady", "6 0"}});
+        auto visible = [app, state] { return app->tabs->call({app->tabs->path(), "select"}) == state->page->path(); };
+        app->tabs->bind("<<NotebookTabChanged>>", plain([visible, run](tk::Event&) { if (visible()) run(); }), true);
+        app->refresh_inspector = [visible, run] { if (visible()) run(); };
+    }
 }
 
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent) {

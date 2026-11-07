@@ -214,6 +214,7 @@ public:
     std::function<std::optional<json>(double, double)> pick_attachment_target;  // hasattr(app, 'pick_attachment_target')
     std::function<void()> layout_dialog;                // furniture_layout_ui.install
     std::function<void()> print_project;                // furniture_layout_ui.install
+    std::function<void()> refresh_inspector;            // quick_studio_ui: odświeża listę Inspektora, gdy jest widoczna
     std::function<void(double)> rotate_furniture;       // furniture_layout_ui.install
     std::optional<std::string> selected_scene;
     bool _view_interactive = false;
@@ -563,6 +564,7 @@ public:
         if (!vals.empty()) sheetcombo->current(0);
         else sheetvar.set("Brak płyt");
         draw_cut();
+        if (refresh_inspector) refresh_inspector();
     }
 
     void draw_cut() {

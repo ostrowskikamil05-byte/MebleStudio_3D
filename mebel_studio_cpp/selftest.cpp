@@ -41,6 +41,7 @@
 #include "opening_options.h"
 #include "perf_monitor.h"
 #include "production_docs.h"
+#include "production_inspector.h"
 #include "project_print.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
@@ -1211,6 +1212,146 @@ public:
         });
     }
 
+    void test_inspector() {
+        namespace pi = production_inspector;
+        const char* area = "Inspektor produkcyjny";
+        const char* where = "production_inspector.cpp (inspect, apply_fixes, report_export), quick_studio_ui.cpp (zakładka Inspektor)";
+        auto count_rule = [](const pi::Report& r, const std::string& rule) { int n = 0; for (const auto& f : r.findings) if (f.rule == rule) ++n; for (const auto& f : r.hidden) if (f.rule == rule) ++n; return n; };
+        auto base_part = [](Project& q, const std::string& name, double u, double v, double t, const std::string& plane, double x, double y, double z) {
+            Part pt; pt.name = name; pt.group = "Test"; pt.u = u; pt.v = v; pt.t = t; pt.plane = plane; pt.x = x; pt.y = y; pt.z = z; pt.material = q.materials[0].id;
+            q.parts.push_back(pt);
+            return q.parts.size() - 1;
+        };
+        auto drill = [](Part& pt, double u, double v, double d, double depth, const std::string& face, const std::string& purpose) {
+            pt.operations.push_back(json{{"type", "drill"}, {"u", u}, {"v", v}, {"diameter", d}, {"depth", depth}, {"face", face}, {"purpose", purpose}});
+        };
+        run(area, "szafka dolna ze standardowego szablonu nie ma błędów krytycznych", where, [=](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0);
+            auto report = pi::inspect(*p);
+            need(report.errors == 0, "szafka dolna ma błędy: " + (report.findings.empty() ? std::string() : report.findings[0].message));
+            need(report.parts_checked == (int)p->parts.size(), "inspektor nie sprawdził wszystkich części");
+            ctx.note(pi::summary_line(report));
+        });
+        run(area, "półka: długie przęsło ugina się, przegroda i lekkie obciążenie to naprawiają", where, [=](Ctx&) {
+            Project q;
+            base_part(q, "Półka długa", 1160, 300, 18, "XY", 0, 0, 300);
+            auto report = pi::inspect(q);
+            need(count_rule(report, "shelf_sag") == 1, "półka 1160 mm nie została zgłoszona jako uginająca się");
+            need(report.findings[0].message.find("ugnie") != std::string::npos && !report.findings[0].hint.empty(), "uwaga o ugięciu nie ma opisu i podpowiedzi");
+            pi::Settings light; light.shelf_load_kg_m2 = 15;
+            need(count_rule(pi::inspect(q, light), "shelf_sag") == 0, "lekkie obciążenie nadal zgłasza ugięcie");
+            base_part(q, "Przegroda", 300, 600, 18, "YZ", 571, 0, 0);
+            need(count_rule(pi::inspect(q), "shelf_sag") == 0, "przegroda w połowie nie skróciła przęsła półki");
+            Project thin;
+            base_part(thin, "Półka krótka", 500, 300, 18, "XY", 0, 0, 300);
+            need(count_rule(pi::inspect(thin), "shelf_sag") == 0, "krótka półka jest zgłaszana");
+        });
+        run(area, "otwór za blisko krawędzi i zbyt głęboki są zgłaszane", where, [=](Ctx&) {
+            Project q;
+            size_t i = base_part(q, "Płyta z otworami", 600, 400, 18, "XY", 0, 0, 0);
+            drill(q.parts[i], 4, 200, 5, 10, "top", "za blisko");
+            drill(q.parts[i], 300, 200, 35, 16.5, "top", "puszka zbyt głęboka");
+            drill(q.parts[i], 100, 100, 5, 10, "top", "w porządku");
+            q.validate();
+            auto report = pi::inspect(q);
+            int near_edge = 0, deep = 0;
+            for (const auto& f : report.findings) {
+                if (f.rule != "hole_edge") continue;
+                if (f.message.find("za blisko") != std::string::npos) ++near_edge;
+                if (f.message.find("zostaje tylko") != std::string::npos) ++deep;
+            }
+            need(near_edge == 1, std::format("otwór przy krawędzi: zgłoszono {} zamiast 1", near_edge));
+            need(deep == 1, std::format("zbyt głęboki otwór: zgłoszono {} zamiast 1", deep));
+            need(report.errors >= 1, "otwór 1,5 mm od krawędzi powinien być błędem");
+        });
+        run(area, "otwory z obu stron płyty przebijają ją; naprawa skraca głębokość, współosiowe z zapasem są w porządku", where, [=](Ctx&) {
+            Project q;
+            size_t i = base_part(q, "Przegroda", 300, 600, 18, "YZ", 0, 0, 0);
+            for (double v : {100.0, 132.0}) { drill(q.parts[i], 150, v, 5, 10, "top", "podpórka półki"); drill(q.parts[i], 150, v, 5, 10, "bottom", "podpórka półki"); }
+            q.validate();
+            auto report = pi::inspect(q);
+            need(count_rule(report, "hole_clash") == 2 && report.errors == 2, std::format("oczekiwano 2 przebić, jest {}", count_rule(report, "hole_clash")));
+            int fixed = 0;
+            auto repaired = pi::apply_fixes(q, report, &fixed);
+            need(fixed == 2, std::format("naprawiono {} zamiast 2", fixed));
+            auto again = pi::inspect(*repaired);
+            need(count_rule(again, "hole_clash") == 0, "po naprawie nadal są kolizje otworów");
+            for (const auto& op : repaired->parts[i].operations) need(op.at("depth").get<double>() >= 3 && op.at("depth").get<double>() < 10, "głębokość po naprawie poza oczekiwanym zakresem");
+            // dwa różne okucia w tym samym miejscu na jednej stronie
+            Project r;
+            size_t k = base_part(r, "Front", 600, 400, 18, "XY", 0, 0, 0);
+            drill(r.parts[k], 300, 200, 5, 8, "top", "A"); drill(r.parts[k], 304, 200, 5, 8, "top", "B");
+            auto overlapping = pi::inspect(r);
+            need(count_rule(overlapping, "hole_clash") == 1 && overlapping.errors == 1, "przecinające się otwory nie zostały zgłoszone");
+        });
+        run(area, "obrzeża: fronty i krawędzie frontowe korpusu; naprawa okleja i rozkrój nadal działa", where, [=](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0);
+            auto report = pi::inspect(*p);
+            need(count_rule(report, "edge_banding") >= 6, std::format("brakujące obrzeża: zgłoszono tylko {}", count_rule(report, "edge_banding")));
+            int fixed = 0;
+            auto repaired = pi::apply_fixes(*p, report, &fixed);
+            need(fixed >= 8, std::format("naprawiono {} krawędzi", fixed));
+            need(count_rule(pi::inspect(*repaired), "edge_banding") == 0, "po naprawie nadal brakuje obrzeży");
+            for (const auto& part : repaired->parts)
+                if (assembly::inferred_role(part) == "door") need(std::all_of(part.edges.begin(), part.edges.end(), [](bool e) { return e; }), "front nie ma obrzeża na wszystkich krawędziach");
+            auto plan = sheet_nesting::plan(*repaired);
+            need(plan.second.empty(), "po okleinie formatki nie mieszczą się na płycie");
+            ctx.note(std::format("poprawiono {} krawędzi", fixed));
+        });
+        run(area, "kolizje części: wnikanie jest zgłaszane, styk nie", where, [=](Ctx&) {
+            Project q;
+            base_part(q, "Płyta A", 600, 400, 18, "XY", 0, 0, 0);
+            base_part(q, "Płyta B styk", 600, 400, 18, "XY", 0, 0, 18);
+            need(count_rule(pi::inspect(q), "part_collision") == 0, "styk płyt jest zgłaszany jako kolizja");
+            base_part(q, "Płyta C wnika", 600, 400, 18, "XY", 100, 100, 10);
+            need(count_rule(pi::inspect(q), "part_collision") >= 1, "płyta wnikająca w inne nie została zgłoszona");
+        });
+        run(area, "zawiasy: front 1700 mm z 2 zawiasami jest zgłaszany, z 4 nie", where, [=](Ctx&) {
+            Project q;
+            size_t i = base_part(q, "Front wysoki", 500, 1700, 18, "XZ", 0, 0, 0);
+            q.hardware.push_back(json{{"kind", "hinge"}, {"owner_id", q.parts[i].id}, {"name", "Zawias"}, {"qty", 2}, {"price", 0}});
+            need(count_rule(pi::inspect(q), "hinge_count") == 1, "za mało zawiasów nie zostało zgłoszone");
+            q.hardware[0]["qty"] = 4;
+            need(count_rule(pi::inspect(q), "hinge_count") == 0, "4 zawiasy na front 1700 mm są zgłaszane");
+        });
+        run(area, "formatka większa niż płyta jest błędem; obrót bez usłojenia ratuje sytuację", where, [=](Ctx&) {
+            Project q;
+            size_t i = base_part(q, "Długa", 3000, 300, 18, "XY", 0, 0, 0);
+            need(count_rule(pi::inspect(q), "sheet_fit") == 1, "formatka 3000 mm nie została zgłoszona");
+            q.parts[i].u = 2000; q.parts[i].v = 2500; q.parts[i].grain = false;
+            need(count_rule(pi::inspect(q), "sheet_fit") == 0, "formatka bez usłojenia mieszcząca się po obrocie jest zgłaszana");
+            q.parts[i].grain = true;
+            need(count_rule(pi::inspect(q), "sheet_fit") == 1, "usłojenie powinno blokować obrót");
+        });
+        run(area, "cała biblioteka szablonów kreatora przechodzi przez inspektor bez wyjątków", where, [=](Ctx& ctx) {
+            int checked = 0, findings = 0;
+            for (long long index = 0; index < 54; ++index) {
+                ProjectPtr p;
+                try { p = cabinet(Project(), index).first; } catch (const std::exception&) { continue; }  // wzorce spoza szybkiego kreatora
+                auto report = pi::inspect(*p);
+                findings += (int)report.findings.size() + (int)report.hidden.size();
+                ++checked;
+            }
+            need(checked >= 30, std::format("sprawdzono tylko {} szablonów", checked));
+            ctx.note(std::format("{} szablonów, {} uwag", checked, findings));
+        });
+        run(area, "raport HTML i linia podsumowania", where, [=](Ctx&) {
+            Project q;
+            size_t i = base_part(q, "Płyta z błędem", 600, 400, 18, "XY", 0, 0, 0);
+            drill(q.parts[i], 4, 200, 5, 10, "top", "za blisko");
+            auto report = pi::inspect(q);
+            need(pi::summary_line(report).find("Inspektor:") == 0 && pi::summary_line(report).find("błąd") != std::string::npos, "linia podsumowania nie wspomina o błędzie");
+            TempDir tmp("MebelStudio3D-test-");
+            std::string path = py::path_str(tmp.path / "inspektor.html");
+            pi::report_export(q, report, path);
+            std::ifstream f(fs::path(path), std::ios::binary);
+            std::string text((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            need(text.find("Inspektor produkcyjny") != std::string::npos && text.find("Otwory przy krawędzi") != std::string::npos && text.find("Płyta z błędem") != std::string::npos, "raport HTML nie zawiera uwag");
+            Project clean;
+            need(pi::summary_line(pi::inspect(clean)).find("bez uwag") != std::string::npos, "pusty projekt powinien być bez uwag");
+        });
+    }
+
     void test_led_scene_export() {
         const char* area = "LED w widoku 3D";
         const char* where = "native_scene_export.cpp (zbiór pasków LED), viewport_render.cpp (światła LED)";
@@ -1359,6 +1500,7 @@ public:
             {"komplet do druku (rozkrój)", "komplet.html", [](Project& p, const std::string& f) { project_print::export_project_print(p, f); }},
             {"arkusze rozkroju HTML", "rozkroj.html", [](Project& p, const std::string& f) { sheet_nesting::sheets_export(p, f); }},
             {"arkusze rozkroju DXF", "rozkroj.dxf", [](Project& p, const std::string& f) { sheet_nesting::sheets_dxf_export(p, f); }},
+            {"raport inspektora produkcyjnego", "inspektor.html", [](Project& p, const std::string& f) { production_inspector::report_export(p, production_inspector::inspect(p), f); }},
         };
         for (auto& e : exports) {
             run(area, e.name, where, [=](Ctx& ctx) {
@@ -1879,6 +2021,7 @@ public:
         test_cargo();
         test_led_scene_export();
         test_nesting();
+        test_inspector();
         test_ui();
         test_log_coverage();
     }
