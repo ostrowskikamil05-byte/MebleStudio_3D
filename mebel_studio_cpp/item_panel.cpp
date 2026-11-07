@@ -106,6 +106,8 @@ std::vector<std::pair<std::string, std::string>> connections(const json& item) {
         out = {{"Montaż", "otwory przelotowe w froncie"}, {"Wkręty", "M4 · dobrać do grubości frontu"}};
     } else if (kind == "leg") {
         out = {{"Montaż", "wkręty lub gwint w dnie korpusu"}, {"Regulacja", "poziomowanie od góry lub od spodu"}};
+    } else if (kind == "shaped") {
+        out = {{"Konstrukcja", "elementy płaskie z obłymi obrysami · wymaga doboru połączeń"}, {"Wymiary", "zmienisz po dodaniu, edytując elementy"}};
     } else if (kind == "furniture") {
         if (has(text, {"zlew", "zlewozmyw"})) out = {{"Woda", "zimna i ciepła"}, {"Odpływ", "syfon Ø 40 mm"}};
         else if (has(text, {"wisząc", "nadstaw"})) out = {{"Montaż", "zawieszki ścienne lub szyna"}};

@@ -90,6 +90,82 @@ ColoredFaces _faces(const std::string& key_) {
                 }
                 if (family == "island") bx(-20, -20, h, w + 40, d + 40, 38, "#7e6c59");
             }
+        } else if (kind == "shaped") {
+            // Uproszczona bryła wzorca obłego: elipsoidalne blaty i okrągłe nogi (bez siatki CAD).
+            double w = num(p.at("width")), d = num(p.at("depth")), h = num(p.at("body_height"));
+            std::string family = p.at("family").get<std::string>();
+            const std::string wood = "#bd9b6d", light = "#e6ddd0";
+            const double t = 28;
+            const double pi = std::acos(-1.0);
+            auto slab = [&](double cx, double cy, double rx, double ry, double z, double th, const std::string& color, bool half = false) {
+                const int n = 28;
+                std::vector<core::Point3> top, bottom;
+                for (int i = 0; i < n; ++i) {
+                    double a = half ? pi * i / (n - 1) : 2 * pi * i / n;
+                    double x = cx + rx * std::cos(a), y = cy + ry * std::sin(a);
+                    top.push_back({x, y, z + th});
+                    bottom.push_back({x, y, z});
+                }
+                out.emplace_back(top, color);
+                for (int i = 0; i < n; ++i) {
+                    int j = (i + 1) % n;
+                    out.emplace_back(std::vector<core::Point3>{bottom[i], bottom[j], top[j], top[i]}, color);
+                }
+            };
+            auto leg = [&](double x, double y, double r, double height, double z = 0) { put(cylinder(x, y, z, r, height, 12), wood); };
+            if (family == "rounded_table") {
+                slab(w / 2, d / 2, w / 2, d / 2, h - t, t, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{w * .18, d * .22}, {w * .82, d * .22}, {w * .18, d * .78}, {w * .82, d * .78}}) leg(x, y, 32, h - t);
+            } else if (family == "oval_table") {
+                slab(w / 2, d / 2, w / 2, d / 2, h - t, t, wood);
+                slab(w / 2, d / 2, w * .36, d * .36, h * .3, 18, wood);
+                leg(w * .28, d / 2, 38, h - t);
+                leg(w * .72, d / 2, 38, h - t);
+            } else if (family == "rounded_desk") {
+                bx(0, 0, h - t, w, d, t, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{40, 40}, {w - 90, 40}, {40, d - 90}, {w - 90, d - 90}}) bx(x, y, 0, 50, 50, h - t, wood);
+            } else if (family == "chair") {
+                slab(w / 2, d / 2, w / 2, d / 2, 450, 30, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{40, 40}, {w - 40, 40}, {40, d - 40}, {w - 40, d - 40}}) leg(x, y, 18, 450);
+                bx(30, d - 30, 480, w - 60, 24, h - 480, wood);
+            } else if (family == "stool") {
+                slab(w / 2, d / 2, w / 2, d / 2, h - 30, 30, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{w * .25, d * .3}, {w * .75, d * .3}, {w * .5, d * .8}}) leg(x, y, 18, h - 30);
+            } else if (family == "console") {
+                slab(w / 2, d / 2, w / 2, d / 2, h - t, t, wood);
+                bx(w * .12, d * .2, 0, 40, d * .6, h - t, wood);
+                bx(w * .88 - 40, d * .2, 0, 40, d * .6, h - t, wood);
+                bx(w * .12, d * .15, h * .2, w * .76, d * .7, 18, wood);
+            } else if (family == "vanity") {
+                double table = 750;
+                slab(w / 2, d / 2, w / 2, d / 2, table - t, t, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{70, 60}, {w - 70, 60}, {70, d - 60}, {w - 70, d - 60}}) leg(x, y, 24, table - t);
+                bx(w * .2, d - 20, table, w * .6, 20, h - table, "#d8dde0");
+            } else if (family == "slatted") {
+                bx(0, 0, 0, w, d, h - t, wood);
+                bx(4, -16, 4, w / 2 - 6, 16, h - t - 8, light);
+                bx(w / 2 + 2, -16, 4, w / 2 - 6, 16, h - t - 8, light);
+                slab(w / 2, d / 2, w / 2 + 10, d / 2 + 10, h - t, t, wood);
+            } else if (family == "nightstand") {
+                bx(0, 0, 0, w, d, h - t, wood);
+                bx(4, -16, 4, w - 8, 16, h - t - 8, light);
+                slab(w / 2, d / 2, w / 2 + 12, d / 2 + 12, h - t, t, wood);
+            } else if (family == "bench") {
+                slab(w / 2, d / 2, w / 2, d / 2, 430, 40, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{60, 60}, {w - 60, 60}, {60, d - 60}, {w - 60, d - 60}}) leg(x, y, 25, 430);
+                bx(0, d - 30, 470, w, 30, h - 470, wood);
+            } else if (family == "mirror") {
+                bx(0, 0, 0, w, d, h, "#d8dde0");
+                bx(w * .1, -4, h * .08, w * .8, 4, h * .84, "#aeb7bb");
+            } else if (family == "half_table") {
+                slab(w / 2, 0, w / 2, d, h - t, t, wood, true);
+                leg(w * .15, d * .25, 28, h - t);
+                leg(w * .85, d * .25, 28, h - t);
+                leg(w / 2, d * .85, 28, h - t);
+            } else {
+                bx(0, 0, h - t, w, d, t, wood);
+                for (auto [x, y] : std::vector<std::pair<double, double>>{{20, 20}, {w - 60, 20}, {20, d - 60}, {w - 60, d - 60}}) bx(x, y, 0, 40, 40, h - t, wood);
+            }
         } else if (kind == "appliance") {
             json spec = json::object(); for (std::string k : {"type", "width", "depth", "height", "color"}) spec[k] = p.at(k);
             spec["interactive"] = true;

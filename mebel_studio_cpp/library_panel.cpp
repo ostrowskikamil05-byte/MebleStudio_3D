@@ -26,7 +26,7 @@ constexpr int PREVIEW_W = 90, PREVIEW_H = 72;
 const std::string HINT = "⌕  Szukaj modułów, frontów, materiałów…";
 
 const std::vector<std::pair<std::string, std::string>> CHIPS = {
-    {"furniture", "Meble"}, {"material", "Materiały"}, {"handle", "Uchwyty"}, {"hinge", "Zawiasy"},
+    {"furniture", "Meble"}, {"shaped", "Kształty"}, {"material", "Materiały"}, {"handle", "Uchwyty"}, {"hinge", "Zawiasy"},
     {"runner", "Prowadnice"}, {"leg", "Nogi"}, {"led", "LED"}, {"appliance", "AGD"}};
 
 }  // namespace
