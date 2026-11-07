@@ -2177,7 +2177,9 @@ public:
             for (size_t i = 0; i < items.size(); ++i) {
                 std::string name = items[i].value("name", std::string("element ") + std::to_string(i));
                 run(area, std::string(kind) + ": " + name, where, [=, this](Ctx& ctx) {
-                    ProjectPtr project = fresh();
+                    // Urządzenia wbudowane (AGD) wymagają mebla, w który się je wstawia.
+                    ProjectPtr project = std::string(kind) == "appliance" ? cabinet(Project()).first : fresh();
+                    size_t before = project->parts.size();
                     app->project = project; app->selected.reset(); app->refresh();
                     json current = visual_catalogue::catalogue_items(kind, *project);
                     need(i < current.size(), "katalog zmienił liczbę elementów");
@@ -2189,7 +2191,7 @@ public:
                     close_extra_windows();
                     app->project = fresh(); app->refresh();
                     ctx.note(std::format("{} części", parts));
-                    need(parts > 0, "po dodaniu z biblioteki projekt jest pusty");
+                    need(parts > before, std::format("po dodaniu z biblioteki liczba części nie wzrosła ({} → {})", before, parts));
                     need(text.find(std::string("[operacja:biblioteka] dodaję: rodzaj ") + kind) != std::string::npos, "dodanie elementu nie zostało zapisane w dzienniku (biblioteka)");
                     need(text.find("[operacja:zmiana]") != std::string::npos, "dodanie elementu nie zostawiło wpisu [zmiana]");
                 });
@@ -2363,7 +2365,7 @@ public:
         });
 
         run(area, "rozciąganie: zaznaczona część skrzynki szuflady daje uchwyty mebla (generated_by)", "app.h (draw_original — właściciel części generowanej)", [=, this](Ctx& ctx) {
-            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["drawers"] = 2; section(c, "main")["shelves"] = 0; });
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["drawers"] = 2; b["shelves"] = 0; });
             app->project = p; app->refresh(); app->update();
             const core::Part* generated = nullptr;
             for (const auto& part : p->parts) if (py::truthy(py::get(part.assembly, "generated_by"))) { generated = &part; break; }
@@ -2580,6 +2582,10 @@ public:
         run("Logi", "dziennik zawiera wpisy z testowanych obszarów", "journal.cpp, developer_logs.cpp, sketch.cpp, app.h (file_event/draw_done/undo), form_dialog.cpp", [this](Ctx& ctx) {
             need(fs::exists(app->developer_log_path), "brak pliku logu: " + py::path_str(app->developer_log_path));
             std::string text = read_file(app->developer_log_path);
+            // Log się obraca (MebelStudio3D.log → .log.1), więc czytamy też poprzedni plik.
+            fs::path rotated = app->developer_log_path; rotated += ".1";
+            std::error_code rotated_ec;
+            if (fs::exists(rotated, rotated_ec)) text += read_file(rotated);
             std::string missing;
             long long found = 0;
             for (const auto& [category, test_name] : JOURNAL_COVERAGE) {
