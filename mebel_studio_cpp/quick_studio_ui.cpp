@@ -297,7 +297,8 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     }
     auto* fronts = new Section(body, "Fronty i uchwyty");
     sections["fronts"] = fronts;
-    combo(fronts->body, "front_style", "Styl frontu", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}});
+    combo(fronts->body, "front_style", "Styl frontu", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}}, true);
+    build_style_tiles(fronts->body);
     preview = new tk::Canvas(fronts->body, {{"height", 112}, {"bg", "#f1eee8"}, {"highlightthickness", 0}});
     preview->pack({{"fill", "x"}, {"pady", 4}});
     preview->bind("<Configure>", plain([this](tk::Event&) { draw_preview(); }));
@@ -432,15 +433,67 @@ tk::StringVar* QuickInspector::field(tk::Widget* parent, const std::string& key,
     return var.get();
 }
 
-ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices) {
-    (new ttk::Label(parent, {{"text", label}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}, {"pady", "4 1"}});
+ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices, bool hidden) {
+    if (!hidden) (new ttk::Label(parent, {{"text", label}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}, {"pady", "4 1"}});
     auto var = std::make_shared<tk::StringVar>();
     auto* widget = new ttk::Combobox(parent, {{"textvariable", *var}, {"values", keys_of(choices)}, {"state", "readonly"}});
-    widget->pack({{"fill", "x"}});
+    if (!hidden) widget->pack({{"fill", "x"}});
     fields.push_back({key, var, nullptr, "choice"});
     combos[key] = {widget, choices};
     widget->bind("<<ComboboxSelected>>", plain([this, key](tk::Event&) { choice_changed(key); }));
     return widget;
+}
+
+void QuickInspector::draw_style_tile(const std::string& choice_label, tk::Canvas* tile) {
+    if (tile == nullptr) return;
+    try {
+        bool on = find("front_style").text->get() == choice_label;
+        double w = std::max(40, tile->winfo_width());
+        tile->delete_("all");
+        tile->create_rectangle(1, 1, w - 2, 61, {{"fill", on ? forma_theme::ACCENT_SOFT : forma_theme::CARD}, {"outline", on ? forma_theme::ACCENT : forma_theme::BORDER}, {"width", on ? 2 : 1}});
+        double x1 = w / 2 - 17, x2 = w / 2 + 17, y1 = 8, y2 = 38;
+        const char* wood = "#e8d2ab";
+        const char* edge = "#7a6544";
+        tile->create_rectangle(x1, y1, x2, y2, {{"fill", wood}, {"outline", edge}});
+        if (choice_label == "Ramka frezowana") {
+            tile->create_rectangle(x1 + 6, y1 + 6, x2 - 6, y2 - 6, {{"fill", "#d9b98a"}, {"outline", edge}});
+        } else if (choice_label == "Ryflowany") {
+            for (double x = x1 + 5; x < x2 - 2; x += 5) tile->create_line({x, y1 + 2, x, y2 - 2}, {{"fill", "#8c795a"}, {"width", 2}});
+        } else if (choice_label == "Chwyt frezowany") {
+            tile->create_rectangle(x1 + 5, y1 + 2, x2 - 5, y1 + 6, {{"fill", "#8c795a"}, {"outline", ""}});
+        }
+        static const std::map<std::string, std::string> SHORT = {{"Gładki", "Gładki"}, {"Ramka frezowana", "Ramkowy"}, {"Ryflowany", "Ryflowany"}, {"Chwyt frezowany", "Frezowany"}};
+        auto it = SHORT.find(choice_label);
+        tile->create_text(w / 2, 50, {{"text", it != SHORT.end() ? it->second : choice_label}, {"fill", on ? forma_theme::ACCENT : forma_theme::TEXT}, {"font", on ? "{Segoe UI} 9 bold" : "{Segoe UI} 9"}});
+    } catch (const tk::TclError&) {
+    }
+}
+
+void QuickInspector::build_style_tiles(tk::Widget* parent) {
+    forma_widgets::caption(parent, "Styl frontu");
+    auto* row = new tk::Frame(parent, {{"bg", forma_theme::PANEL}});
+    row->pack({{"fill", "x"}, {"pady", "2 4"}});
+    style_tiles.clear();
+    int column = 0;
+    for (const char* label : {"Gładki", "Ramka frezowana", "Ryflowany", "Chwyt frezowany"}) {
+        std::string choice = label;
+        auto* tile = new tk::Canvas(row, {{"height", 62}, {"width", 40}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+        row->columnconfigure(column, {{"weight", 1}, {"uniform", "styletile"}});
+        tile->grid({{"row", 0}, {"column", column++}, {"padx", 2}, {"sticky", "ew"}});
+        tile->bind("<Configure>", plain([this, choice, tile](tk::Event&) { draw_style_tile(choice, tile); }));
+        tile->bind("<Button-1>", [this, choice](tk::Event&) {
+            try {
+                find("front_style").text->set(choice);
+                choice_changed("front_style");
+            } catch (const tk::TclError&) {
+            }
+            return std::string();
+        });
+        style_tiles.emplace_back(choice, tile);
+    }
+    find("front_style").text->trace_add("write", [this] {
+        for (auto& [choice, tile] : style_tiles) draw_style_tile(choice, tile);
+    });
 }
 
 void QuickInspector::rebuild_swatches() {

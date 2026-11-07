@@ -99,7 +99,11 @@ public:
     void reset_fields();
     bool flush_draft();
     tk::StringVar* field(tk::Widget* parent, const std::string& key, const std::string& label, bool integer = false, bool text = false);
-    ttk::Combobox* combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices);
+    ttk::Combobox* combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices, bool hidden = false);
+    // Kafelki stylu frontu (Gładki / Ramkowy / Ryflowany / Frezowany) zamiast listy rozwijanej.
+    void build_style_tiles(tk::Widget* parent);
+    std::vector<std::pair<std::string, tk::Canvas*>> style_tiles;  // etykieta pozycji listy -> kafelek
+    void draw_style_tile(const std::string& choice_label, tk::Canvas* tile);
     void choice_changed(const std::string& key);
     void check(tk::Widget* parent, const std::string& key, const std::string& label);
     void section_fields(tk::Widget* parent, const std::string& key);
