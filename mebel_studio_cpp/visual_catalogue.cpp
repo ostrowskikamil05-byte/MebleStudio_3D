@@ -16,6 +16,7 @@
 #include "furniture_configurator.h"
 #include "furniture_layout.h"
 #include "furniture_library.h"
+#include "journal.h"
 #include "opening_options.h"
 #include "palette.h"
 #include "pyutil.h"
@@ -383,6 +384,12 @@ bool apply_item(App* app, const json& item) {
     if (!app->flush_parameter_drafts()) return false;
     std::string kind = canonical_kind(item.at("kind").get<std::string>());
     json payload = item.at("payload");
+    {
+        std::string label = "?";
+        for (const char* key : {"name", "title", "label"})
+            if (item.contains(key) && item.at(key).is_string()) { label = item.at(key).get<std::string>(); break; }
+        journal::event(app, "biblioteka", std::format("dodaję: rodzaj {} · {} · parametry {}", kind, label, payload.dump(-1, ' ', false, json::error_handler_t::replace).substr(0, 160)));
+    }
     if (kind == "furniture") {
         auto [candidate, group] = furniture_library::create_furniture(*app->project, payload.at("template_index").get<long long>());
         if (!app->project->parts.empty()) {

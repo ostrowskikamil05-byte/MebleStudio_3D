@@ -46,6 +46,8 @@ core::ProjectPtr snap_group(const core::Project& project, const std::string& gro
 // Snap a near face and optionally its nearby edges; never move far away.
 // Returns (candidate, information) or an unchanged copy with None (null).
 std::pair<core::ProjectPtr, json> nearest_snap(const core::Project& project, const std::string& group, const json& tolerance = 80, bool align = true, bool validate = true);
+// Nazwy mebli tworzących rząd z `group` (stykają się bokami wzdłuż X), razem z nim.
+std::vector<std::string> row_groups(const core::Project& project, const std::string& group);
 // Rząd szafek stykających się bokami wzdłuż X: {count, from, to, length}; null, gdy nie ma takiego mebla.
 json row_extent(const core::Project& project, const std::string& group);
 // Wypycha mebel z przenikania innych mebli (ślizg po ściance); drugi element = czy coś przesunięto.

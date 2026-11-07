@@ -63,6 +63,7 @@ namespace hardware_placement_ui { class HardwarePlacementPanel; }
 #include "viewport_annotations.h"
 #include "shaped_furniture.h"
 #include "stretch_choice.h"
+#include "journal.h"
 #include "cad_geometry.h"
 #include "furniture_layout.h"
 #include "furniture_layout_ui.h"
@@ -764,7 +765,7 @@ public:
             furniture_layout_ui::drag(this, e); return;
         }
         if (drag_edit) { direct_drag(e); return; }
-        if (edit_mode.get() != "camera") return;
+        if (edit_mode.get() != "camera" && edit_mode.get() != "configure") return;
         int dx = e.x - last[0], dy = e.y - last[1];
         if (std::hypot(e.x - start[0], e.y - start[1]) > 3) dragged = true;
         if (dragged) { camera.yaw += dx * .45; camera.pitch = std::max(-89.0, std::min(89.0, camera.pitch + dy * .4)); draw(); }
@@ -779,6 +780,7 @@ public:
             DragEdit drag = *drag_edit; project = drag.base; drag_edit.reset();
             if (drag.candidate != nullptr) { snapshot(); project = drag.candidate; }
             refresh(); status.set("Zapisano rozciągnięcie mebla / elementu · Ctrl+Z cofa zmianę");
+            journal::event(this, "rozciąganie", std::format("zatwierdzono {} {} ({})", drag.handle.group ? *drag.handle.group : std::string("(część)"), drag.handle.face, drag.candidate != nullptr ? "zapisano" : "bez zmian"));
             // Po rozciągnięciu mebla w głąb albo w górę pytamy, czym ma się stać (narożnik L, pawlacz, szafa, regał).
             if (drag.candidate != nullptr && drag.handle.group && !drag.handle.group->empty() && drag.base)
                 stretch_choice::offer(this, *drag.base, *drag.handle.group, drag.handle.face);
@@ -802,6 +804,10 @@ public:
             if (selected) { tree->selection_set(*selected); tree->see(*selected); }
             else tree->selection_remove(tree->selection());
             load_form(); draw();
+            if (edit_mode.get() == "configure") {
+                if (Part* part = selected_part(); part != nullptr && !part->group.empty()) stretch_choice::open_configuration(this, part->group);
+                else status.set("Konfiguracja: kliknij mebel, który chcesz skonfigurować");
+            }
         }
     }
     void pan_start(tk::Event& e) { last = {e.x, e.y}; }

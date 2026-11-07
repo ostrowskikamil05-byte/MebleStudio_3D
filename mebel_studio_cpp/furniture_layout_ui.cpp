@@ -1,5 +1,6 @@
 // Whole-furniture arrangement controls and screen-plane dragging.
 #include "furniture_layout_ui.h"
+#include "journal.h"
 
 #include <chrono>
 #include <cmath>
@@ -269,7 +270,12 @@ bool end_drag(App* app, tk::Event& event) {
     if (!data) return false;
     drag(app, event, true); app->layout_drag = nullptr; app->project = data->base;
     if (data->candidate != nullptr) {
-        try { data->candidate->validate(); commit(app, data->candidate, "Zapisano układ mebli · Ctrl+Z cofa cały ruch"); }
+        try {
+            data->candidate->validate();
+            commit(app, data->candidate, "Zapisano układ mebli · Ctrl+Z cofa cały ruch");
+            journal::event(app, "przesuwanie", "zatwierdzono ruch mebli");
+            journal::dump_groups(app, *app->project, "po przesunięciu");
+        }
         catch (const py::ValueError& exc) { app->draw(); app->status.set(exc.what()); }
     } else {
         app->draw();

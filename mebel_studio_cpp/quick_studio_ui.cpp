@@ -3,6 +3,7 @@
 #include "forma_widgets.h"
 #include "perf_monitor.h"
 #include "quick_studio_ui.h"
+#include "journal.h"
 
 #include <algorithm>
 #include <chrono>
@@ -1016,6 +1017,12 @@ bool QuickInspector::apply(bool explicit_) {
         }
         auto [result, new_group] = furniture_configurator::configure(*app->project, cfg, group);
         if (result->data() == app->project->data()) return true;
+        {
+            std::string changed;
+            if (py::truthy(previous) && cfg.is_object())
+                for (auto& [key, value] : cfg.items()) if (!previous.contains(key) || previous.at(key) != value) changed += (changed.empty() ? "" : ", ") + key;
+            journal::event(app, "inspektor", std::format("zmiana {}: {}", has_group ? *group : std::string("(nowy mebel)"), changed.empty() ? std::string("przeliczenie") : changed));
+        }
         app->snapshot();
         app->project = result;
         app->open_amounts = {};

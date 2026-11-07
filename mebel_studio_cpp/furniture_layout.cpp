@@ -321,12 +321,12 @@ std::pair<ProjectPtr, json> nearest_snap(const Project& project, const std::stri
     return {move_group(project, group, best->delta[0], best->delta[1], best->delta[2], validate), best->info};
 }
 
-json row_extent(const Project& project, const std::string& group) {
-    // Rząd to szafki stykające się bokami wzdłuż X (ta sama wysokość i głębokość się pokrywają): zwraca liczbę, początek, koniec i długość całkowitą.
+std::vector<std::string> row_groups(const Project& project, const std::string& group) {
+    // Rząd to szafki stykające się bokami wzdłuż X (pokrywają się w głębokości i wysokości).
     std::vector<std::string> names = groups(project);
     std::map<std::string, Box> boxes;
     for (auto& name : names) boxes[name] = group_bounds(project, name);
-    if (!boxes.contains(group)) return json(nullptr);
+    if (!boxes.contains(group)) return {};
     const double touch = 3.0;
     std::set<std::string> row{group};
     std::vector<std::string> queue{group};
@@ -343,8 +343,18 @@ json row_extent(const Project& project, const std::string& group) {
             queue.push_back(name);
         }
     }
+    return std::vector<std::string>(row.begin(), row.end());
+}
+
+json row_extent(const Project& project, const std::string& group) {
+    // Liczba, początek, koniec i długość całkowita rzędu (z bokami).
+    std::vector<std::string> row = row_groups(project, group);
+    if (row.empty()) return json(nullptr);
     double lo = 1e18, hi = -1e18;
-    for (auto& name : row) { lo = std::min(lo, boxes[name].first[0]); hi = std::max(hi, boxes[name].second[0]); }
+    for (auto& name : row) {
+        Box box = group_bounds(project, name);
+        lo = std::min(lo, box.first[0]); hi = std::max(hi, box.second[0]);
+    }
     return {{"count", (long long)row.size()}, {"from", lo}, {"to", hi}, {"length", hi - lo}};
 }
 

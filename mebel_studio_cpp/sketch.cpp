@@ -1,5 +1,6 @@
 // Interactive local U/V sketching; shared Part remains the production source.
 #include "sketch.h"
+#include "journal.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1046,6 +1047,7 @@ bool Sketch::save(bool keep_open) {
         app->snapshot();
         app->project = temp;
         app->selected = id;
+        journal::event(app, "szkic", std::format("zapis szkicu jako element {} (zostaje otwarty: {})", id, keep_open ? "tak" : "nie"));
         app->refresh();
         app->fit();
         app->status.set("Zapisano szkic jako element 3D i przeliczono dane produkcyjne");

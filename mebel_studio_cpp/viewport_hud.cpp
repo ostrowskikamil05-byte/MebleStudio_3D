@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "app.h"
+#include "journal.h"
 #include "forma_theme.h"
 
 namespace viewport_hud {
@@ -75,13 +76,15 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
     // Paleta narzędzi po lewej: Zaznacz · Przesuń · Obróć · Wymiary · Okucia (jak na makiecie).
     if (height >= 380) {
         struct Tool { std::string label, glyph, mode; };
-        std::vector<Tool> tools = {{"Zaznacz", "↖", "camera"}, {"Przesuń", "✥", "layout"}, {"Obróć", "↻", "rotate"}, {"Wymiary", "↔", "dimensions"}, {"Okucia", "⚙", "tray"}};
-        // Rozciąganie pod Okuciami: cały mebel (uchwyty na ściankach) albo pojedyncza część. Dopiero w wyższym widoku, żeby nie zachodziło na przełącznik widoków.
-        if (height >= 560) {
-            tools.push_back({"Rozciągnij", "⤢", "furniture"});
-            tools.push_back({"Część", "▭", "resize"});
-        }
-        double cell_w = size(60), cell_h = size(58), x = size(14), y = size(18);
+        std::vector<Tool> tools = {{"Zaznacz", "↖", "camera"}, {"Przesuń", "✥", "layout"}, {"Obróć", "↻", "rotate"}, {"Wymiary", "↔", "dimensions"}, {"Okucia", "⚙", "tray"},
+                                   {"Konfiguruj", "✎", "configure"}};
+        // Rozciąganie pod Konfiguruj; im niższe okno, tym mniej narzędzi (najmniej ważne znikają), żeby paleta nie zachodziła na przełącznik widoków.
+        tools.push_back({"Rozciągnij", "⤢", "furniture"});
+        tools.push_back({"Część", "▭", "resize"});
+        double x = size(14), y = size(18), cell_w = size(60);
+        double limit = height - size(14 + 34 + 8 + 8);  // górna krawędź przełącznika widoków
+        while (tools.size() > 5 && (limit - y - size(10)) / tools.size() < size(44)) tools.pop_back();
+        double cell_h = std::min(size(58), (limit - y - size(10)) / tools.size());
         double total = cell_h * tools.size() + size(10);
         card(c, x, y, x + cell_w + size(8), y + total, size(14));
         std::string mode = app->edit_mode.get();
@@ -92,7 +95,9 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.38, {{"text", tools[i].glyph}, {"fill", active ? forma_theme::ACCENT : forma_theme::TEXT}, {"font", icon_font}, {"tags", "hud"}});
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.80, {{"text", tools[i].label}, {"fill", active ? forma_theme::ACCENT : forma_theme::MUTED}, {"font", small_font}, {"tags", "hud"}});
             std::string target = tools[i].mode;
-            g_areas.push_back({cx, cy, cx + cell_w, cy + cell_h, [app, target] {
+            std::string tool_label = tools[i].label;
+            g_areas.push_back({cx, cy, cx + cell_w, cy + cell_h, [app, target, tool_label] {
+                journal::event(app, "narzędzie", "kliknięto „" + tool_label + "” (tryb " + target + ", poprzedni " + app->edit_mode.get() + ")");
                 if (target == "tray") { if (app->toggle_hardware_tray) app->toggle_hardware_tray(); }
                 else if (target == "rotate") { if (app->rotate_furniture) app->rotate_furniture(90); }
                 else if (target == "dimensions") { app->dimensions.set(!app->dimensions.get()); app->draw(); }
@@ -100,6 +105,7 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
                     app->edit_mode.set(target);
                     app->draw();
                     if (target == "furniture") app->status.set(app->selected ? "Rozciąganie mebla: przeciągnij zielone uchwyty na jego ściankach (Krok 32 mm w CAD)" : "Rozciąganie mebla: zaznacz mebel, potem przeciągnij uchwyty na jego ściankach");
+                    else if (target == "configure") app->status.set("Konfiguracja: kliknij mebel, aby otworzyć okno z uchwytami, nóżkami, zawiasami, materiałami i dodatkami");
                     else if (target == "resize") app->status.set(app->selected ? "Rozciąganie części: przeciągnij kolorowe uchwyty (U / V / T) zaznaczonego elementu" : "Rozciąganie części: zaznacz element, potem przeciągnij uchwyty");
                 }
             }});

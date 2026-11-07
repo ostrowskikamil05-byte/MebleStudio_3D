@@ -1,5 +1,6 @@
 // Bounded diagnostics, persisted outside the installation, with a dockable viewer.
 #include "developer_logs.h"
+#include "journal.h"
 
 #include <ctime>
 #include <format>
@@ -283,6 +284,7 @@ LogDocument::LogDocument(App* app_) : dock_workspace::DockDocument(app_) {
     auto* bar = new ttk::Frame(this, {{"padding", 6}}); bar->pack({{"fill", "x"}});
     (new ttk::Label(bar, {{"text", "Zielony: OK / informacje   Żółty: ostrzeżenie   Czerwony: błąd"}}))->pack({{"side", "left"}});
     (new ttk::Button(bar, {{"text", "Zapisz log…"}, {"command", std::function<void()>([this] { export_(); })}}))->pack({{"side", "right"}, {"padx", 4}});
+    (new ttk::Button(bar, {{"text", "Stan mebli"}, {"command", std::function<void()>([this] { journal::dump_groups(this->app, *this->app->project, "Stan na żądanie"); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Historia pliku"}, {"command", std::function<void()>([this] { history(); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Zeruj statystyki"}, {"command", std::function<void()>([this] { perf::reset(); this->app->log->info("[wydajność] Statystyki wyzerowane"); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Test zakładek"}, {"command", std::function<void()>([this] { perf::self_test(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});

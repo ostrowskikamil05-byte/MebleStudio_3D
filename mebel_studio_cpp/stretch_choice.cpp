@@ -14,6 +14,7 @@
 #include "forma_theme.h"
 #include "furniture_configurator.h"
 #include "furniture_layout.h"
+#include "journal.h"
 #include "opening_options.h"
 
 namespace stretch_choice {
@@ -101,7 +102,9 @@ std::vector<std::string> keys_of(const json& choices) {
     return out;
 }
 
-std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const json& cfg) {
+std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const json& cfg, bool full = false,
+                                         const std::string& title = "Ustawienia nowych szafek",
+                                         const std::string& apply_text = "Zastosuj zmiany też do rozciągniętej szafki") {
     auto settings = std::make_shared<Settings>();
     json openings = {{"Uchwyt / gałka", "handle"}, {"Bez uchwytu", "none"}};
     for (auto& [k, v] : opening_options::OPTIONS.items()) if (k != "none") openings[v.at("label").get<std::string>()] = k;
@@ -117,7 +120,14 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
         {"leg_height", "Nóżki", json{{"Bez nóżek", 0}, {"60 mm", 60}, {"100 mm", 100}, {"150 mm", 150}}},
         {"hinge_pattern", "Zawiasy", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys", "hinge_sensys52"}}},
     };
-    auto* box = new ttk::LabelFrame(parent, {{"text", "Ustawienia nowych szafek"}, {"padding", 8}});
+    if (full) {
+        specs.push_back({"hinge_spring", "Zawiasy — sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}}});
+        specs.push_back({"leg_count", "Nóżki — liczba", json{{"4 sztuki", 4}, {"6 sztuk", 6}}});
+        specs.push_back({"leg_color", "Nóżki — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}}});
+        specs.push_back({"top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy pod blat", "rails"}}});
+        specs.push_back({"led_mount", "LED — miejsce", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}}});
+    }
+    auto* box = new ttk::LabelFrame(parent, {{"text", title}, {"padding", 8}});
     box->pack({{"fill", "x"}, {"pady", "10 0"}});
     int index = 0;
     for (auto& spec : specs) {
@@ -142,8 +152,8 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
         settings->checks.push_back({key, label, tk::BooleanVar(cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>()), cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>()});
         (new ttk::Checkbutton(extras, {{"text", label}, {"variable", settings->checks.back().var}}))->pack({{"side", "left"}, {"padx", "0 14"}});
     }
-    settings->apply_first = tk::BooleanVar(true);
-    (new ttk::Checkbutton(box, {{"text", "Zastosuj zmiany też do rozciągniętej szafki"}, {"variable", settings->apply_first}}))
+    settings->apply_first = tk::BooleanVar(!full);
+    (new ttk::Checkbutton(box, {{"text", apply_text}, {"variable", settings->apply_first}}))
         ->grid({{"row", (index + 1) / 2 + 1}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "4 0"}});
     return settings;
 }
@@ -207,13 +217,14 @@ std::pair<core::ProjectPtr, std::string> add_module(const core::Project& project
 }
 
 // Ramiona układu L / U: z rozciągniętej szafki robimy z powrotem zwykłą (o dawnej głębokości), a rozciągnięcie zamieniamy na szafki ustawione bokiem.
-core::ProjectPtr build_arrangement(const core::Project& project, const std::string& group, double old_depth, bool min_side, bool max_side, const Overrides& ov) {
+core::ProjectPtr build_arrangement(const core::Project& project, const std::string& group, double old_depth, const json& base_origin, bool min_side, bool max_side, const Overrides& ov) {
     core::ProjectPtr result = std::make_shared<core::Project>(project);
     json cfg = furniture_configurator::read_config(*result, group);
     if (cfg.is_null()) throw core::ValueError("Mebel nie pochodzi z kreatora.");
     double delta = num(cfg["depth"]) - old_depth;
     json first = cfg;
     first["depth"] = old_depth;
+    first["origin"] = base_origin;  // przywróć dawne położenie (rozciąganie przodu przesunęło początek)
     if (ov.apply_first) merge_overrides(first, ov.values);
     result = furniture_configurator::configure(*result, first, group, first.at("origin")).first;
     Dir2 f = front_dir(*result, group).value_or(Dir2{0.0, -1.0});
@@ -230,6 +241,7 @@ core::ProjectPtr build_arrangement(const core::Project& project, const std::stri
             json module = cfg;
             module["depth"] = old_depth;
             module["width"] = width;
+            module["origin"] = base_origin;
             merge_overrides(module, ov.values);
             auto [with_module, name] = add_module(*result, module, layout);
             result = with_module;
@@ -245,13 +257,14 @@ core::ProjectPtr build_arrangement(const core::Project& project, const std::stri
 }
 
 // Szafka dostawiona nad rozciągniętą (na niej albo wisząca) — rozciągnięta wraca do dawnej wysokości.
-core::ProjectPtr build_stack(const core::Project& project, const std::string& group, double old_height, bool hanging, const Overrides& ov) {
+core::ProjectPtr build_stack(const core::Project& project, const std::string& group, double old_height, const json& base_origin, bool hanging, const Overrides& ov) {
     core::ProjectPtr result = std::make_shared<core::Project>(project);
     json cfg = furniture_configurator::read_config(*result, group);
     if (cfg.is_null()) throw core::ValueError("Mebel nie pochodzi z kreatora.");
     double delta = num(cfg["height"]) - old_height;
     json first = cfg;
     first["height"] = old_height;
+    first["origin"] = base_origin;
     if (ov.apply_first) merge_overrides(first, ov.values);
     result = furniture_configurator::configure(*result, first, group, first.at("origin")).first;
     json layout = furniture_layout::group_layout(*result, group);
@@ -261,7 +274,7 @@ core::ProjectPtr build_stack(const core::Project& project, const std::string& gr
     module["worktop"] = false;
     module["height"] = std::max(300.0, std::round(delta));
     for (auto& section : module["sections"]) if (section.value("key", std::string()) != "main") section["enabled"] = false;
-    json origin = cfg.at("origin");
+    json origin = base_origin;
     origin[2] = num(origin[2]) + old_height + (hanging ? 500 : 0);
     if (hanging) {
         double depth = std::min(num(cfg["depth"]), 320.0);
@@ -375,13 +388,17 @@ void show_dialog(App* app, const std::string& title, const std::string& lead, st
                     };
                 }
                 if (!build) { app->status.set("Zostawiono rozciągnięcie bez zmiany typu mebla"); return std::string(); }
+                journal::event(app, "rozciąganie", std::format("wybór „{}” dla {} · zmienione ustawienia: {} · zastosuj też do pierwszej: {}", option.label + " / " + option.hint, group,
+                                                              ov.values.empty() ? std::string("brak") : ov.values.dump(), ov.apply_first ? "tak" : "nie"));
                 core::ProjectPtr result = build(*app->project, ov);
+                journal::dump_groups(app, *result, "po: " + option.label);
                 app->snapshot();
                 app->project = result;
                 for (auto& part : app->project->parts) if (part.group == group) { app->selected = part.id; break; }
                 app->refresh();
                 app->status.set(option.label + " · Ctrl+Z cofa zmianę");
             } catch (const std::exception& error) {
+                journal::event(app, "rozciąganie", std::string("BŁĄD: ") + error.what());
                 app->status.set(error.what());
             }
             return std::string();
@@ -400,6 +417,9 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
     json before = furniture_configurator::read_config(base, group);
     json after = furniture_configurator::read_config(*app->project, group);
     if (before.is_null() || after.is_null()) return;
+    journal::event(app, "rozciąganie", std::format("{}: ściana {} · wymiary {:g}×{:g}×{:g} → {:g}×{:g}×{:g} · początek {} → {}", group, face, num(before["width"]), num(before["depth"]), num(before["height"]),
+                                                    num(after["width"]), num(after["depth"]), num(after["height"]), before.at("origin").dump(), after.at("origin").dump()));
+    journal::dump_groups(app, *app->project, "po rozciągnięciu (przed wyborem)");
     if (face[0] == 'y') {
         double old_depth = num(before["depth"]), new_depth = num(after["depth"]);
         if (new_depth - old_depth < MIN_CHANGE) return;
@@ -409,8 +429,9 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
                 return corner_furniture::convert_to_corner(project, group, "L", side, json(old_depth), json(old_width), json(new_depth)).first;
             };
         };
-        auto arrangement = [group, old_depth](bool min_side, bool max_side) {
-            return [=](const core::Project& project, const Overrides& ov) { return build_arrangement(project, group, old_depth, min_side, max_side, ov); };
+        json base_origin = before.at("origin");
+        auto arrangement = [group, old_depth, base_origin](bool min_side, bool max_side) {
+            return [=](const core::Project& project, const Overrides& ov) { return build_arrangement(project, group, old_depth, base_origin, min_side, max_side, ov); };
         };
         show_dialog(app, "Rozciągnięto front do siebie", std::format("Głębokość {:g} → {:g} mm. Co ma z tego powstać?", old_depth, new_depth),
                     {{"keep_depth", "Pogłębienie", "tylko głębszy mebel", true, nullptr},
@@ -433,8 +454,9 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
                 return furniture_configurator::configure(project, config, group, config["origin"]).first;
             };
         };
-        auto stacked = [group, old_height](bool hanging) {
-            return [=](const core::Project& project, const Overrides& ov) { return build_stack(project, group, old_height, hanging, ov); };
+        json base_origin = before.at("origin");
+        auto stacked = [group, old_height, base_origin](bool hanging) {
+            return [=](const core::Project& project, const Overrides& ov) { return build_stack(project, group, old_height, base_origin, hanging, ov); };
         };
         show_dialog(app, "Rozciągnięto mebel do góry", std::format("Wysokość {:g} → {:g} mm. Jakim meblem ma być?", old_height, new_height),
                     {{"keep_height", "Wyższa szafka", "bez zmian typu", true, nullptr},
@@ -457,6 +479,59 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
                       })}},
                     group, after);
     }
+}
+
+void open_configuration(App* app, const std::string& group) {
+    json cfg = furniture_configurator::read_config(*app->project, group);
+    if (cfg.is_null()) {
+        journal::event(app, "konfiguracja", group + ": mebel nie pochodzi z kreatora — brak konfiguracji");
+        app->status.set("„" + group + "” nie pochodzi z kreatora mebli — okucia i korpus ustawisz w panelu Właściwości");
+        return;
+    }
+    auto row = furniture_layout::row_groups(*app->project, group);
+    journal::event(app, "konfiguracja", std::format("otwarto okno dla {} (rząd: {} szafek)", group, row.size()));
+    auto* dialog = new tk::Toplevel(app);
+    dialog->title("Konfiguracja mebla — " + group);
+    dialog->transient(app);
+    auto* body = new ttk::Frame(dialog, {{"padding", 14}});
+    body->pack({{"fill", "both"}, {"expand", true}});
+    (new ttk::Label(body, {{"text", std::format("{}  ·  {:g} × {:g} × {:g} mm", group, num(cfg["width"]), num(cfg["depth"]), num(cfg["height"]))}, {"font", "{Segoe UI} 11 bold"}}))
+        ->pack({{"anchor", "w"}, {"pady", "0 4"}});
+    (new ttk::Label(body, {{"text", "Zmień uchwyty, nóżki, zawiasy, materiały, fronty i dodatki. Zmienione zostaną tylko te pola, które ruszysz."}, {"wraplength", 520}}))
+        ->pack({{"anchor", "w"}});
+    std::string apply_text = row.size() > 1 ? std::format("Zastosuj do całego rzędu ({} szafek)", row.size()) : std::string("Zastosuj do całego rzędu");
+    auto settings = build_settings(app, body, cfg, true, "Konfiguracja", apply_text);
+    auto close = [dialog, app] { app->after(1, [dialog] { try { dialog->destroy(); } catch (const tk::TclError&) {} }); };
+    auto buttons = new ttk::Frame(body);
+    buttons->pack({{"fill", "x"}, {"pady", "12 0"}});
+    (new ttk::Button(buttons, {{"text", "Zamknij"}, {"command", std::function<void()>(close)}}))->pack({{"side", "right"}, {"padx", "6 0"}});
+    auto apply = [app, group, settings, row, close] {
+        Overrides ov = settings->collect();
+        if (ov.values.empty()) { close(); app->status.set("Konfiguracja: bez zmian"); return; }
+        try {
+            std::vector<std::string> targets = ov.apply_first ? row : std::vector<std::string>{group};
+            journal::event(app, "konfiguracja", std::format("zastosuj: {} · meble: {}", ov.values.dump(), targets.size()));
+            core::ProjectPtr result = app->project;
+            for (const auto& name : targets) {
+                json config = furniture_configurator::read_config(*result, name);
+                if (config.is_null()) continue;
+                merge_overrides(config, ov.values);
+                result = furniture_configurator::configure(*result, config, name, config.at("origin")).first;
+            }
+            journal::dump_groups(app, *result, "po konfiguracji");
+            close();
+            app->snapshot();
+            app->project = result;
+            for (auto& part : app->project->parts) if (part.group == group) { app->selected = part.id; break; }
+            app->refresh();
+            app->status.set(std::format("Skonfigurowano {} (szt. {}) · Ctrl+Z cofa zmianę", group, targets.size()));
+        } catch (const std::exception& error) {
+            journal::event(app, "konfiguracja", std::string("BŁĄD: ") + error.what());
+            app->status.set(std::string("Konfiguracja: ") + error.what());
+            tk::messagebox::showerror("Konfiguracja mebla", error.what(), app);
+        }
+    };
+    (new ttk::Button(buttons, {{"text", "Zastosuj"}, {"style", "Accent.TButton"}, {"command", std::function<void()>(apply)}}))->pack({{"side", "right"}});
 }
 
 }  // namespace stretch_choice

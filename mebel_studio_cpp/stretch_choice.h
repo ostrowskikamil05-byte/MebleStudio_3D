@@ -12,4 +12,8 @@ namespace stretch_choice {
 // Gdy zmiana jest zbyt mała albo mebel nie pochodzi z kreatora, nic nie pokazuje.
 void offer(App* app, const core::Project& base, const std::string& group, const std::string& face);
 
+// Okno konfiguracji zaznaczonego mebla z kreatora (uchwyty, nóżki, zawiasy, materiały, fronty, LED, cokół, blat);
+// opcjonalnie dla całego rzędu szafek. Narzędzie „Konfiguruj” w palecie CAD.
+void open_configuration(App* app, const std::string& group);
+
 }  // namespace stretch_choice

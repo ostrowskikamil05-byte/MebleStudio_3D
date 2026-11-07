@@ -9,6 +9,7 @@
 
 #include "app.h"
 #include "forma_theme.h"
+#include "journal.h"
 #include "perf_monitor.h"
 
 namespace forma_tabs {
@@ -172,7 +173,15 @@ void install(App* app) {
         return std::string();
     });
     bar->bind("<Configure>", [paint](tk::Event&) { paint(true); return std::string(); });
-    app->tabs->bind("<<NotebookTabChanged>>", [paint](tk::Event&) { paint(false); return std::string(); }, true);
+    app->tabs->bind("<<NotebookTabChanged>>", [app, paint](tk::Event&) {
+        try {
+            std::string id = app->tabs->select();
+            if (!id.empty()) journal::event(app, "zakładka", "przejście do: " + app->tabs->tab(id, "text"));
+        } catch (const std::exception&) {
+        }
+        paint(false);
+        return std::string();
+    }, true);
 
     auto tick = std::make_shared<std::function<void()>>();
     *tick = [app, paint, tick] {
