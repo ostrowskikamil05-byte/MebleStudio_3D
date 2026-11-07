@@ -89,12 +89,28 @@ public:
     ScrollPanel* scroll = nullptr;
     Section* type_section = nullptr;
     tk::Canvas* preview = nullptr;
+    // Przełącznik grup parametrów (Korpus / Fronty / Okucia / Dodatki) jak na makiecie.
+    std::string current_tab = "Korpus";
+    std::vector<std::pair<std::string, ttk::Button*>> tab_buttons;
+    void show_tab(const std::string& name);
+    static std::string tab_of(const std::string& section_key);
 
     void draft_changed();
     void reset_fields();
     bool flush_draft();
+    // Układ dwukolumnowy z makiety: etykieta nad polem, dwa pola obok siebie.
+    tk::StringVar* field_cell(tk::Widget* cell, const std::string& key, const std::string& label, bool integer);
+    void field_pair(tk::Widget* parent, const std::string& key_a, const std::string& label_a, const std::string& key_b, const std::string& label_b, bool int_a = false, bool int_b = false);
     tk::StringVar* field(tk::Widget* parent, const std::string& key, const std::string& label, bool integer = false, bool text = false);
-    ttk::Combobox* combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices);
+    ttk::Combobox* combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices, bool hidden = false);
+    // Kafelki z miniaturami zamiast listy rozwijanej (styl frontu, wypełnienie strefy, zawiasy, nóżki, LED...).
+    struct Tile {
+        std::string key, choice, label;
+        tk::Canvas* canvas = nullptr;
+    };
+    std::vector<Tile> tiles;
+    void choice_tiles(tk::Widget* parent, const std::string& key, const std::string& caption, const std::vector<std::pair<std::string, std::string>>& items);
+    void draw_tile(const Tile& tile);
     void choice_changed(const std::string& key);
     void check(tk::Widget* parent, const std::string& key, const std::string& label);
     void section_fields(tk::Widget* parent, const std::string& key);

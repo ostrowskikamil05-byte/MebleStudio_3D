@@ -41,6 +41,8 @@ std::string dimension_text(const json& item);
 void select_design(App* app);
 // Use existing transactional factory/controller commands for a card.
 bool apply_item(App* app, const json& item);
+// Zmienia wymiary / położenie wyposażenia sceny (AGD) o podanym id — z migawką do cofania.
+bool update_object(App* app, const std::string& object_id, const json& changes);
 
 class VisualCatalogue : public ttk::Frame {
 public:

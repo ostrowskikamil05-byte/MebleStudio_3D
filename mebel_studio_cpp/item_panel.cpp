@@ -3,6 +3,8 @@
 #include <chrono>
 #include <format>
 #include <map>
+#include <stdexcept>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -104,6 +106,8 @@ std::vector<std::pair<std::string, std::string>> connections(const json& item) {
         out = {{"Montaż", "otwory przelotowe w froncie"}, {"Wkręty", "M4 · dobrać do grubości frontu"}};
     } else if (kind == "leg") {
         out = {{"Montaż", "wkręty lub gwint w dnie korpusu"}, {"Regulacja", "poziomowanie od góry lub od spodu"}};
+    } else if (kind == "shaped") {
+        out = {{"Konstrukcja", "elementy płaskie z obłymi obrysami · wymaga doboru połączeń"}, {"Wymiary", "zmienisz po dodaniu, edytując elementy"}};
     } else if (kind == "furniture") {
         if (has(text, {"zlew", "zlewozmyw"})) out = {{"Woda", "zimna i ciepła"}, {"Odpływ", "syfon Ø 40 mm"}};
         else if (has(text, {"wisząc", "nadstaw"})) out = {{"Montaż", "zawieszki ścienne lub szyna"}};
@@ -126,10 +130,10 @@ std::chrono::steady_clock::time_point g_item_shown;
 
 bool item_stale() { return std::chrono::steady_clock::now() - g_item_shown > std::chrono::milliseconds(1500); }
 
-void show_item(App* app, const json& item, std::function<void()> add) {
+void show_item(App* app, const json& item, std::function<void()> add, std::function<void(const json&)> apply_dims) {
     json copy = item;
     g_item_shown = std::chrono::steady_clock::now();
-    show(app, "item", "Właściwości: " + item.at("title").get<std::string>(), [app, copy, add](tk::Widget* body) {
+    show(app, "item", "Właściwości: " + item.at("title").get<std::string>(), [app, copy, add, apply_dims](tk::Widget* body) {
         const json& dims = copy.at("dimensions");
         std::string kind = copy.at("kind").get<std::string>();
         // Karta z miniaturą.
@@ -147,14 +151,46 @@ void show_item(App* app, const json& item, std::function<void()> add) {
         (new ttk::Label(names, {{"text", copy.at("category").get<std::string>()}, {"style", "Panel.TLabel"}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}});
         (new ttk::Label(names, {{"text", visual_catalogue::dimension_text(copy)}, {"style", "Panel.TLabel"}, {"foreground", forma_theme::ACCENT}, {"font", "{Segoe UI} 9"}, {"wraplength", 170}}))->pack({{"anchor", "w"}, {"pady", "2 0"}});
 
-        // Wymiary: pola tylko do odczytu z jednostką (wartości z katalogu).
+        // Wymiary: z katalogu; dla AGD edytowalne (zmieniają dopiero dodany obiekt sceny).
         section(body, "Wymiary");
         bool any = false;
+        const bool editable = apply_dims && kind == "appliance";
+        auto fields = std::make_shared<std::vector<std::pair<std::string, tk::StringVar>>>();
         for (const auto& [key, value] : dims.items()) {
             if (!value.is_number() || !is_dimension(key)) continue;
             tk::StringVar var(value_text(value));
-            forma_widgets::field_row(body, label_of(key), var, key == "angle" ? "°" : "mm", true);
+            forma_widgets::field_row(body, label_of(key), var, key == "angle" ? "°" : "mm", !editable);
+            if (editable) fields->emplace_back(key, var);
             any = true;
+        }
+        if (editable && any) {
+            (new ttk::Label(body, {{"text", "Wpisz wymiary i kliknij „Zastosuj” — zmienią obiekt dodany przed chwilą."}, {"style", "Panel.TLabel"},
+                                   {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 8"}, {"wraplength", 280}}))->pack({{"anchor", "w"}, {"pady", "2 0"}});
+            auto* apply = new ttk::Button(body, {{"text", "Zastosuj wymiary"}, {"style", "Tool.TButton"}, {"command", std::function<void()>([app, fields, apply_dims] {
+                json changes = json::object();
+                try {
+                    for (auto& [key, var] : *fields) {
+                        std::string text = var.get();
+                        std::replace(text.begin(), text.end(), ',', '.');
+                        size_t used = 0;
+                        double number = std::stod(text, &used);
+                        if (used != text.size() || !(number > 0)) throw std::invalid_argument(key);
+                        changes[key] = number;
+                    }
+                } catch (const std::exception&) {
+                    app->status.set("Wymiary muszą być dodatnimi liczbami w mm.");
+                    return;
+                }
+                app->after(1, [app, apply_dims, changes] {
+                    try {
+                        apply_dims(changes);
+                        app->status.set("Zmieniono wymiary obiektu.");
+                    } catch (const std::exception& error) {
+                        app->status.set(std::string("Nie zmieniono wymiarów: ") + error.what());
+                    }
+                });
+            })}});
+            apply->pack({{"fill", "x"}, {"pady", "4 0"}});
         }
         if (!any) (new ttk::Label(body, {{"text", kind == "material" ? "Materiał nie ma wymiarów — ustawia się go elementom." : "Wymiary ustawia się po dodaniu do projektu."},
                                          {"style", "Panel.TLabel"}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}, {"wraplength", 280}}))->pack({{"anchor", "w"}});

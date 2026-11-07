@@ -26,12 +26,19 @@
 #error "Nie znaleziono nagłówka Tk (<tk.h>). Nie dodawaj katalogu projektu przez -I; użyj -iquote."
 #endif
 
+#include <algorithm>
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <cwchar>
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <vector>
 
 namespace tkcore {
 namespace {
@@ -343,6 +350,219 @@ void put_photo(const std::string& name, int width, int height, const std::vector
     }
 }
 
+// ------------------------------------------------------------------------------ próbkowanie stosu podczas postojów (Windows x64)
+// Wątek pomocniczy co 40 ms sprawdza, czy pętla zdarzeń tkwi w jednym zdarzeniu dłużej niż 300 ms. Jeśli tak, zatrzymuje na
+// chwilę wątek główny, rozwija jego stos (tablice unwind z .pdata) i zapisuje adresy. Po zakończeniu zdarzenia pętla
+// zamienia adresy na „moduł!funkcja+offset” (najbliższy eksport DLL) i raportuje najczęstsze miejsca postoju.
+#if defined(_WIN32) && defined(_WIN64)
+namespace sampler {
+
+constexpr int MAX_FRAMES = 28;
+struct Sample {
+    DWORD64 pc[MAX_FRAMES];
+    int depth;
+};
+
+std::atomic<long long> g_event_start{0};
+std::atomic<int> g_sample_count{0};
+std::mutex g_mutex;
+std::vector<Sample> g_samples;
+HANDLE g_thread = nullptr;
+bool g_started = false;
+
+long long now_ms() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() + 1;
+}
+
+DWORD WINAPI worker(LPVOID) {
+    for (;;) {
+        Sleep(40);
+        const long long started = g_event_start.load();
+        if (started == 0 || now_ms() - started < 300) continue;
+        Sample sample{};
+        if (SuspendThread(g_thread) == static_cast<DWORD>(-1)) continue;
+        // Uwaga: między Suspend a Resume nie wolno alokować pamięci ani brać blokad (wątek główny mógłby je trzymać).
+        CONTEXT context{};
+        context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+        if (GetThreadContext(g_thread, &context)) {
+            for (int i = 0; i < MAX_FRAMES; ++i) {
+                const DWORD64 pc = context.Rip;
+                if (pc == 0) break;
+                sample.pc[sample.depth++] = pc;
+                DWORD64 image_base = 0;
+                PRUNTIME_FUNCTION entry = RtlLookupFunctionEntry(pc, &image_base, nullptr);
+                if (entry == nullptr) {
+                    // Funkcja liściowa bez danych unwind: adres powrotu leży na szczycie stosu.
+                    DWORD64 value = 0;
+                    SIZE_T read = 0;
+                    if (context.Rsp == 0 || !ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<LPCVOID>(context.Rsp), &value, sizeof(value), &read) || read != sizeof(value)) break;
+                    context.Rip = value;
+                    context.Rsp += 8;
+                } else {
+                    PVOID handler_data = nullptr;
+                    DWORD64 establisher = 0;
+                    RtlVirtualUnwind(UNW_FLAG_NHANDLER, image_base, pc, entry, &context, &handler_data, &establisher, nullptr);
+                }
+            }
+        }
+        ResumeThread(g_thread);
+        std::lock_guard<std::mutex> lock(g_mutex);
+        if (g_samples.size() < 400) {
+            g_samples.push_back(sample);
+            g_sample_count.store(static_cast<int>(g_samples.size()));
+        }
+    }
+    return 0;
+}
+
+void start() {
+    if (g_started) return;
+    g_started = true;
+    if (const char* off = std::getenv("MEBEL_NO_SAMPLER"); off && *off == '1') return;
+    g_thread = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION, FALSE, GetCurrentThreadId());
+    if (!g_thread) return;
+    HANDLE thread = CreateThread(nullptr, 0, worker, nullptr, 0, nullptr);
+    if (thread) CloseHandle(thread);
+}
+
+void begin_event() {
+    if (!g_thread) return;
+    if (g_sample_count.load() != 0) {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_samples.clear();
+        g_sample_count.store(0);
+    }
+    g_event_start.store(now_ms());
+}
+
+struct Place {
+    std::string module;
+    std::string symbol;
+    unsigned long long offset = 0;  // względem symbolu (gdy znany), inaczej względem początku modułu
+    bool system = false;
+};
+
+std::string narrow_ascii(const std::wstring& text) {
+    std::string out;
+    for (wchar_t c : text) out.push_back(c < 128 ? static_cast<char>(c) : '?');
+    return out;
+}
+
+Place locate(DWORD64 pc) {
+    static std::map<DWORD64, Place> cache;
+    if (auto found = cache.find(pc); found != cache.end()) return found->second;
+    Place place;
+    HMODULE module = nullptr;
+    if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, reinterpret_cast<LPCWSTR>(pc), &module) || !module) {
+        place.module = "?";
+        place.offset = pc;
+        return cache[pc] = place;
+    }
+    wchar_t path[MAX_PATH] = {};
+    DWORD length = GetModuleFileNameW(module, path, MAX_PATH);
+    std::wstring full(path, length);
+    wchar_t windows_dir[MAX_PATH] = {};
+    UINT windows_length = GetSystemWindowsDirectoryW(windows_dir, MAX_PATH);
+    if (windows_length > 0 && full.size() > windows_length && _wcsnicmp(full.c_str(), windows_dir, windows_length) == 0) place.system = true;
+    auto slash = full.find_last_of(L"\\/");
+    place.module = narrow_ascii(slash == std::wstring::npos ? full : full.substr(slash + 1));
+    const unsigned long long rva = pc - reinterpret_cast<DWORD64>(module);
+    place.offset = rva;
+    const auto* base = reinterpret_cast<const unsigned char*>(module);
+    const auto* dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
+    if (dos->e_magic == IMAGE_DOS_SIGNATURE) {
+        const auto* nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+        if (nt->Signature == IMAGE_NT_SIGNATURE) {
+            const IMAGE_DATA_DIRECTORY& directory = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+            if (directory.VirtualAddress != 0 && directory.Size != 0) {
+                const auto* exports = reinterpret_cast<const IMAGE_EXPORT_DIRECTORY*>(base + directory.VirtualAddress);
+                const auto* names = reinterpret_cast<const DWORD*>(base + exports->AddressOfNames);
+                const auto* ordinals = reinterpret_cast<const WORD*>(base + exports->AddressOfNameOrdinals);
+                const auto* functions = reinterpret_cast<const DWORD*>(base + exports->AddressOfFunctions);
+                DWORD best = 0;
+                const char* best_name = nullptr;
+                for (DWORD i = 0; i < exports->NumberOfNames; ++i) {
+                    const DWORD function = functions[ordinals[i]];
+                    if (function >= directory.VirtualAddress && function < directory.VirtualAddress + directory.Size) continue;  // przekierowanie
+                    if (function <= rva && function >= best) {
+                        best = function;
+                        best_name = reinterpret_cast<const char*>(base + names[i]);
+                    }
+                }
+                if (best_name) {
+                    place.symbol = best_name;
+                    place.offset = rva - best;
+                }
+            }
+        }
+    }
+    return cache[pc] = place;
+}
+
+std::string label(const Place& place) {
+    char buffer[40];
+    std::snprintf(buffer, sizeof(buffer), "+0x%llx", place.offset);
+    return place.symbol.empty() ? place.module + buffer : place.module + "!" + place.symbol + buffer;
+}
+
+std::string top(const std::map<std::string, int>& histogram, int total, size_t count) {
+    std::vector<std::pair<std::string, int>> rows(histogram.begin(), histogram.end());
+    std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+    std::string out;
+    for (size_t i = 0; i < rows.size() && i < count; ++i) {
+        if (i) out += "  |  ";
+        out += std::to_string(rows[i].second * 100 / std::max(total, 1)) + "% " + rows[i].first;
+    }
+    return out;
+}
+
+void end_event(double ms) {
+    if (!g_thread) return;
+    g_event_start.store(0);
+    if (g_sample_count.load() < 2) return;
+    std::vector<Sample> taken;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        taken.swap(g_samples);
+        g_sample_count.store(0);
+    }
+    if (taken.size() < 2 || !g_profile_hook) return;
+    std::map<std::string, int> chains, leaves, first_app, first_exe;
+    for (const Sample& sample : taken) {
+        std::string chain, last_module, leaf, app_frame, exe_frame;
+        int distinct = 0;
+        for (int i = 0; i < sample.depth; ++i) {
+            const Place place = locate(sample.pc[i]);
+            if (i == 0) leaf = label(place);
+            if (place.module != last_module && distinct < 7) {
+                chain += (chain.empty() ? "" : " < ") + place.module;
+                last_module = place.module;
+                ++distinct;
+            }
+            if (app_frame.empty() && !place.system) app_frame = label(place);
+            if (exe_frame.empty() && place.module.size() > 4 && place.module.substr(place.module.size() - 4) == ".exe") exe_frame = label(place);
+        }
+        ++chains[chain];
+        ++leaves[leaf];
+        if (!app_frame.empty()) ++first_app[app_frame];
+        if (!exe_frame.empty()) ++first_exe[exe_frame];
+    }
+    const int total = static_cast<int>(taken.size());
+    g_profile_hook("stack", "próbek: " + std::to_string(total) + " · moduły od szczytu stosu: " + top(chains, total, 3), ms);
+    g_profile_hook("stack", "szczyt stosu: " + top(leaves, total, 4), ms);
+    g_profile_hook("stack", "pierwsza ramka spoza systemu (Tk/sterownik/nasz kod): " + top(first_app, total, 4), ms);
+    if (!first_exe.empty()) g_profile_hook("stack", "ramki naszego programu (adres do ./dev.sh addr): " + top(first_exe, total, 4), ms);
+}
+
+}  // namespace sampler
+#else
+namespace sampler {
+inline void start() {}
+inline void begin_event() {}
+inline void end_event(double) {}
+}  // namespace sampler
+#endif
+
 void main_loop() {
     require();
     if (!g_profile_hook) {
@@ -351,11 +571,14 @@ void main_loop() {
     }
     // Pętla z pomiarem: osobno zdarzenia okien, zegary i zadania "bezczynne" (m.in. rysowanie widgetów Tk),
     // żeby wolne odświeżanie interfejsu, które nie jest żadną naszą procedurą, dało się przypisać do rodzaju zdarzeń.
+    sampler::start();
     auto timed = [](int flags, const char* kind) {
         const auto started = std::chrono::steady_clock::now();
+        sampler::begin_event();
         const int handled = Tcl_DoOneEvent(flags);
         if (g_profile_hook) {
             const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+            sampler::end_event(ms);
             if (handled) g_profile_hook("loop", kind, ms);
         }
         return handled != 0;
@@ -367,8 +590,10 @@ void main_loop() {
         // Brak pracy: czekamy na zdarzenie (zegar kontrolny profilera wybudza pętlę co 50 ms).
         if (!worked) {
             const auto started = std::chrono::steady_clock::now();
+            sampler::begin_event();
             Tcl_DoOneEvent(TCL_ALL_EVENTS);
             const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+            sampler::end_event(ms);
             // Zegar kontrolny wybudza pętlę co 50 ms, więc znacznie dłuższe oczekiwanie to blokada w obsłudze komunikatów systemu (np. okno natywnego widoku).
             if (ms > 120 && g_profile_hook) g_profile_hook("loop", "komunikaty systemu / okna natywne", ms);
         }

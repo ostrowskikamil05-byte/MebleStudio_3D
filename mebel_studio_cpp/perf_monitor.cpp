@@ -1,12 +1,14 @@
 #include "perf_monitor.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <format>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "app.h"
@@ -123,6 +125,11 @@ void install(App* app) {
         return std::string();
     }, true);
     tkcore::set_profile_hook([](const char* kind, const std::string& what, double ms) {
+        if (std::string_view(kind) == "stack") {  // próbkowanie stosu podczas postoju (tkcore::sampler) — zawsze do logu, bez limitu
+            State& st = state();
+            if (st.app != nullptr && st.app->log != nullptr) st.app->log->warning("[wydajność] Stos postoju (" + std::format("{:.0f}", ms) + " ms) — " + what);
+            return;
+        }
         // Najczęstsze krótkie procedury nie trafiają do statystyk (tylko bardzo wolne i powyżej 1 ms).
         if (ms < 1.0) return;
         record(kind, what, ms);
@@ -225,6 +232,70 @@ void diagnose_redraw(App* app) {
         measure("pełne odrysowanie sceny (App::draw)", [app] { app->draw(); });
         measure("odrysowanie sceny — ponownie", [app] { app->draw(); });
         app->log->info("[wydajność] Diagnoza: jeśli „przezroczysty/połowa” ≫ „nieprzezroczysty”, winne jest mieszanie alfa obrazu 3D w Tk.");
+        if (!original.empty()) app->tabs->select(original);
+    });
+}
+
+void diagnose_widgets(App* app) {
+    if (app->tabs == nullptr) return;
+    const std::string original = app->tabs->select();
+    std::string target;
+    for (const auto& tab : app->tabs->tabs())
+        if (app->tabs->tab(tab, "text").find("3D") != std::string::npos) { target = tab; break; }
+    if (target.empty()) { app->log->warning("[wydajność] Diagnoza widgetów: nie znaleziono zakładki widoku 3D"); return; }
+    app->log->info("[wydajność] Diagnoza widgetów: mierzę odrysowanie każdego widgetu osobno (program zamrze na kilka–kilkanaście sekund)…");
+    app->tabs->select(target);
+    app->after(700, [app, original]() {
+        struct Row { double ms; std::string klass, path; };
+        std::vector<Row> rows;
+        std::vector<std::string> queue{"."};
+        try {
+            for (size_t i = 0; i < queue.size(); ++i)
+                for (const auto& child : tkcore::split(app->call({"winfo", "children", queue[i]}))) queue.push_back(child);
+            app->update();
+            for (size_t i = 1; i < queue.size(); ++i) {
+                const std::string& path = queue[i];
+                try {
+                    if (app->call({"winfo", "viewable", path}) != "1") continue;
+                    std::string klass = app->call({"winfo", "class", path});
+                    if (klass == "Toplevel" || klass == "Menu") continue;
+                    auto started = Clock::now();
+                    app->call({"event", "generate", path, "<Expose>"});
+                    app->update_idletasks();
+                    rows.push_back({std::chrono::duration<double, std::milli>(Clock::now() - started).count(), klass, path});
+                } catch (const tk::TclError&) {
+                }
+            }
+        } catch (const tk::TclError& error) {
+            app->log->warning(std::string("[wydajność] Diagnoza widgetów: błąd ") + error.what());
+        }
+        double total = 0;
+        std::map<std::string, std::array<double, 3>> by_class;  // liczba, suma ms, maks ms
+        for (const auto& row : rows) {
+            total += row.ms;
+            auto& entry = by_class[row.klass];
+            entry[0] += 1;
+            entry[1] += row.ms;
+            entry[2] = std::max(entry[2], row.ms);
+        }
+        app->log->info(std::format("[wydajność] Diagnoza widgetów: {} widocznych widgetów, odrysowanie każdego po kolei: {:.0f} ms łącznie", rows.size(), total));
+        std::vector<std::pair<std::string, std::array<double, 3>>> classes(by_class.begin(), by_class.end());
+        std::sort(classes.begin(), classes.end(), [](const auto& a, const auto& b) { return a.second[1] > b.second[1]; });
+        for (size_t i = 0; i < classes.size() && i < 10; ++i)
+            app->log->info(std::format("[wydajność]   klasa {:<14} {:>4} szt. · {:>7.0f} ms łącznie · maks {:>6.0f} ms · śr. {:>6.1f} ms", classes[i].first, (int)classes[i].second[0], classes[i].second[1], classes[i].second[2], classes[i].second[1] / classes[i].second[0]));
+        std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) { return a.ms > b.ms; });
+        for (size_t i = 0; i < rows.size() && i < 14; ++i) {
+            std::string extra;
+            try { extra += " " + app->call({"winfo", "width", rows[i].path}) + "×" + app->call({"winfo", "height", rows[i].path}); } catch (const tk::TclError&) {}
+            for (const char* option : {"-text", "-style"}) {
+                try {
+                    std::string value = app->call({rows[i].path, "cget", option});
+                    if (!value.empty()) extra += std::string(" ") + option + "=" + value.substr(0, 30);
+                } catch (const tk::TclError&) {
+                }
+            }
+            app->log->info(std::format("[wydajność]   {:>6.0f} ms — {} {}{}", rows[i].ms, rows[i].klass, rows[i].path, extra));
+        }
         if (!original.empty()) app->tabs->select(original);
     });
 }

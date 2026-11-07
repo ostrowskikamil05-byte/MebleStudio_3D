@@ -75,5 +75,6 @@ public:
     std::string item(const std::string&, const std::string&);
     void heading(const std::string&, const Opts&);
     void column(const std::string&, const Opts&);
+    void tag_configure(const std::string&, const Opts&);  // $tree tag configure tag -background … (np. naprzemienne wiersze)
 };
 }  // namespace ttk

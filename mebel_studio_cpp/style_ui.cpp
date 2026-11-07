@@ -433,9 +433,11 @@ void install_menu(App* app) {
     auto* menu = new tk::Menu(bar, {{"tearoff", false}});
     bar->add_cascade({{"label", "Kształty i style"}, {"menu", menu}});
     menu->add_command({{"label", "Obrys: koło, elipsa, łuk, narożniki…"}, {"command", guarded(app, [app] { shape_dialog(app); })}});
-    menu->add_command({{"label", "Biblioteka mebli obłych i drewnianych…"}, {"command", guarded(app, [app] { style_library(app); })}});
+    menu->add_command({{"label", "Kształty i style (panel)"}, {"command", guarded(app, [app] { if (app->visual_catalogue_open) app->visual_catalogue_open("shaped", nullptr); })}});
+    menu->add_command({{"label", "Biblioteka mebli obłych — okno z wymiarami…"}, {"command", guarded(app, [app] { style_library(app); })}});
     app->shape_dialog = [app] { guarded(app, [app] { shape_dialog(app); })(); };
-    app->style_library = [app] { guarded(app, [app] { style_library(app); })(); };
+    // „Kształty i style” otwierają się w lewym panelu biblioteki (miniatury kart); okno z pełnym formularzem zostaje w menu.
+    app->style_library = [app] { guarded(app, [app] { if (app->visual_catalogue_open) app->visual_catalogue_open("shaped", nullptr); else style_library(app); })(); };
 }
 
 }  // namespace style_ui

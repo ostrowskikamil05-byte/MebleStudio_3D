@@ -20,6 +20,7 @@
 #include "palette.h"
 #include "pyutil.h"
 #include "room_objects.h"
+#include "shaped_furniture.h"
 #include "runners_catalog.h"
 
 namespace visual_catalogue {
@@ -27,11 +28,11 @@ namespace visual_catalogue {
 using core::ValueError;
 
 const std::vector<std::pair<std::string, std::string>> KINDS{
-    {"furniture", "Meble"}, {"leg", "Nogi"}, {"hinge", "Zawiasy"}, {"runner", "Prowadnice"}, {"handle", "Uchwyty i otwieranie"},
+    {"furniture", "Meble"}, {"shaped", "Kształty i style"}, {"leg", "Nogi"}, {"hinge", "Zawiasy"}, {"runner", "Prowadnice"}, {"handle", "Uchwyty i otwieranie"},
     {"led", "LED"}, {"appliance", "AGD i wyposażenie"}, {"material", "Materiały i kolory"}};
 const std::vector<std::pair<std::string, std::string>> ALIASES{
     {"furnitures", "furniture"}, {"legs", "leg"}, {"hinges", "hinge"}, {"runners", "runner"}, {"handles", "handle"},
-    {"materials", "material"}, {"appliances", "appliance"}, {"room", "appliance"}, {"LED", "led"}};
+    {"materials", "material"}, {"appliances", "appliance"}, {"room", "appliance"}, {"LED", "led"}, {"shapes", "shaped"}, {"styles", "shaped"}};
 
 namespace {
 
@@ -218,6 +219,15 @@ json catalogue_items(const std::string& kind_in, const core::Project* project) {
                                       preview, json::array({t.kind, t.category, "parametryczny"}), "",
                                       "Edytowalne domyślne wymiary projektu. Podgląd konstrukcji, bez doboru modelu AGD."));
         }
+    } else if (kind == "shaped") {
+        const auto& templates = shaped_furniture::TEMPLATES;
+        for (size_t i = 0; i < templates.size(); ++i) {
+            const auto& t = templates[i];
+            long long index = (long long)i;
+            json preview = json{{"width", t.width}, {"depth", t.depth}, {"body_height", t.height}, {"family", t.kind}};
+            items.push_back(make_item(std::to_string(index), kind, t.name, t.style, json{{"width", t.width}, {"depth", t.depth}, {"height", t.height}}, json{{"template_index", index}},
+                                      preview, json::array({t.kind, t.category, t.style, "obły"}), "", t.description));
+        }
     } else if (kind == "leg") {
         for (long long height : {80, 100, 150, 200})
             for (long long count : {4, 6}) {
@@ -364,12 +374,28 @@ void select_design(App* app) {
     if (app->canvas != nullptr) app->canvas->focus_set();
 }
 
+bool update_object(App* app, const std::string& object_id, const json& changes) {
+    if (!app->flush_parameter_drafts()) return false;
+    return commit(app, room_objects::update_object(*app->project, object_id, changes));  // bez zmiany zaznaczenia: panel pozycji zostaje otwarty
+}
+
 bool apply_item(App* app, const json& item) {
     if (!app->flush_parameter_drafts()) return false;
     std::string kind = canonical_kind(item.at("kind").get<std::string>());
     json payload = item.at("payload");
     if (kind == "furniture") {
         auto [candidate, group] = furniture_library::create_furniture(*app->project, payload.at("template_index").get<long long>());
+        if (!app->project->parts.empty()) {
+            double right = groups_right(*app->project);
+            double lo = furniture_layout::group_bounds(*candidate, group).first[0];
+            candidate = furniture_layout::move_group(*candidate, group, right + 50 - lo);
+        }
+        auto chosen = std::find_if(candidate->parts.begin(), candidate->parts.end(), [&](const core::Part& p) { return p.group == group; });
+        if (chosen == candidate->parts.end()) throw py::StopIteration();
+        return commit(app, candidate, chosen->id, std::nullopt, true);
+    }
+    if (kind == "shaped") {
+        auto [candidate, group] = shaped_furniture::create_shaped_furniture(*app->project, payload.at("template_index").get<long long>());
         if (!app->project->parts.empty()) {
             double right = groups_right(*app->project);
             double lo = furniture_layout::group_bounds(*candidate, group).first[0];

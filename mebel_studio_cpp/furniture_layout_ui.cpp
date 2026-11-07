@@ -246,12 +246,16 @@ void drag(App* app, tk::Event& event, bool force) {
     try {
         std::array<double, 3> movement = screen_move(app->camera, dx, dy, (event.state & 1) != 0);
         ProjectPtr result = furniture_layout::move_group(*data->base, data->group, movement[0], movement[1], movement[2], false); core::json info = nullptr;
+        // Mebel nie wchodzi w inny: ślizga się po jego ściance; magnes potem dosuwa i wyrównuje krawędzie.
+        auto pushed = furniture_layout::resolve_overlap(*result, data->group);
+        if (pushed.second) result = pushed.first;
         if (app->layout_magnet.get()) {
             auto snapped = furniture_layout::nearest_snap(*result, data->group, app->layout_tolerance.get(), true, false);
             result = snapped.first; info = snapped.second;
         }
         data->candidate = result; app->project = result; app->draw();
         app->status.set(py::truthy(info) ? std::string("Magnes: dosunięto powierzchnie")
+                        : pushed.second ? std::string("Mebel oparty o ściankę sąsiada · puść, aby zapisać")
                                          : "Przesunięcie X / Y / Z: " + std::format("{:+.1f}", movement[0]) + " / " + std::format("{:+.1f}", movement[1]) + " / " + std::format("{:+.1f}", movement[2]) + " mm · puść, aby zapisać");
     } catch (const py::ValueError& exc) {
         data->candidate = nullptr; app->project = data->base; app->draw(); app->status.set(exc.what());

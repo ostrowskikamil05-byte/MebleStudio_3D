@@ -1,6 +1,7 @@
 // Atomic direct edits and furniture resizing with thickness preservation.
 #include "direct_edit.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <map>
@@ -12,6 +13,7 @@
 #include "features.h"
 #include "fittings.h"
 #include "furniture_configurator.h"
+#include "furniture_layout.h"
 #include "opening_options.h"
 #include "shaped_furniture.h"
 
@@ -37,6 +39,26 @@ double num(const json& value) { return value.get<double>(); }
 Part* find_part(Project& project, const std::string& id) {
     for (auto& p : project.parts) if (p.id == id) return &p;
     throw py::StopIteration();
+}
+
+
+// Rozciągnięcie szafki w bok tworzy rząd OSOBNYCH szafek: do pewnego progu szafka po prostu rośnie, a powyżej progu obok niej
+// powstają kolejne szafki (każda z własnymi bokami i własnym kreatorem), które można dalej rozciągać, podnosić albo zmieniać w narożnik.
+struct RowPlan {
+    double first_width;            // szerokość szafki, którą ciągniemy
+    std::vector<double> extra;     // szerokości nowych szafek, od najbliższej do najdalszej od pierwszej
+};
+
+RowPlan plan_row(double old_width, double new_width) {
+    RowPlan plan{new_width, {}};
+    double delta = new_width - old_width;
+    if (delta <= 0) return plan;
+    double typical = std::clamp(old_width, 400.0, 800.0);
+    if (delta < 0.5 * typical) return plan;
+    long long k = std::min<long long>(std::max<long long>(1, std::llround(delta / typical)), 7);
+    plan.first_width = old_width;
+    plan.extra.assign((size_t)k, delta / (double)k);
+    return plan;
 }
 
 }  // namespace
@@ -200,6 +222,30 @@ ProjectPtr resize_furniture_face(const Project& project, const std::string& grou
     if (py::truthy(config)) {
         json origin = config.at("origin");
         if (minimum) origin[axis] = num(origin[axis]) + distance;
+        if (axis == 0 && size[0] > hi[0] - lo[0]) {
+            double old_width = hi[0] - lo[0];
+            RowPlan plan = plan_row(old_width, size[0]);
+            json first_origin = config.at("origin");
+            if (minimum) first_origin[0] = num(config.at("origin")[0]) - (plan.first_width - old_width);
+            json first = config;
+            first["width"] = finite(plan.first_width, .1, 10000); first["depth"] = finite(size[1], .1, 10000);
+            first["height"] = finite(size[2], .1, 10000) + num(first.at("leg_height")) + (py::truthy(py::get(first, "worktop")) ? num(first.at("worktop_thickness")) : 0);
+            ProjectPtr result = furniture_configurator::configure(project, first, group, first_origin).first;
+            if (plan.extra.empty()) return result;
+            json layout = furniture_layout::group_layout(*result, group);
+            double offset = 0;
+            for (double width : plan.extra) {
+                json module = config;
+                module["width"] = finite(width, .1, 10000);
+                if (!minimum) module["origin"][0] = num(config.at("origin")[0]) + old_width + offset;
+                else module["origin"][0] = num(config.at("origin")[0]) - offset - width;
+                for (auto& section : module["sections"]) section.erase("column_widths");
+                auto created = furniture_configurator::configure(*result, module, std::nullopt, module.at("origin"));
+                result = furniture_layout::placed(*created.first, created.second, layout, false);
+                offset += width;
+            }
+            return result;
+        }
         return resize_furniture(project, group, size[0], size[2], size[1], origin);
     }
     ProjectPtr result = resize_furniture(project, group, size[0], size[2], size[1]);

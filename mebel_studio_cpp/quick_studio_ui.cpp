@@ -232,6 +232,14 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     actions->pack({{"fill", "x"}});
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"+ Nowy", [this] { new_furniture(); }}, {"Kopia", [this] { duplicate_group(); }}, {"Usuń", [this] { delete_group(); }}})
         (new ttk::Button(actions, {{"text", label}, {"command", fn}, {"padding", "6 4"}}))->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", 1}});
+    auto* tabbar = new ttk::Frame(this, {{"padding", "10 2"}});
+    tabbar->pack({{"fill", "x"}});
+    for (const char* name : {"Korpus", "Fronty", "Okucia", "Dodatki"}) {
+        std::string tab_name = name;
+        auto* b = new ttk::Button(tabbar, {{"text", tab_name}, {"style", "Chip.TButton"}, {"command", Cmd([this, tab_name] { show_tab(tab_name); })}});
+        b->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", 1}});
+        tab_buttons.emplace_back(tab_name, b);
+    }
     auto* bottom = new ttk::Frame(this, {{"padding", "10 6"}});
     bottom->pack({{"side", "bottom"}, {"fill", "x"}});
     auto* actionrow = new ttk::Frame(bottom);
@@ -257,8 +265,8 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     templatecombo->pack({{"fill", "x"}, {"pady", 3}});
     templatecombo->bind("<<ComboboxSelected>>", plain([this](tk::Event&) { change_template(); }));
     field(type_section->body, "name", "Nazwa", false, true);
-    for (auto& [key, label] : std::vector<std::pair<std::string, std::string>>{{"width", "Szerokość"}, {"height", "Wysokość całkowita"}, {"depth", "Głębokość"}, {"thickness", "Grubość korpusu"}})
-        field(type_section->body, key, label);
+    field_pair(type_section->body, "width", "Szerokość", "height", "Wysokość");
+    field_pair(type_section->body, "depth", "Głębokość", "thickness", "Grubość korpusu");
     (new ttk::Label(type_section->body, {{"text", "Wysokość obejmuje nóżki i blat."}, {"font", "{Segoe UI} 9"}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     // A visible shortcut strip changes geometry in one click, like the reference tool.
     auto* quick = new ttk::Frame(top);
@@ -289,30 +297,32 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     }
     auto* fronts = new Section(body, "Fronty i uchwyty");
     sections["fronts"] = fronts;
-    combo(fronts->body, "front_style", "Styl frontu", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}});
+    combo(fronts->body, "front_style", "Styl frontu", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}}, true);
+    choice_tiles(fronts->body, "front_style", "Styl frontu", {{"Gładki", "Gładki"}, {"Ramka frezowana", "Ramkowy"}, {"Ryflowany", "Ryflowany"}, {"Chwyt frezowany", "Frezowany"}});
     preview = new tk::Canvas(fronts->body, {{"height", 112}, {"bg", "#f1eee8"}, {"highlightthickness", 0}});
     preview->pack({{"fill", "x"}, {"pady", 4}});
     preview->bind("<Configure>", plain([this](tk::Event&) { draw_preview(); }));
-    field(fronts->body, "front_thickness", "Grubość frontu");
-    field(fronts->body, "gap", "Szczelina frontów");
+    field_pair(fronts->body, "front_thickness", "Grubość frontu", "gap", "Szczelina");
     json openings = {{"Uchwyt / gałka", "handle"}, {"Bez uchwytu", "none"}};
     for (auto& [k, v] : opening_options::OPTIONS.items()) if (k != "none") openings[at(v, "label").get<std::string>()] = k;
     combo(fronts->body, "handle_mode", "Otwieranie / chwyt", openings);
     json spacing = json::object();
     for (int x : {0, 64, 96, 128, 160, 192, 224, 256, 320}) spacing[std::to_string(x) + " mm"] = x;
     combo(fronts->body, "handle_spacing", "Rozstaw uchwytu", spacing);
-    combo(fronts->body, "handle_color", "Kolor okucia", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}});
-    for (auto& [key, label] : std::vector<std::pair<std::string, std::string>>{
-             {"front_border", "Szerokość ramki"}, {"front_depth", "Głębokość frezu"}, {"front_radius", "Promień frezu"}, {"flute_width", "Szerokość ryfla"},
-             {"flute_spacing", "Rozstaw ryfli"}, {"flute_count", "Liczba ryfli (0 = auto)"}, {"finger_length", "Długość chwytu"}, {"finger_width", "Szerokość chwytu"},
-             {"finger_depth", "Głębokość chwytu"}})
-        field(fronts->body, key, label, key == "flute_count");
+    combo(fronts->body, "handle_color", "Kolor okucia", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}}, true);
+    choice_tiles(fronts->body, "handle_color", "Kolor okucia", {{"Czarny", "Czarny"}, {"Stal", "Stal"}, {"Złoty", "Złoty"}, {"Biały", "Biały"}});
+    field_pair(fronts->body, "front_border", "Szer. ramki", "front_depth", "Głęb. frezu");
+    field_pair(fronts->body, "front_radius", "Promień frezu", "flute_width", "Szer. ryfla");
+    field_pair(fronts->body, "flute_spacing", "Rozstaw ryfli", "flute_count", "Ryfle (0 = auto)", false, true);
+    field_pair(fronts->body, "finger_length", "Dł. chwytu", "finger_width", "Szer. chwytu");
+    field(fronts->body, "finger_depth", "Głębokość chwytu");
     auto* fittings = new Section(body, "Zawiasy i prowadnice");
     sections["fittings"] = fittings;
-    combo(fittings->body, "hinge_pattern", "Wiercenie zawiasu", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys 9071205", "hinge_sensys52"}});
-    field(fittings->body, "hinge_count", "Zawiasy na drzwi", true);
-    combo(fittings->body, "hinge_spring", "Sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}});
-    field(fittings->body, "opening_angle", "Kąt otwarcia");
+    combo(fittings->body, "hinge_pattern", "Wiercenie zawiasu", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys 9071205", "hinge_sensys52"}}, true);
+    choice_tiles(fittings->body, "hinge_pattern", "Wiercenie zawiasu", {{"Puszka 35 / rozstaw 45", "Ø35 · 45"}, {"Puszka 35 / rozstaw 52", "Ø35 · 52"}, {"Hettich Sensys 9071205", "Sensys"}});
+    combo(fittings->body, "hinge_spring", "Sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}}, true);
+    choice_tiles(fittings->body, "hinge_spring", "Sprężyna", {{"Nieokreślona", "Nieokreślona"}, {"Ze sprężyną", "Sprężyna"}, {"Bez sprężyny", "Bez"}});
+    field_pair(fittings->body, "hinge_count", "Zawiasy na drzwi", "opening_angle", "Kąt otwarcia", true, false);
     json runners = {{"Uniwersalna boczna 12,7", ""}};
     for (auto& [key, profile] : runners_catalog::PROFILES.items()) runners[at(profile, "label").get<std::string>()] = key;
     combo(fittings->body, "runner_profile", "Prowadnica", runners);
@@ -323,21 +333,25 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     auto* legs = new Section(body, "Nóżki, cokół i blat");
     sections["legs"] = legs;
     field(legs->body, "leg_height", "Wysokość nóżek (0 = brak)");
-    combo(legs->body, "leg_count", "Liczba nóżek", json{{"4 sztuki", 4}, {"6 sztuk", 6}});
+    combo(legs->body, "leg_count", "Liczba nóżek", json{{"4 sztuki", 4}, {"6 sztuk", 6}}, true);
+    choice_tiles(legs->body, "leg_count", "Liczba nóżek", {{"4 sztuki", "4 szt."}, {"6 sztuk", "6 szt."}});
     field(legs->body, "leg_diameter", "Średnica nóżki");
     field(legs->body, "leg_setback", "Odsunięcie nóżek");
-    combo(legs->body, "leg_color", "Kolor nóżek", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}});
+    combo(legs->body, "leg_color", "Kolor nóżek", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}}, true);
+    choice_tiles(legs->body, "leg_color", "Kolor nóżek", {{"Czarny", "Czarny"}, {"Stal", "Stal"}, {"Biały", "Biały"}});
     field(legs->body, "leg_price", "Cena nóżki [zł / szt.]");
     check(legs->body, "plinth", "Dodaj cokół");
     field(legs->body, "plinth_setback", "Cofnięcie cokołu");
     check(legs->body, "worktop", "Dodaj blat");
     field(legs->body, "worktop_thickness", "Grubość blatu");
     field(legs->body, "worktop_overhang", "Nawis blatu");
-    combo(legs->body, "top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy wzmacniające pod wspólny blat", "rails"}});
+    combo(legs->body, "top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy wzmacniające pod wspólny blat", "rails"}}, true);
+    choice_tiles(legs->body, "top_mode", "Góra korpusu", {{"Pełna płyta", "Pełna płyta"}, {"Listwy wzmacniające pod wspólny blat", "Listwy"}});
     auto* led = new Section(body, "LED i rowki");
     sections["led"] = led;
     check(led->body, "led", "Rowek i profil pod półkami");
-    combo(led->body, "led_mount", "Umiejscowienie", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}});
+    combo(led->body, "led_mount", "Umiejscowienie", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}}, true);
+    choice_tiles(led->body, "led_mount", "Umiejscowienie", {{"Pod półkami", "Pod półką"}, {"W boku korpusu", "W boku"}});
     field(led->body, "led_width", "Szerokość rowka");
     field(led->body, "led_depth", "Głębokość rowka");
     field(led->body, "led_margin", "Cofnięcie od frontu");
@@ -361,6 +375,29 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     }
     reload_presets();
     scroll->install_wheel(body);
+    show_tab("Korpus");
+}
+
+std::string QuickInspector::tab_of(const std::string& key) {
+    if (key == "fronts") return "Fronty";
+    if (key == "fittings") return "Okucia";
+    if (key == "legs" || key == "led" || key == "presets") return "Dodatki";
+    return "Korpus";
+}
+
+void QuickInspector::show_tab(const std::string& name) {
+    current_tab = name;
+    static const char* ORDER[] = {"type", "materials", "main", "bottom", "upper", "fronts", "fittings", "legs", "led", "presets"};
+    for (const char* key : ORDER) {
+        auto it = sections.find(key);
+        if (it != sections.end()) it->second->pack_forget();
+    }
+    for (const char* key : ORDER) {
+        auto it = sections.find(key);
+        if (it != sections.end() && tab_of(key) == name) it->second->pack({{"fill", "x"}, {"pady", "3 2"}});
+    }
+    for (auto& [tab_name, button] : tab_buttons) button->configure({{"style", tab_name == name ? "ChipOn.TButton" : "Chip.TButton"}});
+    if (scroll != nullptr && scroll->canvas != nullptr) scroll->canvas->yview_moveto(0);
 }
 
 void QuickInspector::draft_changed() {
@@ -401,15 +438,167 @@ tk::StringVar* QuickInspector::field(tk::Widget* parent, const std::string& key,
     return var.get();
 }
 
-ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices) {
-    (new ttk::Label(parent, {{"text", label}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}, {"pady", "4 1"}});
+tk::StringVar* QuickInspector::field_cell(tk::Widget* cell, const std::string& key, const std::string& label, bool integer) {
+    auto var = std::make_shared<tk::StringVar>();
+    fields.push_back({key, var, nullptr, integer ? "int" : "number"});
+    std::string unit;
+    if (!integer) unit = label.find("Kąt") != std::string::npos ? "°" : "mm";
+    std::string caption = unit.empty() ? label : label + " [" + unit + "]";
+    (new ttk::Label(cell, {{"text", caption}, {"font", "{Segoe UI} 9"}, {"foreground", forma_theme::MUTED}}))->pack({{"anchor", "w"}});
+    auto* entry = new ttk::Entry(cell, {{"textvariable", *var}, {"width", 6}, {"justify", "right"}});
+    entry->pack({{"fill", "x"}});
+    entry->bind("<Return>", plain([this](tk::Event&) { apply(true); }));
+    entry->bind("<FocusOut>", plain([this](tk::Event&) { schedule(); }));
+    entry->bind("<Escape>", plain([this](tk::Event&) { reset_fields(); }));
+    return var.get();
+}
+
+void QuickInspector::field_pair(tk::Widget* parent, const std::string& key_a, const std::string& label_a, const std::string& key_b, const std::string& label_b, bool int_a, bool int_b) {
+    auto* row = new ttk::Frame(parent);
+    row->pack({{"fill", "x"}, {"pady", 3}});
+    row->columnconfigure(0, {{"weight", 1}, {"uniform", "pairfield"}});
+    row->columnconfigure(1, {{"weight", 1}, {"uniform", "pairfield"}});
+    auto* left = new ttk::Frame(row);
+    left->grid({{"row", 0}, {"column", 0}, {"sticky", "ew"}, {"padx", "0 4"}});
+    auto* right = new ttk::Frame(row);
+    right->grid({{"row", 0}, {"column", 1}, {"sticky", "ew"}, {"padx", "4 0"}});
+    field_cell(left, key_a, label_a, int_a);
+    field_cell(right, key_b, label_b, int_b);
+}
+
+ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices, bool hidden) {
+    if (!hidden) (new ttk::Label(parent, {{"text", label}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}, {"pady", "4 1"}});
     auto var = std::make_shared<tk::StringVar>();
     auto* widget = new ttk::Combobox(parent, {{"textvariable", *var}, {"values", keys_of(choices)}, {"state", "readonly"}});
-    widget->pack({{"fill", "x"}});
+    if (!hidden) widget->pack({{"fill", "x"}});
     fields.push_back({key, var, nullptr, "choice"});
     combos[key] = {widget, choices};
     widget->bind("<<ComboboxSelected>>", plain([this, key](tk::Event&) { choice_changed(key); }));
     return widget;
+}
+
+void QuickInspector::draw_tile(const Tile& tile) {
+    tk::Canvas* c = tile.canvas;
+    if (c == nullptr) return;
+    try {
+        bool on = find(tile.key).text->get() == tile.choice;
+        double w = std::max(40, c->winfo_width());
+        c->delete_("all");
+        c->create_rectangle(1, 1, w - 2, 61, {{"fill", on ? forma_theme::ACCENT_SOFT : forma_theme::CARD}, {"outline", on ? forma_theme::ACCENT : forma_theme::BORDER}, {"width", on ? 2 : 1}});
+        const double cx = w / 2, L = cx - 18, R = cx + 18, T = 8, B = 38, M = (T + B) / 2;
+        const char* wood = "#e8d2ab";
+        const char* edge = "#7a6544";
+        const char* dark = "#8c795a";
+        auto rect = [&](double x1, double y1, double x2, double y2, const char* fill) { c->create_rectangle(x1, y1, x2, y2, {{"fill", fill}, {"outline", edge}}); };
+        auto dot = [&](double x, double y, double r, const std::string& fill) { c->create_oval(x - r, y - r, x + r, y + r, {{"fill", fill}, {"outline", edge}}); };
+        auto line = [&](double x1, double y1, double x2, double y2, const char* color, int width) { c->create_line({x1, y1, x2, y2}, {{"fill", color}, {"width", width}}); };
+        static const std::map<std::string, std::string> COLORS = {{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}, {"Złoty", "#bb9656"}};
+        const std::string& k = tile.key;
+        const std::string& ch = tile.choice;
+        if (k == "front_style") {
+            rect(cx - 17, T, cx + 17, B, wood);
+            if (ch == "Ramka frezowana") rect(cx - 11, T + 6, cx + 11, B - 6, "#d9b98a");
+            else if (ch == "Ryflowany") for (double x = cx - 12; x < cx + 15; x += 5) line(x, T + 2, x, B - 2, dark, 2);
+            else if (ch == "Chwyt frezowany") c->create_rectangle(cx - 12, T + 2, cx + 12, T + 6, {{"fill", dark}, {"outline", ""}});
+        } else if (k.ends_with(".front")) {
+            rect(L, T, R, B, "#f4efe6");
+            if (ch == "Otwarte") {
+                line(L + 3, M, R - 3, M, edge, 2);
+            } else if (ch == "Drzwi") {
+                rect(L + 2, T + 2, cx - 1, B - 2, wood);
+                rect(cx + 1, T + 2, R - 2, B - 2, wood);
+                dot(cx - 4, M, 1.5, dark);
+                dot(cx + 4, M, 1.5, dark);
+            } else {
+                for (int i = 0; i < 3; ++i) {
+                    double y = T + 2 + i * 9.3;
+                    rect(L + 2, y, R - 2, y + 8, wood);
+                    line(cx - 5, y + 4, cx + 5, y + 4, dark, 2);
+                }
+            }
+        } else if (k.ends_with(".doors")) {
+            rect(L, T, R, B, "#f4efe6");
+            if (ch == "1 skrzydło") {
+                rect(L + 2, T + 2, R - 2, B - 2, wood);
+                dot(R - 6, M, 1.5, dark);
+            } else {
+                rect(L + 2, T + 2, cx - 1, B - 2, wood);
+                rect(cx + 1, T + 2, R - 2, B - 2, wood);
+                dot(cx - 4, M, 1.5, dark);
+                dot(cx + 4, M, 1.5, dark);
+            }
+        } else if (k == "hinge_pattern") {
+            double s = ch.find("45") != std::string::npos ? 9 : 11;
+            rect(L + 2, T, L + 10, B, wood);
+            dot(L + 20, M, 8, "#cfd3d6");
+            dot(L + 20, M, 3, "#9aa0a6");
+            dot(R - 3, M - s, 2, dark);
+            dot(R - 3, M + s, 2, dark);
+            if (ch.find("Sensys") != std::string::npos) line(L + 10, M - 5, R - 3, M - s, dark, 1);
+        } else if (k == "hinge_spring") {
+            rect(L + 2, T + 2, L + 7, B - 2, wood);
+            if (ch == "Ze sprężyną") {
+                c->create_line({L + 8, M, L + 14, M - 7, L + 20, M + 7, L + 26, M - 7, L + 32, M + 7, R - 2, M}, {{"fill", edge}, {"width", 2}});
+            } else if (ch == "Bez sprężyny") {
+                line(L + 8, M, R - 2, M, edge, 2);
+            } else {
+                c->create_text(cx + 5, M, {{"text", "?"}, {"fill", dark}, {"font", "{Segoe UI} 16 bold"}});
+            }
+        } else if (k == "leg_count") {
+            rect(L, T + 4, R, B - 8, wood);
+            std::vector<double> xs = {L + 3, R - 3};
+            if (ch == "6 sztuk") xs.insert(xs.begin() + 1, cx);
+            for (double x : xs) dot(x, B - 2, 2.5, "#242628");
+        } else if (k == "leg_color" || k == "handle_color") {
+            auto it = COLORS.find(ch);
+            dot(cx, M, 12, it != COLORS.end() ? it->second : "#cccccc");
+        } else if (k == "top_mode") {
+            if (ch == "Pełna płyta") {
+                rect(L, M - 5, R, M + 5, wood);
+            } else {
+                rect(L, M - 8, R, M - 3, wood);
+                rect(L, M + 3, R, M + 8, wood);
+            }
+        } else if (k == "led_mount") {
+            if (ch == "Pod półkami") {
+                rect(L, T, R, T + 3, wood);
+                c->create_rectangle(L + 4, T + 4, R - 4, T + 7, {{"fill", "#f0c040"}, {"outline", ""}});
+                for (double x = L + 6; x < R - 4; x += 8) line(x, T + 9, x - 2, T + 18, "#f6e3a0", 1);
+            } else {
+                rect(L, T, L + 5, B, wood);
+                c->create_rectangle(L + 6, T + 3, L + 9, B - 3, {{"fill", "#f0c040"}, {"outline", ""}});
+                for (double y = T + 6; y < B - 4; y += 8) line(L + 11, y, L + 20, y + 2, "#f6e3a0", 1);
+            }
+        }
+        c->create_text(w / 2, 50, {{"text", tile.label}, {"fill", on ? forma_theme::ACCENT : forma_theme::TEXT}, {"font", on ? "{Segoe UI} 9 bold" : "{Segoe UI} 9"}});
+    } catch (const tk::TclError&) {
+    }
+}
+
+void QuickInspector::choice_tiles(tk::Widget* parent, const std::string& key, const std::string& caption, const std::vector<std::pair<std::string, std::string>>& items) {
+    forma_widgets::caption(parent, caption);
+    auto* row = new tk::Frame(parent, {{"bg", forma_theme::PANEL}});
+    row->pack({{"fill", "x"}, {"pady", "2 4"}});
+    int column = 0;
+    for (const auto& [choice, label] : items) {
+        auto* canvas = new tk::Canvas(row, {{"height", 62}, {"width", 40}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+        row->columnconfigure(column, {{"weight", 1}, {"uniform", "tile" + key}});
+        canvas->grid({{"row", 0}, {"column", column++}, {"padx", 2}, {"sticky", "ew"}});
+        tiles.push_back({key, choice, label, canvas});
+        size_t index = tiles.size() - 1;
+        canvas->bind("<Configure>", plain([this, index](tk::Event&) { draw_tile(tiles[index]); }));
+        canvas->bind("<Button-1>", [this, key, choice](tk::Event&) {
+            try {
+                find(key).text->set(choice);
+                choice_changed(key);
+            } catch (const tk::TclError&) {
+            }
+            return std::string();
+        });
+    }
+    find(key).text->trace_add("write", [this, key] {
+        for (const auto& tile : tiles) if (tile.key == key) draw_tile(tile);
+    });
 }
 
 void QuickInspector::rebuild_swatches() {
@@ -465,10 +654,11 @@ void QuickInspector::check(tk::Widget* parent, const std::string& key, const std
 }
 
 void QuickInspector::section_fields(tk::Widget* parent, const std::string& key) {
-    field(parent, key + ".columns", "Komory pionowe", true);
-    field(parent, key + ".shelves", "Półki na komorę", true);
-    combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}});
-    combo(parent, key + ".doors", "Drzwi na komorę", json{{"1 skrzydło", 1}, {"2 skrzydła", 2}});
+    field_pair(parent, key + ".columns", "Komory pionowe", key + ".shelves", "Półki na komorę", true, true);
+    combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}}, true);
+    choice_tiles(parent, key + ".front", "Wypełnienie", {{"Otwarte", "Otwarte"}, {"Drzwi", "Drzwi"}, {"Szuflady", "Szuflady"}});
+    combo(parent, key + ".doors", "Drzwi na komorę", json{{"1 skrzydło", 1}, {"2 skrzydła", 2}}, true);
+    choice_tiles(parent, key + ".doors", "Drzwi na komorę", {{"1 skrzydło", "1 skrzydło"}, {"2 skrzydła", "2 skrzydła"}});
     field(parent, key + ".drawers", "Szuflady na komorę", true);
     combo(parent, key + ".front_style", "Styl tej strefy",
           json{{"Wspólny styl frontów", nullptr}, {"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}});
@@ -524,6 +714,52 @@ void QuickInspector::change_template() {
     apply(false);
 }
 
+namespace {
+
+// Szerokości modułów głównej strefy: zapisane albo równy podział szerokości mebla.
+std::vector<double> module_widths_of(const json& cfg) {
+    std::vector<double> out;
+    double total = 0;
+    json width = jget(cfg, "width", json());
+    if (width.is_number()) total = width.get<double>();
+    for (auto& s : jget(cfg, "sections", json::array())) {
+        if (jget(s, "key", json()) != json("main")) continue;
+        long long n = std::max<long long>(1, jget(s, "columns", 1).is_number() ? jget(s, "columns", 1).get<long long>() : 1);
+        json stored = jget(s, "column_widths", json());
+        if (stored.is_array() && (long long)stored.size() == n) {
+            for (auto& v : stored) out.push_back(v.is_number() ? v.get<double>() : 0.0);
+            return out;
+        }
+        for (long long i = 0; i < n; ++i) out.push_back(total / (double)n);
+    }
+    return out;
+}
+
+std::string modules_text_of(const std::vector<double>& widths) {
+    std::string text;
+    for (double w : widths) text += (text.empty() ? "" : " + ") + std::format("{:g}", std::round(w * 10) / 10);
+    return text;
+}
+
+std::vector<double> parse_modules(const std::string& raw) {
+    std::string text = py::replace_all(raw, ",", ".");
+    std::vector<double> out;
+    std::string current;
+    auto flush = [&] {
+        if (current.empty()) return;
+        try { out.push_back(py::to_float(current)); } catch (const py::ValueError&) { throw py::ValueError("Moduły w rzędzie: wpisz liczby oddzielone plusem, np. 600 + 800 + 600."); }
+        current.clear();
+    };
+    for (char ch : text) {
+        if (ch == '+' || ch == ';' || ch == ' ' || ch == '\t' || ch == 'x' || ch == '/') flush();
+        else current += ch;
+    }
+    flush();
+    return out;
+}
+
+}  // namespace
+
 json QuickInspector::draft() {
     json cfg = config;
     // sections = {s['key']: s for s in cfg.get('sections', [])}
@@ -534,9 +770,11 @@ json QuickInspector::draft() {
         if (it == secs.end()) secs.emplace_back(skey, s);
         else it->second = s;
     }
+    std::string modules_raw;
     for (auto& f : fields) {
         const std::string& key = f.key;
         json value;
+        if (key == "modules") { modules_raw = f.text->get(); continue; }
         if (f.kind == "bool") {
             value = f.flag->get();
         } else {
@@ -575,6 +813,26 @@ json QuickInspector::draft() {
             cfg[key] = value;
         }
     }
+    // Moduły w rzędzie: zmiana w polu jest nadrzędna nad szerokością (suma modułów = szerokość mebla).
+    {
+        std::vector<double> typed = parse_modules(modules_raw);
+        std::vector<double> before = module_widths_of(config);
+        if (!typed.empty() && modules_text_of(typed) != modules_text_of(before)) {
+            if (typed.size() > 8) throw py::ValueError("Najwyżej 8 modułów w rzędzie.");
+            double sum = 0;
+            for (double w : typed) { if (w <= 0) throw py::ValueError("Każdy moduł musi mieć dodatnią szerokość."); sum += w; }
+            long long old_columns = (long long)before.size();
+            json widths = json::array();
+            for (double w : typed) widths.push_back(std::round(w * 10) / 10);
+            for (auto& [k, s] : secs) {
+                bool is_main = k == "main";
+                if (!is_main && (!py::truthy(jget(s, "enabled", false)) || jget(s, "columns", 1) != json(old_columns))) continue;
+                s["columns"] = (long long)typed.size();
+                s["column_widths"] = widths;
+            }
+            cfg["width"] = std::round(sum * 10) / 10;
+        }
+    }
     json list = json::array();
     for (auto& [k, s] : secs) list.push_back(s);
     cfg["sections"] = list;
@@ -595,6 +853,7 @@ void QuickInspector::set_config(const json& cfg_in) {
         const std::string& key = f.key;
         json value;
         auto dot = key.find('.');
+        if (key == "modules") { f.text->set(modules_text_of(module_widths_of(cfg))); continue; }
         if (dot != std::string::npos) value = jget(jget(sections_, key.substr(0, dot), json::object()), key.substr(dot + 1), 0);
         else value = jget(cfg, key, jget(defaults, key, ""));
         if (f.kind == "choice") {
@@ -659,6 +918,13 @@ void QuickInspector::refresh() {
     json cfg = has_group ? read_config(*app->project, *group) : json(nullptr);
     if (py::truthy(cfg)) {
         set_config(cfg);
+        try {
+            // Rząd szafek stykających się bokami: całkowita długość od lewej do prawej krawędzi (z bokami).
+            json row = furniture_layout::row_extent(*app->project, *group);
+            if (row.is_object() && row.at("count").get<long long>() > 1)
+                card_sub.set(card_sub.get() + std::format(" · rząd {} szafek: {:g} mm razem", row.at("count").get<long long>(), std::round(row.at("length").get<double>() * 10) / 10));
+        } catch (const std::exception&) {
+        }
         json status = configuration_status(*app->project, *group);
         bool editable = py::truthy(jget(status, "editable", false));
         note.set(editable ? "Zmiana listy: od razu. Liczby: Enter lub wyjście z pola." : py::str(jget(status, "reason", "Mebel zmieniono ręcznie.")));
@@ -1199,9 +1465,10 @@ void build(App* app) {
         auto it = std::find(tool_modes.begin(), tool_modes.end(), app->edit_mode.get());
         if (it != tool_modes.end()) tools->current((int)(it - tool_modes.begin()));
     });
-    (new ttk::Label(pages["Widok"], {{"text", "Wymiary:"}, {"style", "Panel.TLabel"}}))->pack({{"side", "left"}, {"padx", 4}});
-    auto* dimcombo = new ttk::Combobox(pages["Widok"], {{"textvariable", app->dimension_mode}, {"values", viewport_annotations::MODES}, {"state", "readonly"}, {"width", 18}});
-    dimcombo->pack({{"side", "left"}, {"padx", 4}});
+    auto* dimrow = new ttk::Frame(pages["Widok"], {{"style", "Panel.TFrame"}});  // panel boczny: jeden wiersz = etykieta + lista
+    (new ttk::Label(dimrow, {{"text", "Wymiary:"}, {"style", "Panel.TLabel"}, {"width", 15}}))->pack({{"side", "left"}, {"padx", "4 6"}});
+    auto* dimcombo = new ttk::Combobox(dimrow, {{"textvariable", app->dimension_mode}, {"values", viewport_annotations::MODES}, {"state", "readonly"}});
+    dimcombo->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}, {"padx", "0 4"}});
     dimcombo->bind("<<ComboboxSelected>>", plain([app](tk::Event&) { app->draw(); }));
     (new ttk::Checkbutton(pages["Widok"], {{"text", "Otwory montażowe"}, {"variable", app->show_drills}, {"style", "Panel.TCheckbutton"}, {"command", Cmd([app] { app->draw(); })}}))->pack({{"side", "left"}, {"padx", 5}});
     auto* trayframe = new ttk::Frame(middle);
@@ -1329,6 +1596,7 @@ void focus_section(App* app, const std::string& key) {
     app->workspace->select(app->design_page);
     app->inspector_tabs->select("0");
     Section* section = app->quick_inspector->sections.at(key);
+    app->quick_inspector->show_tab(QuickInspector::tab_of(key));
     section->opened = true;
     section->show();
     app->update_idletasks();
@@ -1340,41 +1608,59 @@ void focus_section(App* app, const std::string& key) {
 
 void build_production(App* app) {
     app->tables.clear();
-    struct Spec { std::string key, title; std::vector<std::string> cols; };
-    for (auto& [key, title, cols] : std::vector<Spec>{
-             {"parts", "Formatki", {"Grupa", "Element", "Materiał", "Gotowe U", "Gotowe V", "T", "Cięcie U", "Cięcie V", "Obrzeża m", "Kontur"}},
-             {"costs", "Kosztorys", {"Pozycja", "Wartość zł"}}}) {
-        auto* page = new ttk::Frame(app->tabs, {{"padding", 10}});
+    // Wspólny nagłówek karty: tytuł + opis (jasny motyw Forma).
+    auto header = [](tk::Widget* page, const std::string& title, const std::string& note) -> ttk::Label* {
+        (new ttk::Label(page, {{"text", title}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}});
+        auto* label = new ttk::Label(page, {{"text", note}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}, {"wraplength", 900}, {"justify", "left"}});
+        label->pack({{"anchor", "w"}, {"pady", "2 10"}});
+        return label;
+    };
+    struct Spec { std::string key, title; std::vector<std::string> cols; std::vector<int> widths; std::vector<std::string> anchors; };
+    for (auto& [key, title, cols, widths, anchors] : std::vector<Spec>{
+             {"parts", "Formatki", {"Grupa", "Element", "Materiał", "Gotowe U", "Gotowe V", "T", "Cięcie U", "Cięcie V", "Obrzeża m", "Kontur"},
+              {150, 200, 190, 90, 90, 60, 90, 90, 90, 80}, {"w", "w", "w", "e", "e", "e", "e", "e", "e", "center"}},
+             {"costs", "Kosztorys", {"Pozycja", "Wartość zł"}, {420, 160}, {"w", "e"}}}) {
+        auto* page = new ttk::Frame(app->tabs, {{"padding", "18 14"}});
         app->tabs->add(page, {{"text", title}});
         if (key == "parts") {
-            (new ttk::Label(page, {{"text", "Wymiary gotowe zawierają obrzeża; wymiary do cięcia odejmują ich grubość."}, {"padding", "0 0 0 8"}}))->pack({{"anchor", "w"}});
+            header(page, "Formatki", "Wymiary gotowe zawierają obrzeża; wymiary do cięcia odejmują ich grubość.");
         } else {
-            app->costnote = new ttk::Label(page, {{"text", ""}, {"padding", "0 0 0 8"}});
-            app->costnote->pack({{"anchor", "w"}});
-            (new ttk::Button(page, {{"text", "Zmień ceny, robociznę i narzut"}, {"command", Cmd([app] { app->settings(); })}}))->pack({{"anchor", "w"}});
+            app->costnote = header(page, "Kosztorys", "");
+            auto* change = new ttk::Button(page, {{"text", "Zmień ceny, robociznę i narzut"}, {"style", "Tool.TButton"}, {"command", Cmd([app] { app->settings(); })}});
+            change->pack({{"anchor", "w"}, {"pady", "0 10"}});
         }
-        auto* table = new ttk::Treeview(page, {{"columns", cols}, {"show", "headings"}});
-        for (auto& col : cols) {
-            table->heading(col, {{"text", col}});
-            table->column(col, {{"width", key == "parts" ? 90 : 250}, {"anchor", "w"}});
+        // Tabela w białej karcie z cienką ramką.
+        auto* card = new tk::Frame(page, {{"bg", forma_theme::BORDER}});
+        card->pack({{"fill", "both"}, {"expand", true}});
+        auto* inner = new tk::Frame(card, {{"bg", forma_theme::CARD}});
+        inner->pack({{"fill", "both"}, {"expand", true}, {"padx", 1}, {"pady", 1}});
+        auto* table = new ttk::Treeview(inner, {{"columns", cols}, {"show", "headings"}});
+        auto* vsb = new ttk::Scrollbar(inner, {{"orient", "vertical"}, {"command", table->path() + " yview"}});
+        auto* hsb = new ttk::Scrollbar(inner, {{"orient", "horizontal"}, {"command", table->path() + " xview"}});
+        vsb->pack({{"side", "right"}, {"fill", "y"}});
+        hsb->pack({{"side", "bottom"}, {"fill", "x"}});
+        table->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
+        table->configure({{"xscrollcommand", hsb->path() + " set"}, {"yscrollcommand", vsb->path() + " set"}});
+        for (size_t i = 0; i < cols.size(); ++i) {
+            table->heading(cols[i], {{"text", cols[i]}, {"anchor", anchors[i] == "e" ? "e" : "w"}});
+            table->column(cols[i], {{"width", widths[i]}, {"anchor", anchors[i]}, {"stretch", i + 1 == cols.size() && key == "costs"}});
         }
-        table->pack({{"fill", "both"}, {"expand", true}});
-        auto* sb = new ttk::Scrollbar(page, {{"orient", "horizontal"}, {"command", table->path() + " xview"}});
-        sb->pack({{"fill", "x"}});
-        table->configure({{"xscrollcommand", sb->path() + " set"}});
+        table->tag_configure("odd", {{"background", forma_theme::PANEL}});
+        table->tag_configure("even", {{"background", forma_theme::CARD}});
+        table->tag_configure("subtotal", {{"background", forma_theme::HOVER}, {"font", "{Segoe UI} 10 bold"}});
+        table->tag_configure("total", {{"background", forma_theme::ACCENT_SOFT}, {"foreground", forma_theme::ACCENT}, {"font", "{Segoe UI} 11 bold"}});
         app->tables[key] = table;
     }
-    auto* cut = new ttk::Frame(app->tabs, {{"padding", 10}});
+    auto* cut = new ttk::Frame(app->tabs, {{"padding", "18 14"}});
     app->tabs->add(cut, {{"text", "Rozkrój"}});
-    app->cutlabel = new ttk::Label(cut, {{"text", ""}});
-    app->cutlabel->pack({{"anchor", "w"}, {"pady", "0 8"}});
+    app->cutlabel = header(cut, "Rozkrój", "");
     app->sheetcombo = new ttk::Combobox(cut, {{"textvariable", app->sheetvar}, {"state", "readonly"}, {"width", 65}});
     app->sheetcombo->pack({{"anchor", "w"}});
     app->sheetcombo->bind("<<ComboboxSelected>>", plain([app](tk::Event&) { app->draw_cut(); }));
-    app->cutcanvas = new tk::Canvas(cut, {{"bg", "white"}, {"highlightthickness", 0}});
-    app->cutcanvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 8}});
+    app->cutcanvas = new tk::Canvas(cut, {{"bg", forma_theme::CARD}, {"highlightthickness", 1}, {"highlightbackground", forma_theme::BORDER}});
+    app->cutcanvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 10}});
     app->cutcanvas->bind("<Configure>", plain([app](tk::Event&) { app->draw_cut(); }));
-    (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony; nieregularne kontury używają prostokątnych półfabrykatów."}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony; nieregularne kontury używają prostokątnych półfabrykatów."}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}});
 }
 
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent) {

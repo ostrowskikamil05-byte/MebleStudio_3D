@@ -62,6 +62,7 @@ namespace hardware_placement_ui { class HardwarePlacementPanel; }
 #include "gpu_viewport.h"
 #include "viewport_annotations.h"
 #include "shaped_furniture.h"
+#include "stretch_choice.h"
 #include "cad_geometry.h"
 #include "furniture_layout_ui.h"
 #include "room_scene_drag.h"
@@ -538,13 +539,14 @@ public:
     void refresh_production() {
         perf::Scope perf_scope("App::refresh_production");
         auto* table = tables["parts"]; table->delete_(table->get_children());
+        int zebra = 0;  // naprzemienne tło wierszy (tagi "odd"/"even" z build_production)
         for (auto& p : project->parts) {
             auto [a, b] = p.blank(project->edge_t);
-            table->insert("", "end", {{"values", std::vector<std::string>{p.group, p.name, project->mat(p.material).name, std::format("{:g}", p.u), std::format("{:g}", p.v), std::format("{:g}", p.t), std::format("{:g}", a), std::format("{:g}", b), std::format("{:.2f}", p.edge_m()), p.contour.empty() ? "" : "Tak"}}});
+            table->insert("", "end", {{"values", std::vector<std::string>{p.group, p.name, project->mat(p.material).name, std::format("{:g}", p.u), std::format("{:g}", p.v), std::format("{:g}", p.t), std::format("{:g}", a), std::format("{:g}", b), std::format("{:.2f}", p.edge_m()), p.contour.empty() ? "" : "Tak"}}, {"tags", (zebra++ % 2) ? "odd" : "even"}});
         }
-        auto c = project->costs(); table = tables["costs"]; table->delete_(table->get_children());
+        auto c = project->costs(); table = tables["costs"]; table->delete_(table->get_children()); zebra = 0;
         for (auto& [label, key] : std::vector<std::pair<std::string, std::string>>{{"Materiał · powierzchnia netto", "panels"}, {"Obrzeża", "edges"}, {"Akcesoria", "hardware"}, {"Robocizna", "labor"}, {"Koszt bazowy", "base"}, {std::format("Cena z narzutem {:g}%", project->markup), "total"}})
-            table->insert("", "end", {{"values", std::vector<std::string>{label, std::format("{:.2f}", c.at(key))}}});
+            table->insert("", "end", {{"values", std::vector<std::string>{label, std::format("{:.2f}", c.at(key))}}, {"tags", key == "total" ? "total" : key == "base" ? "subtotal" : (zebra++ % 2) ? "odd" : "even"}});
         auto [sheets_, bad] = cut_plan(*project); sheets = sheets_;
         double stock = 0;
         for (auto& s : sheets) { Part blank; blank.u = s["u"]; blank.v = s["v"]; blank.t = s["thickness"]; stock += project->mat(s["material"].get<std::string>()).cost(blank); }
@@ -742,7 +744,16 @@ public:
                 result = direct_edit::resize_furniture_face(*drag.base, *handle.group, handle.face, distance);
             } else result = resize_part(*drag.base, *drag.id, handle.face, distance);
             drag.candidate = result; project = result; load_form(); draw();
-            status.set(std::format("Rozciąganie {}: {:+g} mm · puść przycisk, aby zatwierdzić", handle.face, distance));
+            std::string row_note;
+            if (handle.group && !handle.group->empty() && handle.face[0] == 'x') {
+                try {
+                    json row = furniture_layout::row_extent(*result, *handle.group);
+                    if (row.is_object() && row.at("count").get<long long>() > 1)
+                        row_note = std::format(" · rząd {} szafek: {:g} mm razem", row.at("count").get<long long>(), std::round(row.at("length").get<double>() * 10) / 10);
+                } catch (const std::exception&) {
+                }
+            }
+            status.set(std::format("Rozciąganie {}: {:+g} mm{} · puść przycisk, aby zatwierdzić", handle.face, distance, row_note));
         } catch (const ValueError& error) {
             drag.candidate = nullptr; project = drag.base; draw(); status.set(error.what());
         }
@@ -766,7 +777,11 @@ public:
             drag_edit->last = 0; direct_drag(e);
             DragEdit drag = *drag_edit; project = drag.base; drag_edit.reset();
             if (drag.candidate != nullptr) { snapshot(); project = drag.candidate; }
-            refresh(); status.set("Zapisano rozciągnięcie mebla / elementu · Ctrl+Z cofa zmianę"); return;
+            refresh(); status.set("Zapisano rozciągnięcie mebla / elementu · Ctrl+Z cofa zmianę");
+            // Po rozciągnięciu mebla w głąb albo w górę pytamy, czym ma się stać (narożnik L, pawlacz, szafa, regał).
+            if (drag.candidate != nullptr && drag.handle.group && !drag.handle.group->empty() && drag.base)
+                stretch_choice::offer(this, *drag.base, *drag.handle.group, drag.handle.face);
+            return;
         }
         if (edit_mode.get() == "fillet" && !edge_handles.empty()) {
             auto distance = [&](const EdgeHandle& item) {

@@ -321,6 +321,70 @@ std::pair<ProjectPtr, json> nearest_snap(const Project& project, const std::stri
     return {move_group(project, group, best->delta[0], best->delta[1], best->delta[2], validate), best->info};
 }
 
+json row_extent(const Project& project, const std::string& group) {
+    // Rząd to szafki stykające się bokami wzdłuż X (ta sama wysokość i głębokość się pokrywają): zwraca liczbę, początek, koniec i długość całkowitą.
+    std::vector<std::string> names = groups(project);
+    std::map<std::string, Box> boxes;
+    for (auto& name : names) boxes[name] = group_bounds(project, name);
+    if (!boxes.contains(group)) return json(nullptr);
+    const double touch = 3.0;
+    std::set<std::string> row{group};
+    std::vector<std::string> queue{group};
+    while (!queue.empty()) {
+        std::string current = queue.back();
+        queue.pop_back();
+        const Box& a = boxes[current];
+        for (auto& [name, b] : boxes) {
+            if (row.contains(name)) continue;
+            bool side = std::abs(a.second[0] - b.first[0]) <= touch || std::abs(b.second[0] - a.first[0]) <= touch;
+            if (!side) continue;
+            if (_overlap(a, b, 1) <= 1.0 || _overlap(a, b, 2) <= 1.0) continue;
+            row.insert(name);
+            queue.push_back(name);
+        }
+    }
+    double lo = 1e18, hi = -1e18;
+    for (auto& name : row) { lo = std::min(lo, boxes[name].first[0]); hi = std::max(hi, boxes[name].second[0]); }
+    return {{"count", (long long)row.size()}, {"from", lo}, {"to", hi}, {"length", hi - lo}};
+}
+
+std::pair<ProjectPtr, bool> resolve_overlap(const Project& project, const std::string& group) {
+    // Wypchnięcie z sąsiednich mebli: jeśli przesuwany mebel wszedł w inny, ślizga się po jego ściance
+    // (najmniejsze przesunięcie w osi X albo Y), zamiast przenikać. Dopiero potem działa magnes.
+    if (!_orthogonal(project, group)) return {std::make_shared<Project>(project), false};
+    Box source = group_bounds(project, group);
+    Polygon footprint = _footprint(project, group, &source);
+    struct Other { Box box; Polygon polygon; };
+    std::vector<Other> others;
+    for (auto& name : groups(project)) {
+        if (name == group) continue;
+        Box box = group_bounds(project, name);
+        others.push_back({box, _footprint(project, name, &box)});
+    }
+    double total[3] = {0., 0., 0.};
+    bool changed = false, clear = false;
+    for (int iteration = 0; iteration < 8; ++iteration) {
+        Box current = _translated(source, total);
+        Polygon polygon;
+        for (auto& p : footprint) polygon.push_back({p[0] + total[0], p[1] + total[1]});
+        const Other* hit = nullptr;
+        for (const Other& other : others)
+            if (_footprint_collision(current, polygon, other.box, other.polygon)) { hit = &other; break; }
+        if (hit == nullptr) { clear = true; break; }
+        double best = 1e18, best_push = 0;
+        int best_axis = 0;
+        for (int axis = 0; axis < 2; ++axis) {
+            for (double push : {hit->box.second[axis] - current.first[axis], hit->box.first[axis] - current.second[axis]}) {
+                if (std::abs(push) < best) { best = std::abs(push); best_push = push; best_axis = axis; }
+            }
+        }
+        total[best_axis] += best_push;
+        changed = true;
+    }
+    if (!changed || !clear) return {std::make_shared<Project>(project), false};
+    return {move_group(project, group, total[0], total[1], total[2], false), true};
+}
+
 json contacts(const Project& project, const std::optional<std::string>& group, const json& tolerance_) {
     // Current geometric contacts; separation or movement releases them freely.
     double tolerance = finite(tolerance_, 0, 1000);
