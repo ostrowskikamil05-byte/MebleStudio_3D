@@ -64,6 +64,7 @@ namespace hardware_placement_ui { class HardwarePlacementPanel; }
 #include "shaped_furniture.h"
 #include "stretch_choice.h"
 #include "cad_geometry.h"
+#include "furniture_layout.h"
 #include "furniture_layout_ui.h"
 #include "room_scene_drag.h"
 #include "room_scene_ui.h"
