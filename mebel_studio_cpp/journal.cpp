@@ -115,21 +115,31 @@ void dump_groups(App* app, const core::Project& project, const std::string& labe
 namespace {
 
 struct PartSig {
-    std::string group, name, role, material, layout;
+    std::string group, name, role, material;
+    double lx = 0, ly = 0, lz = 0, lyaw = 0;  // układ mebla (brak pola = 0)
     double u = 0, v = 0, t = 0, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0;
-    size_t operations = 0, machining = 0;
+    size_t operations = 0, machining = 0, content_hash = 0;  // content_hash: treść wierceń i obróbek (przesunięty otwór = zmiana)
     int edges = 0;
     bool visible = true;
 };
 
 struct Snap {
     std::map<std::string, PartSig> parts;
-    std::map<std::string, std::map<std::string, double>> hardware;  // grupa → rodzaj → ilość
+    std::map<std::string, std::map<std::string, double>> hardware;  // grupa → etykieta okucia → ilość
+    std::map<std::string, std::string> hardware_positions;           // grupa|etykieta|właściciel → rozmieszczenie (zmiana = okucie przesunięte)
     size_t drills = 0;
     size_t materials = 0;
     std::string name;
     bool valid = false;
 };
+
+std::string kind_label(const std::string& kind) {
+    static const std::map<std::string, std::string> names = {
+        {"hinge", "zawias"}, {"leg", "nóżka"}, {"handle", "uchwyt"}, {"runner", "prowadnica"}, {"led_strip", "taśma LED"}, {"led_profile", "profil LED"},
+        {"led_diffuser", "dyfuzor LED"}, {"led_power", "zasilacz LED"}, {"opening", "otwieranie"}, {"connector", "łącznik"}, {"shelf_pin", "kołek półki"}};
+    auto it = names.find(kind);
+    return it == names.end() ? kind : it->second;
+}
 
 Snap make_snap(const core::Project& project) {
     Snap snap;
@@ -140,31 +150,43 @@ Snap make_snap(const core::Project& project) {
     for (const auto& p : project.parts) {
         std::string base = p.group + "|" + p.name;
         int n = seen[base]++;
-        PartSig sig{p.group, p.name, p.role, p.material, p.layout.is_null() || p.layout.empty() ? std::string() : p.layout.dump(), p.u, p.v, p.t, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.operations.is_array() ? p.operations.size() : 0,
-                    p.machining.is_array() ? p.machining.size() : 0, 0, p.visible};
+        PartSig sig{p.group, p.name, p.role, p.material, 0, 0, 0, 0, p.u, p.v, p.t, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.operations.is_array() ? p.operations.size() : 0,
+                    p.machining.is_array() ? p.machining.size() : 0, 0, 0, p.visible};
+        if (p.layout.is_object()) {
+            auto number = [&](const char* key) { return p.layout.contains(key) && p.layout.at(key).is_number() ? p.layout.at(key).get<double>() : 0.0; };
+            sig.lx = number("x"); sig.ly = number("y"); sig.lz = number("z"); sig.lyaw = number("yaw");
+        }
+        sig.content_hash = std::hash<std::string>{}(p.operations.dump()) ^ (std::hash<std::string>{}(p.machining.dump()) << 1);
         for (size_t i = 0; i < p.edges.size(); ++i) if (p.edges[i]) sig.edges |= 1 << i;
         snap.drills += sig.operations;
         snap.parts[base + "#" + std::to_string(n)] = sig;
     }
+    std::map<std::string, std::string> owner_group;
+    for (const auto& p : project.parts) owner_group[p.id] = p.group;
     for (const auto& h : project.hardware) {
         if (!h.is_object()) continue;
-        std::string group = h.contains("group") && h["group"].is_string() ? h["group"].get<std::string>() : std::string("(bez mebla)");
-        std::string kind = h.contains("kind") && h["kind"].is_string() ? h["kind"].get<std::string>() : std::string("okucie");
+        std::string group;
+        if (h.contains("group") && h["group"].is_string()) group = h["group"].get<std::string>();
+        else if (h.contains("owner_id") && h["owner_id"].is_string() && owner_group.contains(h["owner_id"].get<std::string>())) group = owner_group[h["owner_id"].get<std::string>()];
+        else group = "(bez mebla)";
+        std::string label;
+        if (h.contains("kind") && h["kind"].is_string()) label = kind_label(h["kind"].get<std::string>());
+        else if (h.contains("name") && h["name"].is_string()) {
+            label = h["name"].get<std::string>();
+            auto cut = label.find(" — ");
+            if (cut != std::string::npos) label = label.substr(0, cut);
+            if (label.size() > 40) label = label.substr(0, 40);
+        } else label = "okucie";
         double qty = h.contains("qty") && h["qty"].is_number() ? h["qty"].get<double>() : 1;
-        snap.hardware[group][kind] += qty;
+        snap.hardware[group][label] += qty;
+        std::string owner = h.contains("owner_id") && h["owner_id"].is_string() ? h["owner_id"].get<std::string>() : std::string();
+        std::string pos = h.contains("positions") ? h["positions"].dump() : std::string();
+        snap.hardware_positions[group + "|" + label + "|" + owner] += pos;
     }
     return snap;
 }
 
 bool near(double a, double b) { return std::abs(a - b) < 0.05; }
-
-std::string kind_label(const std::string& kind) {
-    static const std::map<std::string, std::string> names = {
-        {"hinge", "zawias"}, {"leg", "nóżka"}, {"handle", "uchwyt"}, {"runner", "prowadnica"}, {"led_strip", "taśma LED"}, {"led_profile", "profil LED"},
-        {"led_diffuser", "dyfuzor LED"}, {"led_power", "zasilacz LED"}, {"opening", "otwieranie"}, {"connector", "łącznik"}, {"shelf_pin", "kołek półki"}};
-    auto it = names.find(kind);
-    return it == names.end() ? kind : it->second;
-}
 
 std::string diff_snaps(const Snap& a, const Snap& b) {
     if (!a.valid || !b.valid) return "";
@@ -181,10 +203,10 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
         GroupChange& gc = per_group[now.group];
         bool any = false;
         if (!near(was.u, now.u) || !near(was.v, now.v) || !near(was.t, now.t)) { gc.dims = true; any = true; }
-        if (!near(was.x, now.x) || !near(was.y, now.y) || !near(was.z, now.z) || !near(was.rx, now.rx) || !near(was.ry, now.ry) || !near(was.rz, now.rz) || was.layout != now.layout) { gc.moved = true; any = true; }
+        if (!near(was.x, now.x) || !near(was.y, now.y) || !near(was.z, now.z) || !near(was.rx, now.rx) || !near(was.ry, now.ry) || !near(was.rz, now.rz) || !near(was.lx, now.lx) || !near(was.ly, now.ly) || !near(was.lz, now.lz) || !near(was.lyaw, now.lyaw)) { gc.moved = true; any = true; }
         if (was.material != now.material) { gc.material = true; any = true; }
         if (was.edges != now.edges) { gc.edges = true; any = true; }
-        if (was.operations != now.operations || was.machining != now.machining) { gc.drills = true; any = true; }
+        if (was.operations != now.operations || was.machining != now.machining || was.content_hash != now.content_hash) { gc.drills = true; any = true; }
         if (was.visible != now.visible) { gc.visible = true; any = true; }
         if (any) ++changed;
     }
@@ -216,7 +238,16 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
             if (std::abs(delta) > 1e-9) total_delta[k] += delta;
         }
     }
-    for (auto& [k, d] : total_delta) hw += std::format("{}{} {:+g}", hw.empty() ? "" : ", ", kind_label(k), d);
+    for (auto& [k, d] : total_delta) hw += std::format("{}{} {:+g}", hw.empty() ? "" : ", ", k, d);
+    std::string moved_hw;
+    for (auto& [key, pos] : b.hardware_positions) {
+        auto it = a.hardware_positions.find(key);
+        if (it != a.hardware_positions.end() && it->second != pos) {
+            auto first = key.find('|'), second = key.find('|', first + 1);
+            moved_hw += (moved_hw.empty() ? "" : ", ") + key.substr(first + 1, second - first - 1);
+        }
+    }
+    if (!moved_hw.empty()) hw += std::string(hw.empty() ? "" : ", ") + "przestawione: " + moved_hw;
     if (!hw.empty()) out += " · okucia: " + hw;
     int shown = 0;
     std::string details;

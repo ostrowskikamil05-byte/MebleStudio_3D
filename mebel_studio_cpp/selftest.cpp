@@ -44,6 +44,9 @@
 #include "production_docs.h"
 #include "production_inspector.h"
 #include "journal.h"
+#include "quick_studio_ui.h"
+#include "style_ui.h"
+#include "text_design.h"
 #include "corner_quick_ui.h"
 #include "studio_interaction.h"
 #include "viewport_hud.h"
@@ -147,6 +150,32 @@ std::string md_escape(std::string text) {
 }
 
 double num(const json& v) { return v.get<double>(); }
+
+// ---------------------------------------------------------------- pokrycie dziennika testami
+// Każda kategoria wpisów [operacja:…] użyta w kodzie (journal::event) musi tu mieć wskazany test. Dodajesz nową kategorię w kodzie
+// → audyt zgłosi brak wpisu tutaj, dopóki nie dopiszesz testu i nie opiszesz go w tej tabeli.
+const std::map<std::string, std::string> JOURNAL_COVERAGE = {
+    {"szkic", "Interfejs i okna · szkic: edytor, odpinanie i wpinanie"},
+    {"plik", "Eksporty i zapis (test_exports / test_persistence)"},
+    {"okno", "Interfejs i okna · okna dialogowe"},
+    {"zakładka", "Interfejs i okna · przełączanie wszystkich zakładek i paneli"},
+    {"konfiguracja", "Dziennik zdarzeń · okno konfiguracji (otwarcie, sekcje, kafelki, LED z menu)"},
+    {"cofanie", "Cofanie i ponawianie (test_undo / Dziennik zdarzeń · refresh)"},
+    {"biblioteka", "Biblioteka (panel) · każdy mebel, kształt i urządzenie z katalogu"},
+    {"render", "Widok 3D i render (test_view / test_render_matrix)"},
+    {"rozciąganie", "Rozciąganie mebla + Dziennik zdarzeń · tryb Rozciągnij"},
+    {"zmiana", "Dziennik zdarzeń · opis różnic projektu i refresh"},
+    {"okucia", "Dziennik zdarzeń · montaż okuć (wybór, anulowanie, uchwyt)"},
+    {"narożnik", "Dziennik zdarzeń · narożniki (tworzenie, konwersja, kształt)"},
+    {"narzędzie", "Dziennik zdarzeń · narzędzia palety (każdy tryb)"},
+    {"zaznaczenie", "Dziennik zdarzeń · kliknięcie w widoku i wstrzymane kliknięcie"},
+    {"inspektor", "Inspektor produkcyjny i panel Mebel (test_inspector / test_panel)"},
+    {"stan", "Dziennik zdarzeń · zrzut stanu mebli po rozciąganiu i przesuwaniu"},
+    {"przesuwanie", "Dziennik zdarzeń · obrót i zapis układu mebli"},
+    {"menu", "Dziennik zdarzeń · menu podręczne"},
+    {"kształty", "Dziennik zdarzeń · okno kształtów (zatwierdzenie / odrzucenie)"},
+    {"projekt z opisu", "Dziennik zdarzeń · projekt z opisu zdaniem"},
+};
 
 // ---------------------------------------------------------------- audyt źródeł
 
@@ -272,6 +301,34 @@ Audit audit_sources() {
     json markers_json = json::array();
     for (auto& m : markers) markers_json.push_back(m);
     audit.data["znaczniki"] = markers_json;
+
+    // kategorie dziennika użyte w kodzie muszą mieć test (tabela JOURNAL_COVERAGE)
+    {
+        std::set<std::string> used;
+        for (const auto& [stem, text] : cpp_text) {
+            if (stem == "selftest") continue;
+            size_t at = 0;
+            while ((at = text.find("event(", at)) != std::string::npos) {
+                size_t open = at + 6;
+                bool word_before = at > 0 && is_word_char(text[at - 1]) && !(at >= 9 && text.compare(at - 9, 9, "journal::") == 0);
+                at = open;
+                if (word_before) continue;
+                size_t comma = text.find(',', open);
+                if (comma == std::string::npos || comma - open > 40) continue;
+                size_t quote = text.find_first_not_of(" \t\n", comma + 1);
+                if (quote == std::string::npos || text[quote] != '"') continue;
+                size_t end = text.find('"', quote + 1);
+                if (end == std::string::npos) continue;
+                std::string category = text.substr(quote + 1, end - quote - 1);
+                if ((category.size() >= 2 && category.size() <= 24 && category.find(' ') == std::string::npos) || category == "projekt z opisu") used.insert(category);
+            }
+        }
+        std::string missing;
+        for (const auto& category : used) if (!JOURNAL_COVERAGE.contains(category)) missing += (missing.empty() ? "" : ", ") + category;
+        audit.data["kategorie_dziennika"] = used.size();
+        if (!missing.empty())
+            audit.problems.push_back("Kategorie dziennika użyte w kodzie bez testu w JOURNAL_COVERAGE (selftest.cpp): " + missing + " — dopisz test i wpis w tabeli (zasada: każda funkcja ma log i test).");
+    }
     if (!markers.empty())
         audit.problems.push_back(std::to_string(markers.size()) + " miejsc z oznaczeniem TODO / FIXME / „niezaimplementowane” w kodzie C++ (lista w raporcie).");
 
@@ -2108,6 +2165,44 @@ public:
     static bool has_text(const std::string& text, const std::string& needle) { return text.find(needle) != std::string::npos; }
 
     // Dziennik zdarzeń: każda akcja użytkownika (narożniki, rozciąganie, konfiguracja, okucia, LED, fronty) zostawia czytelny ślad w logu.
+
+    // Każdy mebel, kształt i urządzenie z biblioteki jest dodawany osobno (ścieżka kliknięcia w kartę) i zostawia wpis w dzienniku.
+    void test_library_matrix() {
+        const char* area = "Biblioteka — każdy element osobno + dziennik";
+        const char* where = "visual_catalogue.cpp (apply_item), journal.cpp (project_refreshed)";
+        for (const char* kind : {"furniture", "shaped", "appliance"}) {
+            ProjectPtr scratch = fresh();
+            json items;
+            try { items = visual_catalogue::catalogue_items(kind, *scratch); } catch (const std::exception&) { continue; }
+            for (size_t i = 0; i < items.size(); ++i) {
+                std::string name = items[i].value("name", std::string("element ") + std::to_string(i));
+                run(area, std::string(kind) + ": " + name, where, [=, this](Ctx& ctx) {
+                    ProjectPtr project = fresh();
+                    app->project = project; app->selected.reset(); app->refresh();
+                    json current = visual_catalogue::catalogue_items(kind, *project);
+                    need(i < current.size(), "katalog zmienił liczbę elementów");
+                    auto from = log_mark();
+                    visual_catalogue::apply_item(app, current[i]);
+                    app->update();
+                    std::string text = log_since(from);
+                    size_t parts = app->project->parts.size();
+                    close_extra_windows();
+                    app->project = fresh(); app->refresh();
+                    ctx.note(std::format("{} części", parts));
+                    need(parts > 0, "po dodaniu z biblioteki projekt jest pusty");
+                    need(text.find(std::string("[operacja:biblioteka] dodaję: rodzaj ") + kind) != std::string::npos, "dodanie elementu nie zostało zapisane w dzienniku (biblioteka)");
+                    need(text.find("[operacja:zmiana]") != std::string::npos, "dodanie elementu nie zostawiło wpisu [zmiana]");
+                });
+            }
+        }
+    }
+
+    uintmax_t log_mark() { std::error_code ec; return fs::exists(app->developer_log_path) ? fs::file_size(app->developer_log_path, ec) : 0; }
+    std::string log_since(uintmax_t from) {
+        std::string text = read_file(app->developer_log_path);
+        return from <= text.size() ? text.substr(from) : text;
+    }
+
     void test_journal_actions() {
         const char* area = "Dziennik zdarzeń";
         // Fragment logu dopisany od znacznika — bez zależności od obrotu pliku.
@@ -2268,7 +2363,7 @@ public:
         });
 
         run(area, "rozciąganie: zaznaczona część skrzynki szuflady daje uchwyty mebla (generated_by)", "app.h (draw_original — właściciel części generowanej)", [=, this](Ctx& ctx) {
-            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["drawers"] = 2; });
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["drawers"] = 2; section(c, "main")["shelves"] = 0; });
             app->project = p; app->refresh(); app->update();
             const core::Part* generated = nullptr;
             for (const auto& part : p->parts) if (py::truthy(py::get(part.assembly, "generated_by"))) { generated = &part; break; }
@@ -2362,7 +2457,7 @@ public:
             for (auto* w : all) {
                 try {
                     if (!title && w->winfo_class() == "TLabel" && w->cget("text") == "Korpus") title = w;
-                    if (w->winfo_class() == "Canvas" && w->cget("width") == "74") tile = w;
+                    if (w->winfo_class() == "Canvas" && w->cget("width") == "74" && (tile == nullptr || (!tile->winfo_ismapped() && w->winfo_ismapped()))) tile = w;
                 } catch (const tk::TclError&) {}
             }
             need(title != nullptr, "w oknie konfiguracji nie znaleziono nagłówka sekcji Korpus");
@@ -2393,19 +2488,91 @@ public:
             need(has(text, "źródło studio_interaction.cpp:"), "wpis [zmiana] nie wskazuje miejsca w kodzie");
         });
 
-        run(area, "montaż zawiasu na drzwiach zostawia opis okuć w dzienniku", "drag_hardware.cpp (attach), journal.cpp (describe_difference)", [](Ctx& ctx) {
-            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& m = section(c, "main"); m["front"] = "doors"; m["doors"] = 1; });
+        run(area, "montaż uchwytu na drzwiach zostawia opis okuć w dzienniku", "drag_hardware.cpp (attach), journal.cpp (describe_difference)", [](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& m = section(c, "main"); m["front"] = "doors"; m["doors"] = 1; c["handle_mode"] = "none"; });
             const core::Part* door = nullptr;
             for (const auto& part : p->parts) if (part.role == "door") { door = &part; break; }
             if (!door) { ctx.note("brak drzwi w szafce — pominięto"); return; }
             json hit = {{"u", door->u / 2}, {"v", door->v / 2}, {"w", door->t}, {"face", "top"}};
             ProjectPtr with;
-            try { with = drag_hardware::attach(*p, "hinge", door->id, hit, json::object()); }
-            catch (const std::exception& error) { ctx.warn(std::string("nie udało się dołożyć zawiasu: ") + error.what()); return; }
+            try { with = drag_hardware::attach(*p, "handle", door->id, hit, json::object()); }
+            catch (const std::exception& error) { ctx.warn(std::string("nie udało się dołożyć uchwytu: ") + error.what()); return; }
             std::string d = journal::describe_difference(*p, *with);
             ctx.note(d);
-            need(!d.empty(), "dołożenie zawiasu nie zostało opisane");
-            need(has_text(d, "zawias") || has_text(d, "wiercenia"), "opis nie wspomina o zawiasie ani o wierceniach: " + d);
+            need(!d.empty(), "dołożenie uchwytu nie zostało opisane");
+            need(has_text(d, "uchwyt") || has_text(d, "wiercenia"), "opis nie wspomina o uchwycie ani o wierceniach: " + d);
+        });
+
+        run(area, "opis okuć widzi zmianę rodzaju zawiasu i przestawienie okuć (nie tylko liczby)", "journal.cpp (make_snap: okucia bez pola kind/group)", [](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0, [](json& c) { auto& m = section(c, "main"); m["front"] = "doors"; m["doors"] = 1; c["hinge_pattern"] = "hinge45"; });
+            // ten sam mebel przebudowany z innym wzorem zawiasów (liczba okuć i wierceń bez zmian, zmieniają się tylko położenia otworów)
+            json cfg = furniture_configurator::read_config(*p, g); cfg["hinge_pattern"] = "hinge52";
+            auto [changed, g3] = furniture_configurator::configure(*p, cfg, g);
+            std::string d = journal::describe_difference(*p, *changed);
+            ctx.note(d);
+            need(!d.empty(), "zmiana wzoru zawiasów (45→52) nie została opisana");
+        });
+
+        run(area, "przesuwanie: obrót mebla (narzędzie Obróć) zapisuje układ w dzienniku", "furniture_layout_ui.cpp (commit, rotate_furniture)", [=, this](Ctx&) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            app->selected = p->parts.front().id;
+            auto from = mark();
+            need((bool)app->rotate_furniture, "brak funkcji obrotu mebla");
+            app->rotate_furniture(90);
+            std::string text = since(from);
+            app->selected.reset(); app->project = fresh(); app->refresh();
+            need(has(text, "[operacja:przesuwanie] zapis układu:"), "obrót mebla nie został zapisany jako zapis układu");
+            need(has(text, "[operacja:zmiana]") && has(text, "położenie/obrót"), "obrót mebla nie dał wpisu [zmiana] z położeniem/obrotem");
+        });
+
+        run(area, "menu podręczne: wybrana pozycja jest zapisana w dzienniku", "studio_interaction.cpp (context_menu)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            app->selected = p->parts.front().id;
+            tk::Event click; click.x = 3; click.y = 3; click.widget = app->canvas;
+            tk::Menu* menu = studio_interaction::context_menu(app, click, false);
+            need(menu != nullptr, "menu podręczne nie powstało");
+            int index = -1, position = 0;
+            for (const auto& entry : menu->entries()) { if (entry.type == "command" && entry.label.rfind("Rozciągaj cały mebel", 0) == 0) { index = position; break; } ++position; }
+            auto from = mark();
+            if (index >= 0) menu->call({menu->path(), "invoke", std::to_string(index)});
+            std::string text = since(from);
+            ctx.note(index >= 0 ? "wywołano pozycję menu" : "w menu nie znaleziono pozycji do wywołania");
+            app->edit_mode.set("camera"); app->selected.reset(); app->project = fresh(); app->refresh();
+            need(index >= 0, "menu podręczne nie zawiera pozycji „Rozciągaj cały mebel”");
+            need(has(text, "[operacja:menu] menu podręczne: Rozciągaj cały mebel"), "wybrana pozycja menu nie została zapisana");
+        });
+
+        run(area, "okno kształtów: zatwierdzenie lub odrzucenie zostawia wpis [kształty]", "style_ui.cpp (commit, guarded)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            app->selected = p->parts.front().id;
+            auto* dialog = style_ui::shape_dialog(app);
+            need(dialog != nullptr && (bool)dialog->shape_apply, "okno kształtów nie otworzyło się");
+            app->update();
+            auto from = mark();
+            try { dialog->shape_apply(); } catch (const std::exception& error) { ctx.note(std::string("wyjątek: ") + error.what()); }
+            std::string text = since(from);
+            dialog->destroy(); app->update();
+            app->selected.reset(); app->project = fresh(); app->refresh();
+            need(has(text, "[operacja:kształty]"), "zastosowanie kształtu nie zostawiło wpisu [kształty] (ani zatwierdzenia, ani odrzucenia)");
+        });
+
+        run(area, "projekt z opisu: utworzenie mebli zapisane w dzienniku i opisane jako nowe meble", "quick_studio_ui.cpp (apply_text_design), text_design.cpp", [=, this](Ctx& ctx) {
+            app->project = fresh(); app->refresh(); app->update();
+            auto result = text_design::parse("3 szafki dolne po 60 cm, front biały", *app->project);
+            need(result.ok(), "opis nie został rozpoznany: " + text_design::summary(result));
+            auto from = mark();
+            auto groups = quick_studio_ui::apply_text_design(app, result, "3 szafki dolne po 60 cm, front biały");
+            std::string text = since(from);
+            ctx.note(std::format("utworzono {} mebli", groups.size()));
+            size_t parts = app->project->parts.size();
+            app->project = fresh(); app->refresh();
+            need(groups.size() == 3, "oczekiwano 3 mebli z opisu");
+            need(parts > 0, "projekt po utworzeniu z opisu jest pusty");
+            need(has(text, "[operacja:projekt z opisu] utworzono 3 mebli"), "utworzenie z opisu nie zostało zapisane w dzienniku");
+            need(has(text, "[operacja:zmiana]") && has(text, "nowe meble"), "utworzenie z opisu nie dało wpisu [zmiana] z nowymi meblami");
         });
     }
 
@@ -2415,7 +2582,7 @@ public:
             std::string text = read_file(app->developer_log_path);
             std::string missing;
             long long found = 0;
-            for (const char* category : {"szkic", "plik", "okno", "konfiguracja", "cofanie", "biblioteka", "render", "rozciąganie", "zmiana", "okucia", "narożnik"}) {
+            for (const auto& [category, test_name] : JOURNAL_COVERAGE) {
                 if (text.find(std::string("[operacja:") + category + "]") != std::string::npos) ++found;
                 else missing += std::string(missing.empty() ? "" : ", ") + category;
             }
@@ -2451,6 +2618,7 @@ public:
         test_inspector();
         test_text_design();
         test_ui();
+        test_library_matrix();
         test_journal_actions();
         test_log_coverage();
     }

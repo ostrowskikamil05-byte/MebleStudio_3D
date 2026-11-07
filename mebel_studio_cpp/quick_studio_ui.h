@@ -9,12 +9,16 @@
 #include <vector>
 #include "core.h"
 #include "depth_raster.h"
+#include "text_design.h"
 #include "tk.h"
 #include "ttk.h"
 
 class App;
 
 namespace quick_studio_ui {
+
+// Dodaje do projektu meble zbudowane z rozpoznanego opisu (jedno cofnięcie, wpis [projekt z opisu]); zwraca nazwy mebli.
+std::vector<std::string> apply_text_design(App* app, const text_design::Result& result, const std::string& text);
 
 using json = core::json;
 

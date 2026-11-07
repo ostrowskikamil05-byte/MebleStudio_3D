@@ -1001,6 +1001,22 @@ bool QuickInspector::apply(bool explicit_) {
     return false;
 }
 
+// Buduje meble z rozpoznanego opisu, dodaje je do projektu (jedno cofnięcie) i zapisuje to w dzienniku. Zwraca nazwy utworzonych mebli.
+std::vector<std::string> apply_text_design(App* app, const text_design::Result& result, const std::string& text) {
+    auto [project, groups] = text_design::build(*app->project, result);
+    project->validate();
+    std::optional<std::string> chosen;
+    for (const auto& part : project->parts) if (!groups.empty() && part.group == groups.front()) { chosen = part.id; break; }
+    app->snapshot();
+    app->project = project;
+    app->selected = chosen;
+    app->refresh();
+    app->fit();
+    journal::event(app, "projekt z opisu", std::format("utworzono {} mebli z opisu: {}", groups.size(), text));
+    app->status.set(std::format("Projekt z opisu: dodano {} mebli — Ctrl+Z cofa całość.", groups.size()));
+    return groups;
+}
+
 // Okno „Projekt z opisu zdaniem”: pole tekstowe, podgląd tego, co program zrozumiał (na żywo) i jawny przycisk tworzenia.
 static void text_design_dialog(App* app) {
     struct State {
@@ -1050,17 +1066,7 @@ static void text_design_dialog(App* app) {
             refresh();
             if (!state->result.ok()) { tk::messagebox::showinfo("Projekt z opisu", "Nie ma jeszcze czego utworzyć — opisz przynajmniej jeden mebel obsługiwany przez szybki kreator.", d); return; }
             if (!app->flush_parameter_drafts()) return;
-            auto [project, groups] = text_design::build(*app->project, state->result);
-            project->validate();
-            std::optional<std::string> chosen;
-            for (const auto& part : project->parts) if (!groups.empty() && part.group == groups.front()) { chosen = part.id; break; }
-            app->snapshot();
-            app->project = project;
-            app->selected = chosen;
-            app->refresh();
-            app->fit();
-            journal::event(app, "projekt z opisu", std::format("utworzono {} mebli z opisu: {}", groups.size(), py::strip(state->input->get("1.0", "end"))));
-            app->status.set(std::format("Projekt z opisu: dodano {} mebli — Ctrl+Z cofa całość.", groups.size()));
+            apply_text_design(app, state->result, py::strip(state->input->get("1.0", "end")));
             d->destroy();
         } catch (const std::exception& e) {
             tk::messagebox::showerror("Projekt z opisu", e.what(), d);

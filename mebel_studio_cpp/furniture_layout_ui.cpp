@@ -86,6 +86,7 @@ std::string selected_group(App* app) {
 }
 
 void commit(App* app, ProjectPtr result, const std::string& note) {
+    journal::event(app, "przesuwanie", "zapis układu: " + note);
     app->snapshot(); app->project = result; app->refresh(); app->status.set(note);
 }
 
