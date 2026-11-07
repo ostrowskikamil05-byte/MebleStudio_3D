@@ -127,6 +127,7 @@ struct Snap {
     std::map<std::string, PartSig> parts;
     std::map<std::string, std::map<std::string, double>> hardware;  // grupa → etykieta okucia → ilość
     std::map<std::string, std::string> hardware_positions;           // grupa|etykieta|właściciel → rozmieszczenie (zmiana = okucie przesunięte)
+    std::map<std::string, std::pair<std::string, std::string>> scene_objects;  // id → (typ/nazwa, pełna treść) — AGD i wyposażenie pokoju
     size_t drills = 0;
     size_t materials = 0;
     std::string name;
@@ -160,6 +161,14 @@ Snap make_snap(const core::Project& project) {
         for (size_t i = 0; i < p.edges.size(); ++i) if (p.edges[i]) sig.edges |= 1 << i;
         snap.drills += sig.operations;
         snap.parts[base + "#" + std::to_string(n)] = sig;
+    }
+    if (project.scene.is_object() && project.scene.contains("objects") && project.scene["objects"].is_array()) {
+        for (const auto& object : project.scene["objects"]) {
+            if (!object.is_object() || !object.contains("id") || !object["id"].is_string()) continue;
+            std::string label = object.contains("name") && object["name"].is_string() && !object["name"].get<std::string>().empty() ? object["name"].get<std::string>()
+                                : object.contains("type") && object["type"].is_string() ? object["type"].get<std::string>() : std::string("obiekt");
+            snap.scene_objects[object["id"].get<std::string>()] = {label, object.dump()};
+        }
     }
     std::map<std::string, std::string> owner_group;
     for (const auto& p : project.parts) owner_group[p.id] = p.group;
@@ -249,6 +258,14 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
     }
     if (!moved_hw.empty()) hw += std::string(hw.empty() ? "" : ", ") + "przestawione: " + moved_hw;
     if (!hw.empty()) out += " · okucia: " + hw;
+    std::string scene_text;
+    for (auto& [id, now] : b.scene_objects) {
+        auto it = a.scene_objects.find(id);
+        if (it == a.scene_objects.end()) scene_text += (scene_text.empty() ? "" : ", ") + std::string("+") + now.first;
+        else if (it->second.second != now.second) scene_text += (scene_text.empty() ? "" : ", ") + std::string("zmieniono ") + now.first;
+    }
+    for (auto& [id, was] : a.scene_objects) if (!b.scene_objects.contains(id)) scene_text += (scene_text.empty() ? "" : ", ") + std::string("−") + was.first;
+    if (!scene_text.empty()) out += " · obiekty sceny: " + scene_text;
     int shown = 0;
     std::string details;
     for (auto& [g, gc] : per_group) {
@@ -263,7 +280,7 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
     }
     if (shown > 8) details += std::format(" | (+{} dalszych mebli)", shown - 8);
     if (!details.empty()) out += " · " + details;
-    bool nothing = added == 0 && removed == 0 && changed == 0 && a.drills == b.drills && a.materials == b.materials && hw.empty() && a.name == b.name;
+    bool nothing = added == 0 && removed == 0 && changed == 0 && a.drills == b.drills && a.materials == b.materials && hw.empty() && scene_text.empty() && a.name == b.name;
     return nothing ? std::string() : out;
 }
 

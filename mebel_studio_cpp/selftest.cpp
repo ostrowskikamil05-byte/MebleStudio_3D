@@ -2177,9 +2177,11 @@ public:
             for (size_t i = 0; i < items.size(); ++i) {
                 std::string name = items[i].value("name", std::string("element ") + std::to_string(i));
                 run(area, std::string(kind) + ": " + name, where, [=, this](Ctx& ctx) {
-                    // Urządzenia wbudowane (AGD) wymagają mebla, w który się je wstawia.
-                    ProjectPtr project = std::string(kind) == "appliance" ? cabinet(Project()).first : fresh();
-                    size_t before = project->parts.size();
+                    // AGD trafia do sceny (obiekty pokoju), a nie do listy części.
+                    ProjectPtr project = fresh();
+                    bool scene_kind = std::string(kind) == "appliance";
+                    auto scene_count = [](const ProjectPtr& p) { return p->scene.contains("objects") && p->scene["objects"].is_array() ? p->scene["objects"].size() : size_t(0); };
+                    size_t before = scene_kind ? scene_count(project) : project->parts.size();
                     app->project = project; app->selected.reset(); app->refresh();
                     json current = visual_catalogue::catalogue_items(kind, *project);
                     need(i < current.size(), "katalog zmienił liczbę elementów");
@@ -2187,11 +2189,11 @@ public:
                     visual_catalogue::apply_item(app, current[i]);
                     app->update();
                     std::string text = log_since(from);
-                    size_t parts = app->project->parts.size();
+                    size_t parts = scene_kind ? scene_count(app->project) : app->project->parts.size();
                     close_extra_windows();
                     app->project = fresh(); app->refresh();
-                    ctx.note(std::format("{} części", parts));
-                    need(parts > before, std::format("po dodaniu z biblioteki liczba części nie wzrosła ({} → {})", before, parts));
+                    ctx.note(std::format("{} {}", parts, scene_kind ? "obiektów sceny" : "części"));
+                    need(parts > before, std::format("po dodaniu z biblioteki liczba {} nie wzrosła ({} → {})", scene_kind ? "obiektów sceny" : "części", before, parts));
                     need(text.find(std::string("[operacja:biblioteka] dodaję: rodzaj ") + kind) != std::string::npos, "dodanie elementu nie zostało zapisane w dzienniku (biblioteka)");
                     need(text.find("[operacja:zmiana]") != std::string::npos, "dodanie elementu nie zostawiło wpisu [zmiana]");
                 });
@@ -2231,6 +2233,21 @@ public:
             d = journal::describe_difference(*two, *p);
             need(has_text(d, "usunięte meble"), "usunięcie mebla nie zostało opisane: " + d);
             need(journal::describe_difference(*p, *p).empty(), "brak zmian powinien dać pusty opis");
+        });
+
+        run(area, "opis różnic projektu: obiekty sceny (AGD) dodane, zmienione i usunięte", "journal.cpp (make_snap — scene_objects)", [](Ctx& ctx) {
+            Project base;
+            ProjectPtr with = room_objects::add_object(base, "washer", json{{"x", 100}});
+            std::string d = journal::describe_difference(base, *with);
+            ctx.note(d);
+            need(has_text(d, "obiekty sceny: +"), "dodanie AGD nie zostało opisane: " + d);
+            std::string id = with->scene.at("objects").back().at("id").get<std::string>();
+            ProjectPtr moved = room_objects::update_object(*with, id, json{{"x", 900}});
+            d = journal::describe_difference(*with, *moved);
+            need(has_text(d, "obiekty sceny: zmieniono"), "przesunięcie AGD nie zostało opisane: " + d);
+            d = journal::describe_difference(*with, base);
+            need(has_text(d, "obiekty sceny: −"), "usunięcie AGD nie zostało opisane: " + d);
+            need(journal::describe_difference(*with, *with).empty(), "brak zmian sceny powinien dać pusty opis");
         });
 
         run(area, "opis różnic projektu: LED, nóżki, uchwyty i zawiasy jako okucia", "journal.cpp, configurator_accessories.cpp", [](Ctx& ctx) {
