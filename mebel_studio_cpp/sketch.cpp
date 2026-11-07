@@ -3,10 +3,14 @@
 #include "journal.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <format>
 #include <numbers>
+#include <filesystem>
+#include <fstream>
 #include <set>
+#include <sstream>
 
 #include <BRepAdaptor_Curve.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
@@ -28,6 +32,8 @@
 #include "opening_options.h"
 #include "pyutil.h"
 #include "responsive_ui.h"
+#include "dxf_import.h"
+#include "sketch_shapes.h"
 #include "sketch_live.h"
 
 namespace sketch {
@@ -195,9 +201,12 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     auto* toolbar = new ttk::Frame(this, {{"padding", 8}});
     toolbar->pack({{"fill", "x"}});
     mode = tk::StringVar(!part_ ? "Prostokąt" : "Wielokąt");
-    for (const char* name : {"Wielokąt", "Prostokąt"})
-        (new ttk::Radiobutton(toolbar, {{"text", name}, {"variable", mode}, {"value", name}, {"command", Cmd([this] { change_mode(); })}}))
-            ->pack({{"side", "left"}, {"padx", 6}});
+    for (auto& [name, hint] : std::vector<std::pair<std::string, std::string>>{{"Wielokąt", "L"}, {"Prostokąt", "R"}, {"Okrąg", "C"}, {"Wielobok", "P"}, {"Łuk", "A"}})
+        (new ttk::Radiobutton(toolbar, {{"text", name + " (" + hint + ")"}, {"variable", mode}, {"value", name}, {"command", Cmd([this] { change_mode(); })}}))
+            ->pack({{"side", "left"}, {"padx", 4}});
+    sides = tk::StringVar("6");
+    (new ttk::Label(toolbar, {{"text", "boki"}}))->pack({{"side", "left"}});
+    (new ttk::Entry(toolbar, {{"textvariable", sides}, {"width", 3}}))->pack({{"side", "left"}, {"padx", 2}});
     snap = tk::BooleanVar(true);
     ortho = tk::BooleanVar(false);
     point_snap = tk::BooleanVar(true);
@@ -236,6 +245,13 @@ Sketch::Sketch(App* app_, const core::Part* part_)
              {"Odcinek poziomy", [this] { constrain_edge("horizontal"); }}, {"Odcinek pionowy", [this] { constrain_edge("vertical"); }},
              {"Długość odcinka…", [this] { constrain_edge("length"); }}})
         (new ttk::Button(sketch_tools, {{"text", label_}, {"command", action}}))->pack({{"side", "left"}, {"padx", 2}});
+    auto* sketch_tools2 = new ttk::Frame(this, {{"padding", "8 2"}});
+    sketch_tools2->pack({{"fill", "x"}, {"before", body->path()}});
+    for (auto& [label_, action] : std::vector<std::pair<std::string, Cmd>>{
+             {"Zaokrąglij narożnik…", [this] { fillet_selected(false); }}, {"Sfazuj narożnik…", [this] { fillet_selected(true); }},
+             {"Usuń punkt (Del)", [this] { remove_selected_point(); }}, {"Odsuń kontur (F)", [this] { offset_sketch(); }},
+             {"Importuj DXF…", [this] { import_dxf(); }}})
+        (new ttk::Button(sketch_tools2, {{"text", label_}, {"command", action}}))->pack({{"side", "left"}, {"padx", 2}});
 
     (new ttk::Label(side, {{"text", "1. Wybierz mebel i funkcję"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "0 8"}});
     std::vector<std::string> groups;
@@ -268,6 +284,35 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     (new ttk::Checkbutton(side, {{"text", "Zastąp istniejący bok / górę / dół"}, {"variable", replace_existing}}))->pack({{"anchor", "w"}, {"pady", 3}});
     (new ttk::Button(side, {{"text", "Parametry okuć i szuflady…"}, {"command", Cmd([this] { recipe_settings(); })}}))->pack({{"fill", "x"}, {"pady", 3}});
     (new ttk::Button(side, {{"text", "Dopasuj prostokąt do mebla"}, {"command", Cmd([this] { fit_to_furniture(); })}}))->pack({{"fill", "x"}, {"pady", 3}});
+    (new ttk::Label(side, {{"text", "Szybkie profile"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 4"}});
+    {
+        std::vector<std::string> profile_names;
+        for (const auto& info : sketch_shapes::profile_catalog()) profile_names.push_back(info.name);
+        profile_name = tk::StringVar("Kształt L");
+        profile_width = tk::StringVar("600");
+        profile_height = tk::StringVar("400");
+        profile_param = tk::StringVar("100");
+        profile_param_label = tk::StringVar("Grubość ramienia [mm]");
+        auto* profile_combo = new ttk::Combobox(side, {{"textvariable", profile_name}, {"values", profile_names}, {"state", "readonly"}});
+        profile_combo->pack({{"fill", "x"}, {"pady", 2}});
+        profile_combo->bind("<<ComboboxSelected>>", [this](tk::Event&) {
+            for (const auto& info : sketch_shapes::profile_catalog())
+                if (info.name == profile_name.get()) {
+                    profile_param_label.set(info.param_label.empty() ? "(bez dodatkowego parametru)" : info.param_label);
+                    profile_param.set(g(info.default_param));
+                }
+            return std::string();
+        });
+        auto* profile_row = new ttk::Frame(side);
+        profile_row->pack({{"fill", "x"}});
+        for (auto& [label_, var] : std::vector<std::pair<std::string, tk::StringVar>>{{"Szer.", profile_width}, {"Wys.", profile_height}}) {
+            (new ttk::Label(profile_row, {{"text", label_}}))->pack({{"side", "left"}});
+            (new ttk::Entry(profile_row, {{"textvariable", var}, {"width", 7}}))->pack({{"side", "left"}, {"padx", 3}});
+        }
+        (new ttk::Label(side, {{"textvariable", profile_param_label}, {"wraplength", 270}}))->pack({{"anchor", "w"}});
+        (new ttk::Entry(side, {{"textvariable", profile_param}}))->pack({{"fill", "x"}});
+        (new ttk::Button(side, {{"text", "Wstaw profil"}, {"command", Cmd([this] { insert_profile(); })}}))->pack({{"fill", "x"}, {"pady", 3}});
+    }
     (new ttk::Label(side, {{"text", "2. Narysuj lub dopasuj kontur"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 6"}});
     for (auto& [key, label_] : std::vector<std::pair<std::string, std::string>>{{"name", "Nazwa"}, {"group", "Mebel / grupa"}, {"t", "Grubość [mm]"}}) {
         (new ttk::Label(side, {{"text", label_}}))->pack({{"anchor", "w"}});
@@ -318,7 +363,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
         (new ttk::Label(row, {{"text", label_}}))->pack({{"side", "left"}, {"padx", 3}});
     }
     (new ttk::Button(side, {{"text", "Dodaj odcinek: długość + kąt"}, {"command", Cmd([this] { segment(); })}}))->pack({{"fill", "x"}, {"pady", 5}});
-    (new ttk::Label(side, {{"text", "0° = +U, 90° = +V.\nRolka: zoom · PPM: przesuwanie\nEnter: zamknij · Backspace: cofnij\nKliknij pierwszy punkt, aby zamknąć.\nEdycja punktów: wybierz na liście.\nObrzeża konturu zostaną wyłączone."},
+    (new ttk::Label(side, {{"text", "0° = +U, 90° = +V.\nRolka: zoom · PPM: przesuwanie\nEnter: zamknij · Backspace: cofnij\nKliknij pierwszy punkt, aby zamknąć.\nEdycja punktów: wybierz na liście.\nObrzeża konturu zostaną wyłączone.\n\nSkróty (jak w SketchUpie): L linia · R prostokąt · C okrąg · P wielobok · A łuk · F odsuń · Del usuń punkt.\nStrzałki blokują oś U/V, Shift blokuje wykryty kierunek, Esc anuluje.\nPo zamknięciu konturu kliknij napis wymiaru, aby zmienić długość odcinka."},
                                   {"wraplength", 270}}))->pack({{"anchor", "w"}, {"pady", 8}});
     auto* footer = new ttk::Frame(this, {{"padding", 6}});
     footer->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
@@ -327,6 +372,18 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     (new ttk::Button(footer, {{"text", "Nowy element"}, {"command", Cmd([this] { new_element(); })}}))->pack({{"side", "left"}, {"padx", 4}});
     (new ttk::Button(footer, {{"text", "3. Dodaj do mebla / zapisz zmiany"}, {"command", Cmd([this] { save(); })}, {"style", "Accent.TButton"}}))
         ->pack({{"side", "right"}, {"padx", 4}});
+    vcb = tk::StringVar("");
+    vcb_prompt = tk::StringVar("Długość");
+    vcb_live = tk::StringVar("");
+    auto* vcb_row = new ttk::Frame(this, {{"padding", "8 2"}});
+    vcb_row->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
+    (new ttk::Label(vcb_row, {{"textvariable", vcb_prompt}, {"width", 11}, {"style", "Title.TLabel"}}))->pack({{"side", "left"}});
+    auto* vcb_entry = new ttk::Entry(vcb_row, {{"textvariable", vcb}, {"width", 18}});
+    vcb_entry->pack({{"side", "left"}, {"padx", 4}});
+    vcb_entry->bind("<Return>", [this](tk::Event&) { vcb_apply(); canvas->focus_set(); return std::string("break"); });
+    vcb_entry->bind("<Escape>", [this](tk::Event&) { vcb.set(""); canvas->focus_set(); return std::string("break"); });
+    (new ttk::Label(vcb_row, {{"textvariable", vcb_live}}))->pack({{"side", "left"}, {"padx", 8}});
+    (new ttk::Label(vcb_row, {{"text", "Wpisz wartość i Enter, bez klikania w pole: 250 · 250<45 · 600x400 · promień"}}))->pack({{"side", "right"}});
     status = tk::StringVar("Kliknij pierwszy punkt lub wpisz U i V. Wszystkie wymiary w mm.");
     (new ttk::Label(this, {{"textvariable", status}, {"padding", 8}}))->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
     canvas->bind("<Motion>", [this](tk::Event& e) { motion(e); return std::string(); });
@@ -335,8 +392,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     canvas->bind("<ButtonPress-3>", [this](tk::Event& e) { pan_start(e); return std::string(); });
     canvas->bind("<B3-Motion>", [this](tk::Event& e) { pan(e); return std::string(); });
     canvas->bind("<Configure>", [this](tk::Event&) { draw(); return std::string(); });
-    canvas->bind("<Return>", [this](tk::Event&) { close_contour(); return std::string(); });
-    canvas->bind("<BackSpace>", [this](tk::Event&) { undo(); return std::string(); });
+    canvas->bind("<KeyPress>", [this](tk::Event& e) { return std::string(key(e.keysym, e.state) ? "break" : ""); });
     bind("<Control-z>", [this](tk::Event&) { undo(); return std::string("break"); });
     protocol("WM_DELETE_WINDOW", [this] { cancel(); });
     target.trace_add("write", [this] { fields.at("group").set(target.get()); });
@@ -561,9 +617,42 @@ bool Sketch::cancel() {
 }
 
 void Sketch::change_mode() {
-    status.set(!points.empty() ? "Wyczyść kontur, aby rozpocząć nowy kształt."
-               : mode.get() == "Prostokąt" ? "Kliknij dwa przeciwległe narożniki prostokąta."
-                                           : "Klikaj kolejne punkty wielokąta.");
+    const std::string tool = mode.get();
+    journal::event(app, "szkic", "narzędzie szkicu: " + tool + (pending.empty() ? "" : " (porzucono rozpoczęty kształt)"));
+    pending.clear();
+    arrow_lock.reset();
+    vcb.set("");
+    vcb_prompt.set(vcb_prompt_text());
+    vcb_live.set("");
+    if (tool == "Prostokąt") status.set(!points.empty() && !closed ? "Kliknij przeciwległy narożnik prostokąta albo wpisz szer;wys i Enter." : "Kliknij pierwszy narożnik prostokąta (potem drugi albo szer;wys + Enter).");
+    else if (tool == "Okrąg") status.set("Kliknij środek okręgu, potem promień (albo wpisz promień i Enter).");
+    else if (tool == "Wielobok") status.set("Kliknij środek wieloboku, potem promień (liczba boków w polu „boki”; można wpisać promień;boki + Enter).");
+    else if (tool == "Łuk") status.set("Łuk przez trzy punkty: początek, punkt pośredni, koniec (początek = ostatni punkt konturu, jeśli jest).");
+    else status.set(!points.empty() && !closed ? "Klikaj kolejne punkty; wpisz długość (np. 250 albo 250<45) i Enter." : "Klikaj kolejne punkty wielokąta.");
+    draw();
+}
+
+void Sketch::set_tool(const std::string& tool) {
+    static const std::set<std::string> known{"Wielokąt", "Prostokąt", "Okrąg", "Wielobok", "Łuk"};
+    if (!known.contains(tool)) throw ValueError("Nieznane narzędzie szkicu: " + tool);
+    mode.set(tool);
+    change_mode();
+}
+
+std::string Sketch::vcb_prompt_text() const {
+    const std::string tool = mode.get();
+    return tool == "Prostokąt" ? "Wymiary" : tool == "Okrąg" || tool == "Wielobok" ? "Promień" : tool == "Łuk" ? "Łuk" : "Długość";
+}
+
+void Sketch::cancel_pending() {
+    bool had = !pending.empty() || arrow_lock || !vcb.get().empty();
+    pending.clear();
+    arrow_lock.reset();
+    vcb.set("");
+    vcb_live.set("");
+    cursor.reset();
+    if (had) journal::event(app, "szkic", "Esc: anulowano rozpoczętą operację (narzędzie " + mode.get() + ")");
+    draw();
 }
 
 std::pair<double, double> Sketch::screen(const Point& p) const { return {origin[0] + p[0] * scale, origin[1] - p[1] * scale}; }
@@ -619,41 +708,33 @@ std::vector<Sketch::Segment> Sketch::guide_geometry() {
 }
 
 Point Sketch::local(const tk::Event& event) {
-    Point p{(event.x - origin[0]) / scale, (origin[1] - event.y) / scale};
-    snap_reason = "";
-    std::optional<Point> snap_point;
-    if (point_snap.get()) {
-        std::vector<std::pair<Point, std::string>> candidates;
-        for (auto& point : points) candidates.push_back({point, "punkt"});
-        std::vector<Segment> segments;
-        for (size_t i = 0; i + 1 < points.size(); ++i) segments.push_back({points[i], points[i + 1]});
-        for (auto& s : guide_geometry()) segments.push_back(s);
-        for (auto& [a, b] : segments) {
-            candidates.push_back({a, "punkt mebla"});
-            candidates.push_back({b, "punkt mebla"});
-            candidates.push_back({Point{(a[0] + b[0]) / 2, (a[1] + b[1]) / 2}, "środek"});
-        }
-        if (!candidates.empty()) {
-            size_t best = 0;
-            for (size_t i = 1; i < candidates.size(); ++i)
-                if (dist(p, candidates[i].first) < dist(p, candidates[best].first)) best = i;
-            if (dist(p, candidates[best].first) * scale <= 9) {
-                snap_point = candidates[best].first;
-                snap_reason = candidates[best].second;
-            }
-        }
-    }
-    if (snap_point) p = *snap_point;
-    else if (snap.get()) {
+    const std::string tool = mode.get();
+    sketch_inference::Input in;
+    in.raw = {(event.x - origin[0]) / scale, (origin[1] - event.y) / scale};
+    in.tolerance = 9 / scale;
+    in.points = points;
+    in.closed = closed;
+    for (auto& s : guide_geometry()) in.reference.push_back({s.first, s.second});
+    for (auto& q : pending) in.reference.push_back({q, q});
+    in.centers = centers;
+    if (tool == "Wielokąt" && !points.empty() && !closed) in.anchor = points.back();
+    else if (tool == "Prostokąt" && !points.empty() && !closed) in.anchor = points.front();
+    else if ((tool == "Okrąg" || tool == "Wielobok") && !pending.empty()) in.anchor = pending.front();
+    else if (tool == "Łuk") in.anchor = !pending.empty() ? std::optional<Point>(pending.back()) : (!points.empty() && !closed ? std::optional<Point>(points.back()) : std::nullopt);
+    in.snap_points = point_snap.get();
+    if (snap.get()) {
         double step = number(grid);
         if (step <= 0) throw ValueError("Krok siatki musi być dodatni.");
-        p = {std::nearbyint(p[0] / step) * step, std::nearbyint(p[1] / step) * step};
+        in.grid = true;
+        in.grid_step = step;
     }
-    if (!points.empty() && !closed && mode.get() == "Wielokąt" && (ortho.get() || (event.state & 1))) {
-        Point a = points.back();
-        p = std::abs(p[0] - a[0]) >= std::abs(p[1] - a[1]) ? Point{p[0], a[1]} : Point{a[0], p[1]};
-    }
-    return p;
+    const bool shift = (event.state & 1) != 0;
+    if (arrow_lock && in.anchor) in.lock_direction = arrow_lock;
+    else if (shift && in.anchor && inference.direction && sketch_inference::is_direction(inference.kind)) in.lock_direction = inference.direction;
+    else in.ortho = (ortho.get() || shift) && tool == "Wielokąt" && in.anchor;
+    inference = sketch_inference::infer(in);
+    snap_reason = inference.kind == sketch_inference::Kind::None || inference.kind == sketch_inference::Kind::Grid ? std::string() : inference.tip;
+    return inference.point;
 }
 
 void Sketch::motion(const tk::Event& event) {
@@ -668,6 +749,11 @@ void Sketch::motion(const tk::Event& event) {
             text += std::format("   ΔU {:.2f} · ΔV {:.2f} · długość {:.2f} mm · kąt {:.1f}°", du, dv, std::hypot(du, dv), degrees(std::atan2(dv, du)));
         }
         status.set(text);
+        const std::string tool = mode.get();
+        if (tool == "Wielokąt" && !points.empty() && !closed) vcb_live.set(std::format("{:.2f} mm", dist(points.back(), *cursor)));
+        else if (tool == "Prostokąt" && !points.empty() && !closed) vcb_live.set(std::format("{:.2f} × {:.2f} mm", std::abs(uu - points[0][0]), std::abs(vv - points[0][1])));
+        else if ((tool == "Okrąg" || tool == "Wielobok") && !pending.empty()) vcb_live.set(std::format("R {:.2f} mm", dist(pending[0], *cursor)));
+        else vcb_live.set("");
         draw();
     } catch (const ValueError& e) {
         status.set(e.what());
@@ -677,7 +763,11 @@ void Sketch::motion(const tk::Event& event) {
 void Sketch::click(const tk::Event& event) {
     canvas->focus_set();
     try {
-        if (!closed && points.size() >= 3) {
+        if (closed) {
+            int edge = dimension_at(event.x, event.y);
+            if (edge >= 0) { edit_dimension((size_t)edge); return; }
+        }
+        if (!closed && points.size() >= 3 && mode.get() == "Wielokąt") {
             auto s = screen(points[0]);
             if (std::hypot(event.x - s.first, event.y - s.second) < 12) {
                 close_contour();
@@ -698,6 +788,50 @@ void Sketch::add_point(const Point& p_in) {
         } else return;
     }
     Point p{core::finite(p_in[0]), core::finite(p_in[1])};
+    const std::string tool = mode.get();
+    if (tool == "Okrąg" || tool == "Wielobok") {
+        if (pending.empty()) {
+            pending.push_back(p);
+            arrow_lock.reset();
+            status.set("Środek ustawiony. Kliknij punkt na okręgu albo wpisz promień i Enter.");
+            draw();
+            return;
+        }
+        double radius = dist(pending[0], p);
+        if (radius < 0.5) throw ValueError("Promień jest za mały.");
+        Point center = pending[0];
+        if (tool == "Okrąg") finish_shape(sketch_shapes::circle(center, radius, 48), std::format("okrąg R={:.2f} w ({:.1f}; {:.1f})", radius, center[0], center[1]), center);
+        else {
+            long long n = (long long)std::lround(number(sides));
+            finish_shape(sketch_shapes::regular_polygon(center, radius, (int)n, degrees(std::atan2(p[1] - center[1], p[0] - center[0]))),
+                         std::format("wielobok {} boków R={:.2f} w ({:.1f}; {:.1f})", n, radius, center[0], center[1]), center);
+        }
+        return;
+    }
+    if (tool == "Łuk") {
+        std::vector<Point> chain = pending;
+        if (chain.empty() && !points.empty()) chain.push_back(points.back());
+        chain.push_back(p);
+        if (chain.size() < 3) {
+            if (pending.empty() && !points.empty()) pending.push_back(points.back());
+            pending.push_back(p);
+            status.set(pending.size() == 1 ? "Początek łuku ustawiony. Kliknij punkt pośredni." : "Punkt pośredni ustawiony. Kliknij koniec łuku.");
+            draw();
+            return;
+        }
+        std::vector<Point> arc_points = sketch_shapes::arc_three_points(chain[0], chain[1], chain[2]);
+        bool continues = !points.empty() && dist(points.back(), arc_points.front()) < 0.01;
+        if (points.size() + arc_points.size() - (continues ? 1 : 0) > 128) throw ValueError("Maksymalnie 128 punktów — łuk nie mieści się w konturze.");
+        checkpoint();
+        for (size_t i = continues ? 1 : 0; i < arc_points.size(); ++i) points.push_back(arc_points[i]);
+        pending.clear();
+        arrow_lock.reset();
+        cursor.reset();
+        journal::event(app, "szkic", std::format("łuk przez 3 punkty: +{} punktów (kontur ma teraz {})", arc_points.size() - (continues ? 1 : 0), points.size()));
+        update_list();
+        draw();
+        return;
+    }
     if (points.size() >= 128) throw ValueError("Maksymalnie 128 punktów.");
     if (!points.empty() && dist(points.back(), p) < 0.01) throw ValueError("Punkt pokrywa się z poprzednim.");
     if (mode.get() == "Prostokąt" && !points.empty()) {
@@ -710,6 +844,7 @@ void Sketch::add_point(const Point& p_in) {
         checkpoint();
         points.push_back(p);
     }
+    arrow_lock.reset();
     cursor.reset();
     update_list();
     draw();
@@ -801,6 +936,8 @@ void Sketch::undo() {
         points = std::move(last.points);
         closed = last.closed;
         part = std::move(last.part);
+        pending.clear();
+        centers.clear();
         cursor.reset();
         update_list();
         draw();
@@ -813,6 +950,9 @@ void Sketch::clear() {
     points.clear();
     closed = false;
     cursor.reset();
+    pending.clear();
+    centers.clear();
+    arrow_lock.reset();
     update_list();
     draw();
 }
@@ -888,6 +1028,36 @@ void Sketch::draw() {
         auto sa = screen(a), sb = screen(b);
         c->create_line({sa.first, sa.second, sb.first, sb.second}, {{"fill", "#b4bec9"}, {"dash", "3 4"}});
     }
+    if (cursor) {
+        for (const auto& guide : inference.guides) {
+            auto ga = screen(guide.from), gb = screen(guide.to);
+            c->create_line({ga.first, ga.second, gb.first, gb.second}, {{"fill", guide.color}, {"dash", "2 4"}, {"width", 1}});
+        }
+    }
+    const std::string tool_now = mode.get();
+    if (cursor && (tool_now == "Okrąg" || tool_now == "Wielobok" || tool_now == "Łuk")) {
+        std::vector<Point> preview = shape_preview(*cursor);
+        if (preview.size() >= 2) {
+            std::vector<double> flat;
+            for (auto& q : preview) { auto sq = screen(q); flat.push_back(sq.first); flat.push_back(sq.second); }
+            if (tool_now == "Łuk" || preview.size() == 2) c->create_line(flat, {{"fill", "#b06d27"}, {"width", 2}});
+            else c->create_polygon(flat, {{"fill", "#eef3e6"}, {"outline", "#b06d27"}, {"width", 2}, {"dash", "4 3"}});
+        }
+        if (!pending.empty() && tool_now != "Łuk") {
+            auto sc = screen(pending[0]), sm = screen(*cursor);
+            c->create_line({sc.first, sc.second, sm.first, sm.second}, {{"fill", "#b06d27"}, {"dash", "3 3"}});
+            label((sc.first + sm.first) / 2, (sc.second + sm.second) / 2 - 12, std::format("R {:.2f} mm", dist(pending[0], *cursor)), "#986022");
+        }
+    }
+    for (auto& q : pending) {
+        auto sq = screen(q);
+        c->create_oval(sq.first - 4, sq.second - 4, sq.first + 4, sq.second + 4, {{"fill", "#b06d27"}, {"outline", "white"}});
+    }
+    for (auto& q : centers) {
+        auto sq = screen(q);
+        c->create_line({sq.first - 5, sq.second, sq.first + 5, sq.second}, {{"fill", "#2e9e4f"}});
+        c->create_line({sq.first, sq.second - 5, sq.first, sq.second + 5}, {{"fill", "#2e9e4f"}});
+    }
     std::vector<Point> pts = points;
     if (cursor && !pts.empty() && !closed) {
         if (mode.get() == "Prostokąt") {
@@ -914,10 +1084,12 @@ void Sketch::draw() {
         pairs.push_back({coords.back(), coords.front()});
         local_pairs.push_back({pts.back(), pts.front()});
     }
+    const bool rubber_band = cursor && !points.empty() && !closed && tool_now == "Wielokąt";
     for (size_t i = 0; i < pairs.size(); ++i) {
         auto& [a, b] = pairs[i];
         auto& [pa, pb] = local_pairs[i];
-        c->create_line({a.first, a.second, b.first, b.second}, {{"fill", "#4e6b3f"}, {"width", 2}});
+        const bool is_rubber = rubber_band && i + 1 == pairs.size();
+        c->create_line({a.first, a.second, b.first, b.second}, {{"fill", is_rubber && sketch_inference::is_direction(inference.kind) ? inference.color : std::string("#4e6b3f")}, {"width", is_rubber ? 3 : 2}});
         if (!py::truthy(part.profile) && pts.size() <= 20 && std::hypot(a.first - b.first, a.second - b.second) >= 45)
             label((a.first + b.first) / 2, (a.second + b.second) / 2 - 12, std::format("{:.2f} mm", dist(pa, pb)));
     }
@@ -942,6 +1114,14 @@ void Sketch::draw() {
         c->create_line({b.first + 22, a.second, b.first + 22, b.second}, {{"fill", "#b06d27"}, {"arrow", "both"}});
         label(b.first + 52, (a.second + b.second) / 2, std::format("V {:.2f} mm", ymax - ymin), "#986022");
     }
+    if (cursor && inference.kind != sketch_inference::Kind::None && inference.kind != sketch_inference::Kind::Grid) {
+        auto m = screen(inference.point);
+        if (sketch_inference::is_point_inference(inference.kind))
+            c->create_rectangle(m.first - 5, m.second - 5, m.first + 5, m.second + 5, {{"fill", inference.color}, {"outline", "white"}});
+        else
+            c->create_oval(m.first - 4, m.second - 4, m.first + 4, m.second + 4, {{"fill", inference.color}, {"outline", "white"}});
+        label(m.first + 16 + inference.tip.size() * 3, m.second - 16, inference.tip, inference.color);
+    }
 }
 
 bool Sketch::new_element(bool discard_confirmed) {
@@ -959,6 +1139,10 @@ bool Sketch::new_element(bool discard_confirmed) {
     part.t = number(fields.at("t"));
     points.clear();
     closed = false;
+    pending.clear();
+    centers.clear();
+    arrow_lock.reset();
+    vcb.set("");
     cursor.reset();
     history.clear();
     replace_existing.set(false);
@@ -972,6 +1156,7 @@ bool Sketch::new_element(bool discard_confirmed) {
 }
 
 void Sketch::set_sketch_points(const std::vector<Point>& new_points) {
+    centers.clear();
     journal::event(app, "szkic", std::format("ustawiono {} punktów konturu", new_points.size()));
     if (!part.holes.empty() || py::truthy(part.operations) || py::truthy(part.fillets) || py::truthy(part.chamfers) ||
         py::truthy(part.machining))
@@ -1027,30 +1212,333 @@ void Sketch::constrain_edge(const std::string& kind) {
     try {
         auto selection = listbox->curselection();
         if (selection.empty() || points.size() < 2) throw ValueError("Wybierz punkt początkowy odcinka na liście.");
-        size_t i = (size_t)selection[0];
-        size_t j = (i + 1) % points.size();
-        if (!closed && j == 0) throw ValueError("Ostatni punkt otwartego konturu nie ma kolejnego odcinka.");
-        Point a = points.at(i), b = points.at(j);
-        std::vector<Point> edited = points;
         std::optional<double> new_length;
-        if (kind == "horizontal") edited[j] = {b[0], a[1]};
-        else if (kind == "vertical") edited[j] = {a[0], b[1]};
-        else {
+        size_t i = (size_t)selection[0];
+        if (kind == "length") {
+            if (points.size() < 2 || i >= points.size()) throw ValueError("Wybierz punkt początkowy odcinka na liście.");
+            Point a = points.at(i), b = points.at((i + 1) % points.size());
             new_length = tk::simpledialog::askfloat("Długość odcinka", "Nowa długość [mm]", {{"initialvalue", dist(a, b)}, {"parent", this}, {"minvalue", .1}});
             if (!new_length) return;
-            double old = dist(a, b);
-            if (old == 0) throw ValueError("Punkty się pokrywają.");
-            edited[j] = {a[0] + (b[0] - a[0]) * *new_length / old, a[1] + (b[1] - a[1]) * *new_length / old};
         }
-        if (native_model::available()) {
-            json result = native_model::call("sketch", "constrain_points",
-                                             json::array({points_json(points), (long long)i, closed, kind, new_length ? json(*new_length) : json(nullptr)}));
-            if (result.is_null()) return;
-            edited = points_from_json(result);
-        }
-        set_sketch_points(edited);
+        constrain_at(i, kind, new_length);
     } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string("więz odrzucony: ") + e.what());
         tk::messagebox::showerror("Odcinek", e.what(), this);
+    }
+}
+
+void Sketch::constrain_at(size_t i, const std::string& kind, std::optional<double> new_length) {
+    if (points.size() < 2 || i >= points.size()) throw ValueError("Nie ma takiego odcinka.");
+    size_t j = (i + 1) % points.size();
+    if (!closed && j == 0) throw ValueError("Ostatni punkt otwartego konturu nie ma kolejnego odcinka.");
+    Point a = points.at(i), b = points.at(j);
+    std::vector<Point> edited = points;
+    if (kind == "horizontal") edited[j] = {b[0], a[1]};
+    else if (kind == "vertical") edited[j] = {a[0], b[1]};
+    else {
+        if (!new_length || *new_length <= 0) throw ValueError("Długość odcinka musi być dodatnia.");
+        double old = dist(a, b);
+        if (old == 0) throw ValueError("Punkty się pokrywają.");
+        edited[j] = {a[0] + (b[0] - a[0]) * *new_length / old, a[1] + (b[1] - a[1]) * *new_length / old};
+    }
+    if (native_model::available()) {
+        json result = native_model::call("sketch", "constrain_points",
+                                         json::array({points_json(points), (long long)i, closed, kind, new_length ? json(*new_length) : json(nullptr)}));
+        if (result.is_null()) return;
+        edited = points_from_json(result);
+    }
+    journal::event(app, "szkic", std::format("odcinek {}: {}{}", i + 1, kind == "length" ? "długość " + std::format("{:.2f}", dist(a, b)) + " → " + std::format("{:.2f}", *new_length) + " mm" : kind, ""));
+    set_sketch_points(edited);
+}
+
+void Sketch::apply_edge_length(size_t index, double new_length) { constrain_at(index, "length", new_length); }
+
+void Sketch::select_row(size_t index) {
+    listbox->call({listbox->path(), "selection", "clear", "0", "end"});
+    listbox->call({listbox->path(), "selection", "set", std::to_string(index)});
+    select_point();
+}
+
+std::optional<size_t> Sketch::selected_index() const {
+    auto selection = listbox->curselection();
+    if (selection.empty() || selection[0] < 0) return std::nullopt;
+    return (size_t)selection[0];
+}
+
+int Sketch::dimension_at(int x, int y) const {
+    if (!closed || py::truthy(part.profile) || points.size() > 20 || points.size() < 3) return -1;
+    for (size_t i = 0; i < points.size(); ++i) {
+        auto a = screen(points[i]);
+        auto b = screen(points[(i + 1) % points.size()]);
+        if (std::hypot(a.first - b.first, a.second - b.second) < 45) continue;
+        double mx = (a.first + b.first) / 2, my = (a.second + b.second) / 2 - 12;
+        if (std::abs(x - mx) <= 40 && std::abs(y - my) <= 10) return (int)i;
+    }
+    return -1;
+}
+
+void Sketch::edit_dimension(size_t edge) {
+    journal::event(app, "szkic", std::format("kliknięto wymiar odcinka {}", edge + 1));
+    try {
+        if (edge >= points.size()) throw ValueError("Nie ma takiego odcinka.");
+        Point a = points[edge], b = points[(edge + 1) % points.size()];
+        auto length = tk::simpledialog::askfloat("Długość odcinka", std::format("Nowa długość odcinka {} [mm]", edge + 1), {{"initialvalue", dist(a, b)}, {"parent", this}, {"minvalue", .1}});
+        if (!length) return;
+        apply_edge_length(edge, *length);
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string("zmiana wymiaru odrzucona: ") + e.what());
+        tk::messagebox::showerror("Odcinek", e.what(), this);
+    }
+}
+
+void Sketch::finish_shape(const std::vector<Point>& shape, const std::string& what, std::optional<Point> center) {
+    journal::event(app, "szkic", "kształt: " + what + (points.empty() ? "" : closed ? " (zastępuje zamknięty kontur)" : " (zastępuje rozpoczęty kontur)"));
+    try {
+        pending.clear();
+        arrow_lock.reset();
+        set_sketch_points(shape);
+        if (!closed) close_contour();
+        if (center) centers.push_back(*center);
+        status.set("Kształt gotowy: " + what + ". Nadaj grubość i zapisz element do projektu.");
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string("kształt odrzucony: ") + e.what());
+        tk::messagebox::showerror("Kształt", e.what(), this);
+    }
+}
+
+std::vector<Point> Sketch::shape_preview(const Point& at) const {
+    const std::string tool = mode.get();
+    try {
+        if ((tool == "Okrąg" || tool == "Wielobok") && !pending.empty()) {
+            double radius = dist(pending[0], at);
+            if (radius < 0.5) return {};
+            if (tool == "Okrąg") return sketch_shapes::circle(pending[0], radius, 48);
+            int n = (int)std::lround(std::stod(sides.get()));
+            return sketch_shapes::regular_polygon(pending[0], radius, n, degrees(std::atan2(at[1] - pending[0][1], at[0] - pending[0][0])));
+        }
+        if (tool == "Łuk") {
+            std::vector<Point> chain = pending;
+            if (chain.empty() && !points.empty() && !closed) chain.push_back(points.back());
+            if (chain.size() == 2) return sketch_shapes::arc_three_points(chain[0], chain[1], at);
+            if (chain.size() == 1) return {chain[0], at};
+        }
+    } catch (const std::exception&) {
+    }
+    return {};
+}
+
+bool Sketch::key(const std::string& keysym, int state) {
+    if (state & (4 | 8 | 0x20000)) return false;  // Ctrl / Alt: zostaw skróty okna (Ctrl+Z itd.)
+    static const std::map<std::string, std::string> typed{{"comma", ","}, {"period", "."}, {"KP_Decimal", "."}, {"minus", "-"}, {"KP_Subtract", "-"}, {"semicolon", ";"},
+                                                         {"less", "<"}, {"space", " "}, {"x", "x"}, {"X", "x"}};
+    std::string digit;
+    if (keysym.size() == 1 && keysym[0] >= '0' && keysym[0] <= '9') digit = keysym;
+    else if (keysym.size() == 4 && keysym.rfind("KP_", 0) == 0 && keysym[3] >= '0' && keysym[3] <= '9') digit = keysym.substr(3);
+    const bool typing = !vcb.get().empty();
+    const std::string tool = mode.get();
+    // wartość do pola VCB: cyfry zawsze, litery/znaki tylko, gdy już coś wpisano (skróty narzędzi używają liter)
+    if (!digit.empty()) { vcb.set(vcb.get() + digit); return true; }
+    if (typing && typed.contains(keysym)) { vcb.set(vcb.get() + typed.at(keysym)); return true; }
+    if (!typing && (keysym == "minus" || keysym == "KP_Subtract" || keysym == "less")) { vcb.set(vcb.get() + typed.at(keysym)); return true; }
+    if (keysym == "Return" || keysym == "KP_Enter") {
+        if (typing) { vcb_apply(); return true; }
+        journal::event(app, "szkic", "Enter: zamknięcie konturu");
+        close_contour();
+        return true;
+    }
+    if (keysym == "BackSpace") {
+        if (typing) { std::string v = vcb.get(); v.pop_back(); vcb.set(v); return true; }
+        undo();
+        return true;
+    }
+    if (keysym == "Escape") { cancel_pending(); return true; }
+    if (keysym == "Delete") { remove_selected_point(); return true; }
+    if (keysym == "Right" || keysym == "Left" || keysym == "Up" || keysym == "Down") {
+        Point dir = keysym == "Right" || keysym == "Left" ? Point{1, 0} : Point{0, 1};
+        if (arrow_lock && (*arrow_lock)[0] == dir[0] && (*arrow_lock)[1] == dir[1]) arrow_lock.reset();
+        else arrow_lock = dir;
+        journal::event(app, "szkic", std::string("blokada kierunku strzałką: ") + (arrow_lock ? (dir[0] == 1 ? "oś U" : "oś V") : "zdjęta"));
+        status.set(arrow_lock ? (dir[0] == 1 ? "Kierunek zablokowany na osi U (czerwonej). Strzałka ponownie zdejmuje blokadę." : "Kierunek zablokowany na osi V (zielonej). Strzałka ponownie zdejmuje blokadę.")
+                              : "Blokada kierunku zdjęta.");
+        draw();
+        return true;
+    }
+    if (!typing) {
+        static const std::map<std::string, std::string> tools{{"l", "Wielokąt"}, {"L", "Wielokąt"}, {"r", "Prostokąt"}, {"R", "Prostokąt"}, {"c", "Okrąg"}, {"C", "Okrąg"},
+                                                              {"p", "Wielobok"}, {"P", "Wielobok"}, {"a", "Łuk"}, {"A", "Łuk"}};
+        auto it = tools.find(keysym);
+        if (it != tools.end()) { set_tool(it->second); return true; }
+        if (keysym == "f" || keysym == "F") { offset_sketch(); return true; }
+    }
+    return false;
+}
+
+bool Sketch::vcb_apply() {
+    std::string text = vcb.get();
+    if (text.find_first_not_of(' ') == std::string::npos) return false;
+    const std::string tool = mode.get();
+    journal::event(app, "szkic", "wartość z klawiatury „" + text + "” (narzędzie " + tool + ")");
+    auto fail = [&](const std::string& why) {
+        journal::event(app, "szkic", "wartość odrzucona: " + why);
+        status.set("Wartość odrzucona: " + why);
+        return true;
+    };
+    try {
+        sketch_shapes::VcbValues values = sketch_shapes::parse_vcb(text, tool == "Prostokąt");
+        auto cursor_point = [&]() -> std::optional<Point> { return cursor; };
+        if (tool == "Wielokąt") {
+            if (closed) return fail("kontur jest zamknięty — wyczyść go albo zapisz element");
+            if (points.empty()) {
+                if (values.numbers.size() != 2) return fail("najpierw kliknij punkt początkowy albo wpisz jego współrzędne „U;V”");
+                add_point({values.numbers[0], values.numbers[1]});
+            } else {
+                if (values.numbers.empty() || values.numbers[0] <= 0) return fail("długość musi być dodatnia");
+                Point a = points.back();
+                Point dir{1, 0};
+                if (values.has_angle) dir = {std::cos(values.angle * std::numbers::pi / 180), std::sin(values.angle * std::numbers::pi / 180)};
+                else if (arrow_lock) dir = *arrow_lock;
+                else if (cursor_point() && dist(*cursor_point(), a) > 1e-6) dir = {((*cursor_point())[0] - a[0]) / dist(*cursor_point(), a), ((*cursor_point())[1] - a[1]) / dist(*cursor_point(), a)};
+                if (arrow_lock && !values.has_angle && cursor_point()) {
+                    double along = ((*cursor_point())[0] - a[0]) * (*arrow_lock)[0] + ((*cursor_point())[1] - a[1]) * (*arrow_lock)[1];
+                    if (along < 0) dir = {-(*arrow_lock)[0], -(*arrow_lock)[1]};
+                }
+                add_point({a[0] + dir[0] * values.numbers[0], a[1] + dir[1] * values.numbers[0]});
+            }
+        } else if (tool == "Prostokąt") {
+            if (closed) return fail("kontur jest zamknięty — wyczyść go albo zapisz element");
+            if (points.empty()) return fail("najpierw kliknij pierwszy narożnik prostokąta");
+            if (values.numbers.empty()) return fail("wpisz szerokość i wysokość, np. 600;400");
+            double w = values.numbers[0], h = values.numbers.size() > 1 ? values.numbers[1] : values.numbers[0];
+            if (w == 0 || h == 0) return fail("prostokąt musi mieć dodatnią szerokość i wysokość");
+            double sx = 1, sy = 1;
+            if (cursor_point()) { sx = (*cursor_point())[0] < points[0][0] ? -1 : 1; sy = (*cursor_point())[1] < points[0][1] ? -1 : 1; }
+            add_point({points[0][0] + sx * w, points[0][1] + sy * h});
+        } else if (tool == "Okrąg" || tool == "Wielobok") {
+            if (pending.empty()) return fail("najpierw kliknij środek");
+            if (values.numbers.empty() || values.numbers[0] <= 0) return fail("promień musi być dodatni");
+            double radius = values.numbers[0];
+            Point center = pending[0];
+            if (tool == "Okrąg") {
+                int n = values.numbers.size() > 1 ? (int)std::lround(values.numbers[1]) : 48;
+                finish_shape(sketch_shapes::circle(center, radius, n), std::format("okrąg R={:.2f} ({} segmentów, z klawiatury)", radius, n), center);
+            } else {
+                int n = values.numbers.size() > 1 ? (int)std::lround(values.numbers[1]) : (int)std::lround(number(sides));
+                double start = cursor_point() ? degrees(std::atan2((*cursor_point())[1] - center[1], (*cursor_point())[0] - center[0])) : 90;
+                finish_shape(sketch_shapes::regular_polygon(center, radius, n, start), std::format("wielobok {} boków R={:.2f} (z klawiatury)", n, radius), center);
+            }
+        } else {
+            return fail("narzędzie Łuk nie przyjmuje wartości z klawiatury — kliknij trzy punkty");
+        }
+    } catch (const ValueError& e) {
+        return fail(e.what());
+    }
+    vcb.set("");
+    return true;
+}
+
+void Sketch::insert_profile() {
+    try {
+        std::string name = profile_name.get();
+        double w = number(profile_width), h = number(profile_height), param = number(profile_param);
+        journal::event(app, "szkic", std::format("szybki profil „{}” {:g}×{:g} mm, parametr {:g}", name, w, h, param));
+        std::vector<Point> shape = sketch_shapes::profile(name, w, h, param);
+        if (sketch_shapes::self_intersects(shape)) throw ValueError("Profil przecina sam siebie.");
+        pending.clear();
+        set_sketch_points(shape);
+        if (!closed) close_contour();
+        status.set("Wstawiono profil „" + name + "”. Nadaj grubość i zapisz element do projektu.");
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string("profil odrzucony: ") + e.what());
+        tk::messagebox::showerror("Szybki profil", e.what(), this);
+    }
+}
+
+void Sketch::fillet_point(size_t index, double value, bool chamfer) {
+    journal::event(app, "szkic", std::format("{} narożnika {}: {:g} mm", chamfer ? "fazowanie" : "zaokrąglenie", index + 1, value));
+    std::vector<Point> result = chamfer ? sketch_shapes::chamfer_corner(points, index, value, closed) : sketch_shapes::fillet_corner(points, index, value, closed);
+    set_sketch_points(result);
+}
+
+void Sketch::fillet_selected(bool chamfer) {
+    try {
+        auto index = selected_index();
+        if (!index) throw ValueError("Wybierz narożnik (punkt) na liście.");
+        auto value = tk::simpledialog::askfloat(chamfer ? "Fazowanie narożnika" : "Zaokrąglenie narożnika", chamfer ? "Odległość fazy od wierzchołka [mm]" : "Promień zaokrąglenia [mm]",
+                                                {{"initialvalue", 20.0}, {"parent", this}, {"minvalue", .1}});
+        if (!value) return;
+        fillet_point(*index, *value, chamfer);
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string(chamfer ? "fazowanie" : "zaokrąglenie") + " odrzucone: " + e.what());
+        tk::messagebox::showerror("Narożnik", e.what(), this);
+    }
+}
+
+void Sketch::remove_point_at(size_t index) {
+    journal::event(app, "szkic", std::format("usunięto punkt {}", index + 1));
+    std::vector<Point> result = sketch_shapes::remove_point(points, index, closed);
+    if (closed) set_sketch_points(result);
+    else {
+        checkpoint();
+        points = result;
+        cursor.reset();
+        update_list();
+        draw();
+    }
+}
+
+void Sketch::remove_selected_point() {
+    try {
+        auto index = selected_index();
+        if (!index) throw ValueError("Wybierz punkt na liście, aby go usunąć.");
+        remove_point_at(*index);
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string("usunięcie punktu odrzucone: ") + e.what());
+        status.set(e.what());
+    }
+}
+
+bool Sketch::import_dxf(const std::string& path_in, bool confirm_replace) {
+    std::string path = path_in;
+    auto started = std::chrono::steady_clock::now();
+    if (path.empty()) path = tk::filedialog::askopenfilename({{"parent", this}, {"filetypes", tk::FileTypes{{"Rysunek DXF", "*.dxf"}}}});
+    if (path.empty()) return false;
+    auto elapsed = [&] { return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count(); };
+    try {
+        std::error_code size_error;
+        auto file_bytes = std::filesystem::file_size(py::to_path(path), size_error);
+        if (size_error) throw ValueError("Nie można otworzyć pliku: " + path);
+        if (file_bytes > 30'000'000) throw ValueError("Plik DXF jest zbyt duży (powyżej 30 MB).");
+        std::ifstream in(py::to_path(path), std::ios::binary);
+        if (!in) throw ValueError("Nie można otworzyć pliku: " + path);
+        std::stringstream buffer;
+        buffer << in.rdbuf();
+        dxf_import::Result result = dxf_import::parse(buffer.str());
+        dxf_import::Outline outline = dxf_import::pick_outline(result);
+        if (confirm_replace && !points.empty() &&
+            !tk::messagebox::askyesno("Import DXF", "Zastąpić bieżący kontur konturem z pliku DXF?", this)) {
+            journal::file_event(app, "import DXF anulowany", path, elapsed(), "bez zmian");
+            return false;
+        }
+        std::string summary = std::format("jednostki {} (×{:g}), kontur {} punktów{}, {:.1f}×{:.1f} mm, otwory/kontury wewnątrz: {} (okręgi {}), pominięte zamknięte: {}, linie otwarte: {}",
+                                          result.unit_name, result.unit_scale, outline.points.size(), outline.simplified ? std::format(" (uproszczony z {})", outline.original_points) : "",
+                                          outline.width, outline.height, outline.inner_contours, outline.inner_circles, outline.outer_candidates, outline.open_paths);
+        for (const auto& w : result.warnings) summary += " · " + w;
+        pending.clear();
+        set_sketch_points(outline.points);
+        if (!closed) close_contour();
+        journal::event(app, "szkic", "import DXF: " + summary);
+        journal::file_event(app, "import DXF", path, elapsed(), "wczytano obrys " + std::format("{:.1f}×{:.1f} mm", outline.width, outline.height));
+        std::string note = std::format("Zaimportowano obrys {:.1f}×{:.1f} mm z DXF", outline.width, outline.height);
+        if (outline.inner_contours) note += std::format(" · pominięto {} wewnętrznych konturów (otwory dodaj w edytorze CAD)", outline.inner_contours);
+        if (outline.simplified) note += std::format(" · uproszczono z {} do {} punktów", outline.original_points, outline.points.size());
+        if (!result.warnings.empty()) note += " · " + result.warnings.front();
+        status.set(note + ".");
+        return true;
+    } catch (const ValueError& e) {
+        journal::event(app, "szkic", std::string("import DXF odrzucony: ") + e.what());
+        journal::file_event(app, "import DXF", path, elapsed(), std::string("błąd: ") + e.what());
+        tk::messagebox::showerror("Import DXF", e.what(), this);
+        return false;
     }
 }
 

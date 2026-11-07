@@ -20,6 +20,7 @@
 #include <vector>
 #include "core.h"
 #include "dock_workspace.h"
+#include "sketch_inference.h"
 #include "tk.h"
 #include "ttk.h"
 
@@ -57,6 +58,12 @@ public:
     using GuideKey = std::tuple<const void*, std::string, std::string, std::string, std::string, std::string>;
     std::optional<std::pair<GuideKey, std::vector<Segment>>> guide_cache;
     tk::StringVar grid, target, role, hinge_side, level, plane, u, v, length, angle, status;
+    // --- narzędzia w stylu SketchUp: wskazówki pod kursorem, pole wartości (VCB), okrąg/wielobok/łuk, profile
+    sketch_inference::Result inference;           // ostatnia wskazówka pod kursorem
+    std::optional<Point> arrow_lock;              // kierunek zablokowany strzałką (wektor jednostkowy)
+    std::vector<Point> pending;                   // punkty rozpoczętego okręgu / wieloboku / łuku
+    tk::StringVar vcb, vcb_prompt, vcb_live, sides, profile_name, profile_width, profile_height, profile_param, profile_param_label;
+    std::vector<Point> centers;                   // środki narysowanych okręgów (wskazówka „środek okręgu”)
     tk::BooleanVar automatic, replace_existing;
     std::map<std::string, tk::StringVar> fields;  // name, group, t
 
@@ -92,6 +99,27 @@ public:
     void checkpoint();
     bool cancel();
     void change_mode();
+    // --- narzędzia w stylu SketchUp
+    void set_tool(const std::string& tool);
+    bool key(const std::string& keysym, int state = 0);   // skróty i pole wartości; true = klawisz obsłużony
+    bool vcb_apply();                                      // zatwierdza wpisaną wartość (długość, szer,wys, promień)
+    std::string vcb_prompt_text() const;
+    void cancel_pending();
+    std::vector<Point> shape_preview(const Point& cursor) const;   // podgląd okręgu / wieloboku / łuku pod kursorem
+    void finish_shape(const std::vector<Point>& shape, const std::string& what, std::optional<Point> center = std::nullopt);
+    void insert_profile();
+    void fillet_point(size_t index, double value, bool chamfer);
+    void fillet_selected(bool chamfer);
+    void remove_point_at(size_t index);
+    void remove_selected_point();
+    void apply_edge_length(size_t index, double new_length);
+    void constrain_at(size_t index, const std::string& kind, std::optional<double> new_length);
+    void select_row(size_t index);                   // zaznacza punkt na liście (jak kliknięcie)
+    std::optional<size_t> selected_index() const;
+    void edit_dimension(size_t edge);
+    // Kliknięcie w napis wymiaru zamkniętego konturu: indeks krawędzi albo -1.
+    int dimension_at(int x, int y) const;
+    bool import_dxf(const std::string& path = "", bool confirm_replace = true);
     std::pair<double, double> screen(const Point& p) const;
     std::vector<Segment> guide_geometry();
     Point local(const tk::Event& event);

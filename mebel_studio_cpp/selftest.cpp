@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <numbers>
 #include <functional>
 #include <map>
 #include <memory>
@@ -60,6 +61,9 @@
 #include "runners_catalog.h"
 #include "shaped_furniture.h"
 #include "sketch.h"
+#include "sketch_inference.h"
+#include "sketch_shapes.h"
+#include "dxf_import.h"
 #include "stretch_choice.h"
 #include "ui_preferences.h"
 #include "viewport_modes.h"
@@ -155,7 +159,7 @@ double num(const json& v) { return v.get<double>(); }
 // Każda kategoria wpisów [operacja:…] użyta w kodzie (journal::event) musi tu mieć wskazany test. Dodajesz nową kategorię w kodzie
 // → audyt zgłosi brak wpisu tutaj, dopóki nie dopiszesz testu i nie opiszesz go w tej tabeli.
 const std::map<std::string, std::string> JOURNAL_COVERAGE = {
-    {"szkic", "Interfejs i okna · szkic: edytor, odpinanie i wpinanie"},
+    {"szkic", "Interfejs i okna · szkic: edytor, odpinanie i wpinanie · Szkic — narzędzia w stylu SketchUp (wskazówki, VCB, kształty, profile, DXF)"},
     {"plik", "Eksporty i zapis (test_exports / test_persistence)"},
     {"okno", "Interfejs i okna · okna dialogowe"},
     {"zakładka", "Interfejs i okna · przełączanie wszystkich zakładek i paneli"},
@@ -2096,6 +2100,463 @@ public:
         });
     }
 
+    // ---- narzędzia szkicu w stylu SketchUp: wskazówki, pole wartości, kształty, profile, DXF
+
+    static std::string dxf_pair(int code, const std::string& value) { return std::to_string(code) + "\n" + value + "\n"; }
+    static std::string dxf_number(int code, double value) { return dxf_pair(code, std::format("{}", value)); }
+    static std::string dxf_line(double a, double b, double c, double d) {
+        return dxf_pair(0, "LINE") + dxf_pair(8, "0") + dxf_number(10, a) + dxf_number(20, b) + dxf_number(11, c) + dxf_number(21, d);
+    }
+    static std::string dxf_document(const std::string& entities, int units = -1) {
+        std::string text;
+        if (units >= 0) text += dxf_pair(0, "SECTION") + dxf_pair(2, "HEADER") + dxf_pair(9, "$INSUNITS") + dxf_pair(70, std::to_string(units)) + dxf_pair(0, "ENDSEC");
+        return text + dxf_pair(0, "SECTION") + dxf_pair(2, "ENTITIES") + entities + dxf_pair(0, "ENDSEC") + dxf_pair(0, "EOF");
+    }
+
+    void test_sketch_tools() {
+        const char* area = "Szkic — narzędzia w stylu SketchUp";
+        const char* where = "sketch_inference.cpp, sketch_shapes.cpp, dxf_import.cpp, sketch.cpp (local/key/vcb_apply/finish_shape/import_dxf)";
+        using sketch_inference::Kind;
+        auto near_to = [](double a, double b, double eps = 1e-6) { return std::abs(a - b) < eps; };
+
+        run(area, "wskazówki: punkt końcowy, środek, na krawędzi, przecięcie, środek okręgu", where, [=](Ctx& ctx) {
+            sketch_inference::Input in;
+            in.points = {{0, 0}, {100, 0}, {100, 50}};
+            in.tolerance = 5;
+            in.raw = {102, 2};
+            auto r = sketch_inference::infer(in);
+            need(r.kind == Kind::Endpoint && near_to(r.point[0], 100) && near_to(r.point[1], 0), "kursor przy końcu odcinka nie złapał punktu końcowego");
+            in.raw = {51, 1};
+            r = sketch_inference::infer(in);
+            need(r.kind == Kind::Midpoint && near_to(r.point[0], 50), "kursor przy środku odcinka nie złapał środka");
+            in.raw = {30, 2};
+            r = sketch_inference::infer(in);
+            need(r.kind == Kind::OnEdge && near_to(r.point[1], 0), "kursor przy krawędzi nie złapał punktu na krawędzi");
+            sketch_inference::Input cross;
+            cross.points = {{0, 0}, {100, 100}};
+            cross.reference = {{{0, 100}, {60, 0}}};
+            cross.tolerance = 5; cross.raw = {38, 37};
+            r = sketch_inference::infer(cross);
+            need(r.kind == Kind::Intersection && near_to(r.point[0], 37.5), "kursor przy skrzyżowaniu nie złapał przecięcia");
+            sketch_inference::Input center;
+            center.centers = {{50, 50}}; center.tolerance = 5; center.raw = {52, 48};
+            need(sketch_inference::infer(center).kind == Kind::Center, "kursor przy środku okręgu nie złapał środka okręgu");
+            sketch_inference::Input off;
+            off.points = {{0, 0}, {100, 0}}; off.snap_points = false; off.tolerance = 5; off.raw = {1, 1};
+            need(sketch_inference::infer(off).kind == Kind::None, "wyłączone przyciąganie do punktów nadal przyciąga");
+            ctx.note("kolory: " + sketch_inference::color_for(Kind::Endpoint) + " / " + sketch_inference::color_for(Kind::Midpoint));
+        });
+
+        run(area, "wskazówki: oś U/V, od punktu, prostopadle, równolegle, przedłużenie, siatka", where, [=](Ctx&) {
+            sketch_inference::Input a;
+            a.points = {{0, 0}};
+            a.anchor = sketch_inference::Point{0, 0};
+            a.tolerance = 5; a.raw = {200, 3};
+            auto r = sketch_inference::infer(a);
+            need(r.kind == Kind::AxisU && near_to(r.point[1], 0), "kursor blisko poziomu nie złapał osi U");
+            need(r.direction && near_to((*r.direction)[0], 1), "oś U nie podaje kierunku do blokady");
+            a.raw = {2, 150};
+            r = sketch_inference::infer(a);
+            need(r.kind == Kind::AxisV && near_to(r.point[0], 0), "kursor blisko pionu nie złapał osi V");
+            a.raw = {100, 100};
+            need(sketch_inference::infer(a).kind == Kind::None, "kursor daleko od osi nie powinien nic łapać");
+            a.grid = true; a.grid_step = 10; a.raw = {103.3, 87.2};
+            r = sketch_inference::infer(a);
+            need(r.kind == Kind::Grid && near_to(r.point[0], 100) && near_to(r.point[1], 90), "siatka nie zaokrągliła punktu");
+            sketch_inference::Input from;
+            from.points = {{0, 0}, {300, 0}}; from.anchor = sketch_inference::Point{300, 0}; from.tolerance = 5; from.raw = {2, 120};
+            r = sketch_inference::infer(from);
+            need(r.kind == Kind::FromPoint && near_to(r.point[0], 0) && near_to(r.point[1], 120) && !r.guides.empty(), "wyrównanie do wierzchołka („od punktu”) nie zadziałało");
+            sketch_inference::Input perp;
+            perp.points = {{0, 0}, {100, 100}}; perp.anchor = sketch_inference::Point{100, 100}; perp.tolerance = 5; perp.raw = {60, 140};
+            need(sketch_inference::infer(perp).kind == Kind::Perpendicular, "nie wykryto prostopadłości do ostatniego odcinka");
+            perp.raw = {200, 203};
+            need(sketch_inference::infer(perp).kind == Kind::Parallel, "nie wykryto równoległości do ostatniego odcinka");
+            sketch_inference::Input ext;
+            ext.reference = {{{0, 0}, {100, 100}}}; ext.anchor = sketch_inference::Point{500, 10}; ext.tolerance = 5; ext.raw = {160, 159};
+            r = sketch_inference::infer(ext);
+            need(r.kind == Kind::ExtendEdge && near_to(r.point[0], r.point[1]), "nie wykryto przedłużenia krawędzi");
+        });
+
+        run(area, "wskazówki: blokada kierunku (Shift / strzałki) i tryb orto", where, [=](Ctx&) {
+            sketch_inference::Input lock;
+            lock.anchor = sketch_inference::Point{0, 0}; lock.lock_direction = sketch_inference::Point{0.6, 0.8}; lock.tolerance = 5; lock.raw = {100, 50};
+            auto r = sketch_inference::infer(lock);
+            need(r.kind == Kind::Locked && near_to(r.point[0] * 0.8 - r.point[1] * 0.6, 0), "zablokowany kierunek nie rzutuje kursora na prostą");
+            lock.lock_direction = sketch_inference::Point{1, 0};
+            r = sketch_inference::infer(lock);
+            need(r.kind == Kind::AxisU && near_to(r.point[1], 0) && near_to(r.point[0], 100), "blokada osi U nie trzyma poziomu");
+            sketch_inference::Input ortho;
+            ortho.anchor = sketch_inference::Point{10, 10}; ortho.ortho = true; ortho.tolerance = 1; ortho.raw = {90, 40};
+            r = sketch_inference::infer(ortho);
+            need(near_to(r.point[1], 10) && near_to(r.point[0], 90), "tryb orto nie wymusił poziomu");
+            sketch_inference::Input priority;
+            priority.points = {{0, 0}, {300, 0}}; priority.anchor = sketch_inference::Point{300, 0}; priority.tolerance = 5; priority.raw = {2, 2};
+            need(sketch_inference::infer(priority).kind == Kind::Endpoint, "punkt końcowy powinien wygrać z osią i wyrównaniem");
+        });
+
+        run(area, "kształty: okrąg, wielobok, łuk przez 3 punkty, prostokąt zaokrąglony", where, [=](Ctx& ctx) {
+            auto circle = sketch_shapes::circle({10, 20}, 50, 48);
+            need(circle.size() == 48, "okrąg nie ma 48 punktów");
+            for (auto& p : circle) need(near_to(std::hypot(p[0] - 10, p[1] - 20), 50, 1e-6), "punkt okręgu leży poza promieniem");
+            need(sketch_shapes::signed_area(circle) > 0 && !sketch_shapes::self_intersects(circle), "okrąg ma zły obieg albo samoprzecięcia");
+            auto hexagon = sketch_shapes::regular_polygon({0, 0}, 100, 6);
+            need(hexagon.size() == 6 && near_to(std::hypot(hexagon[0][0] - hexagon[1][0], hexagon[0][1] - hexagon[1][1]), 100, 1e-6), "sześciokąt foremny ma zły bok");
+            auto arc = sketch_shapes::arc_three_points({100, 0}, {0, 100}, {-100, 0});
+            need(near_to(arc.front()[0], 100) && near_to(arc.back()[0], -100), "łuk nie zaczyna się i nie kończy w zadanych punktach");
+            for (auto& p : arc) need(near_to(std::hypot(p[0], p[1]), 100, 1e-6), "punkt łuku leży poza promieniem");
+            auto rounded = sketch_shapes::rounded_rectangle({0, 0}, {200, 100}, 20);
+            need(rounded.size() == 28 && !sketch_shapes::self_intersects(rounded), "zaokrąglony prostokąt ma zły kontur");
+            auto bad = [](auto&& call) { try { call(); } catch (const std::invalid_argument&) { return true; } return false; };
+            need(bad([] { sketch_shapes::circle({0, 0}, -1); }), "ujemny promień okręgu powinien być odrzucony");
+            need(bad([] { sketch_shapes::regular_polygon({0, 0}, 10, 2); }), "wielobok z 2 bokami powinien być odrzucony");
+            need(bad([] { sketch_shapes::arc_three_points({0, 0}, {1, 1}, {2, 2}); }), "łuk przez współliniowe punkty powinien być odrzucony");
+            need(bad([] { sketch_shapes::rounded_rectangle({0, 0}, {200, 100}, 60); }), "za duży promień zaokrąglenia powinien być odrzucony");
+            ctx.note(std::format("okrąg {} pkt, łuk {} pkt, zaokrąglony prostokąt {} pkt", circle.size(), arc.size(), rounded.size()));
+        });
+
+        run(area, "szybkie profile: każdy z katalogu ma poprawny kontur i wymiary", where, [=](Ctx& ctx) {
+            std::string names;
+            for (const auto& info : sketch_shapes::profile_catalog()) {
+                auto shape = sketch_shapes::profile(info.name, 600, 400, info.default_param);
+                need(shape.size() >= 3 && shape.size() <= sketch_shapes::MAX_POINTS, "profil „" + info.name + "” ma zła liczbę punktów");
+                need(!sketch_shapes::self_intersects(shape), "profil „" + info.name + "” przecina sam siebie");
+                double xmin = 1e9, xmax = -1e9, ymin = 1e9, ymax = -1e9;
+                for (auto& p : shape) { xmin = std::min(xmin, p[0]); xmax = std::max(xmax, p[0]); ymin = std::min(ymin, p[1]); ymax = std::max(ymax, p[1]); }
+                need(near_to(xmax - xmin, 600) && near_to(ymax - ymin, 400), "profil „" + info.name + "” nie ma wymiarów 600×400");
+                names += info.name + ", ";
+            }
+            need(near_to(std::abs(sketch_shapes::signed_area(sketch_shapes::profile("Kształt L", 600, 400, 100))), 600 * 100 + 300 * 100), "pole kształtu L jest błędne");
+            bool rejected = false;
+            try { sketch_shapes::profile("Kształt L", 600, 400, 500); } catch (const std::invalid_argument&) { rejected = true; }
+            need(rejected, "kształt L z grubością większą niż wymiar powinien być odrzucony");
+            ctx.note(names);
+        });
+
+        run(area, "narożniki: zaokrąglenie, fazowanie, usuwanie punktu, uproszczenie", where, [=](Ctx&) {
+            std::vector<core::Point> square{{0, 0}, {100, 0}, {100, 100}, {0, 100}};
+            auto filleted = sketch_shapes::fillet_corner(square, 1, 20);
+            need(filleted.size() > 4 && near_to(filleted[1][0], 80) && near_to(filleted[1][1], 0), "zaokrąglenie nie zaczyna się w punkcie styczności");
+            need(std::abs(sketch_shapes::signed_area(filleted) - (10000 - 400 * (1 - std::numbers::pi / 4))) < 5, "pole po zaokrągleniu jest błędne");
+            auto chamfered = sketch_shapes::chamfer_corner(square, 2, 30);
+            need(chamfered.size() == 5 && near_to(chamfered[2][1], 70) && near_to(chamfered[3][0], 70), "faza ma złe punkty");
+            auto bad = [](auto&& call) { try { call(); } catch (const std::invalid_argument&) { return true; } return false; };
+            need(bad([&] { sketch_shapes::fillet_corner(square, 1, 120); }), "za duży promień zaokrąglenia powinien być odrzucony");
+            need(bad([&] { sketch_shapes::chamfer_corner(square, 2, 150); }), "za duża faza powinna być odrzucona");
+            need(bad([&] { sketch_shapes::fillet_corner(square, 0, 5, false); }), "zaokrąglenie końca otwartego konturu powinno być odrzucone");
+            need(sketch_shapes::remove_point(square, 0, true).size() == 3, "usunięcie punktu nie zmniejszyło konturu");
+            need(bad([&] { sketch_shapes::remove_point(sketch_shapes::remove_point(square, 0, true), 0, true); }), "kontur zamknięty poniżej 3 punktów powinien być odrzucony");
+            std::vector<core::Point> dense;
+            for (int i = 0; i < 400; ++i) dense.push_back({300 * std::cos(2 * std::numbers::pi * i / 400), 200 * std::sin(2 * std::numbers::pi * i / 400)});
+            auto simple = sketch_shapes::simplify(dense, 128);
+            need(simple.size() <= 128 && simple.size() >= 60, "uproszczenie 400 punktów dało złą liczbę punktów");
+            need(std::abs(sketch_shapes::signed_area(simple) - std::numbers::pi * 300 * 200) / (std::numbers::pi * 300 * 200) < 0.01, "uproszczenie zmieniło pole o ponad 1%");
+        });
+
+        run(area, "pole wartości (VCB): długość, kąt, wymiary, jednostki, błędne dane", where, [=](Ctx&) {
+            auto one = sketch_shapes::parse_vcb("250");
+            need(one.numbers.size() == 1 && near_to(one.numbers[0], 250) && !one.has_angle, "„250” nie jest jedną liczbą");
+            need(near_to(sketch_shapes::parse_vcb("12,5").numbers[0], 12.5), "przecinek dziesiętny nie działa");
+            auto rect = sketch_shapes::parse_vcb("600,400", true);
+            need(rect.numbers.size() == 2 && near_to(rect.numbers[1], 400), "„600,400” w prostokącie nie jest szer,wys");
+            need(sketch_shapes::parse_vcb("600x400").numbers.size() == 2 && sketch_shapes::parse_vcb("600;400").numbers.size() == 2, "x i ; nie rozdzielają pól");
+            auto angled = sketch_shapes::parse_vcb("250<45");
+            need(near_to(angled.numbers[0], 250) && angled.has_angle && near_to(angled.angle, 45), "„250<45” nie daje długości i kąta");
+            need(near_to(sketch_shapes::parse_vcb("30cm").numbers[0], 300) && near_to(sketch_shapes::parse_vcb("1,2m").numbers[0], 1200), "jednostki cm / m nie działają");
+            for (const char* garbage : {"abc", "", "12<x", "1.2.3", "nan"}) {
+                bool rejected = false;
+                try { sketch_shapes::parse_vcb(garbage); } catch (const std::invalid_argument&) { rejected = true; }
+                need(rejected, std::string("śmieci „") + garbage + "” powinny być odrzucone");
+            }
+        });
+
+        run(area, "DXF: linie, polilinia z łukiem, okrąg-otwór, jednostki, błędy", where, [=](Ctx& ctx) {
+            auto r = dxf_import::parse(dxf_document(dxf_line(0, 0, 600, 0) + dxf_line(600, 400, 600, 0) + dxf_line(600, 400, 0, 400) + dxf_line(0, 0, 0, 400)));
+            need(r.contours.size() == 1 && r.contours[0].closed && r.contours[0].points.size() == 4, "cztery linie nie złożyły się w jeden zamknięty kontur");
+            auto outline = dxf_import::pick_outline(r);
+            need(near_to(outline.width, 600) && near_to(outline.height, 400) && sketch_shapes::signed_area(outline.points) > 0, "obrys DXF ma zły rozmiar lub kierunek");
+            r = dxf_import::parse(dxf_document(dxf_line(100, 100, 160, 100) + dxf_line(160, 100, 160, 140) + dxf_line(160, 140, 100, 140) + dxf_line(100, 140, 100, 100), 5));
+            outline = dxf_import::pick_outline(r);
+            need(r.unit_name == "cm" && near_to(outline.width, 600) && near_to(outline.height, 400), "jednostki cm nie zostały przeliczone na mm");
+            need(near_to(outline.points[0][0], 0) && near_to(outline.points[0][1], 0), "obrys nie został przesunięty do początku układu");
+            std::string polyline = dxf_pair(0, "LWPOLYLINE") + dxf_pair(90, "4") + dxf_pair(70, "1") + dxf_number(10, 0) + dxf_number(20, 0) + dxf_number(10, 500) + dxf_number(20, 0) +
+                                   dxf_number(10, 500) + dxf_number(20, 300) + dxf_number(10, 0) + dxf_number(20, 300);
+            std::string holes = dxf_pair(0, "CIRCLE") + dxf_number(10, 250) + dxf_number(20, 150) + dxf_number(40, 20) + dxf_pair(0, "CIRCLE") + dxf_number(10, 900) + dxf_number(20, 900) + dxf_number(40, 20);
+            outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(polyline + holes)));
+            need(outline.inner_circles == 1 && outline.outer_candidates == 1, "okrąg wewnątrz obrysu nie został policzony jako otwór");
+            std::string half = dxf_pair(0, "LWPOLYLINE") + dxf_pair(90, "2") + dxf_pair(70, "1") + dxf_number(10, 0) + dxf_number(20, 0) + dxf_number(42, 1) + dxf_number(10, 100) + dxf_number(20, 0);
+            outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(half)));
+            need(near_to(outline.width, 100, 1e-6) && near_to(outline.height, 50, 0.5), "półokrąg z wybrzuszeniem (bulge) ma zły rozmiar");
+            std::string slot = dxf_line(50, 0, 250, 0) + dxf_pair(0, "ARC") + dxf_number(10, 250) + dxf_number(20, 50) + dxf_number(40, 50) + dxf_number(50, 270) + dxf_number(51, 90) +
+                               dxf_line(250, 100, 50, 100) + dxf_pair(0, "ARC") + dxf_number(10, 50) + dxf_number(20, 50) + dxf_number(40, 50) + dxf_number(50, 90) + dxf_number(51, 270);
+            r = dxf_import::parse(dxf_document(slot));
+            need(r.contours.size() == 1 && r.contours[0].closed, "linie i łuki nie złożyły się w zamknięty kontur");
+            r = dxf_import::parse(dxf_document(polyline + dxf_pair(0, "SPLINE") + dxf_pair(0, "TEXT")));
+            need(r.skipped == 2 && !r.warnings.empty(), "niewspierane obiekty powinny być policzone i zgłoszone w ostrzeżeniach");
+            auto bad = [](const std::string& text, bool outline_only = false) {
+                try { auto parsed = dxf_import::parse(text); if (outline_only) dxf_import::pick_outline(parsed); } catch (const std::invalid_argument&) { return true; }
+                return false;
+            };
+            need(bad(""), "pusty plik DXF powinien być odrzucony");
+            need(bad("AutoCAD Binary DXF\r\n"), "binarny DXF powinien być odrzucony z wyjaśnieniem");
+            need(bad("abc\nSECTION\n"), "plik bez kodów grup powinien być odrzucony");
+            need(bad(dxf_document(dxf_pair(0, "TEXT"))), "plik bez obsługiwanych obiektów powinien być odrzucony");
+            need(bad(dxf_document(dxf_line(0, 0, 100, 0) + dxf_line(100, 0, 100, 100)), true), "otwarta linia (bez zamkniętego konturu) powinna być odrzucona przy wyborze obrysu");
+            std::string many;
+            for (int i = 0; i < 500; ++i) {
+                double a = 2 * std::numbers::pi * i / 500, b = 2 * std::numbers::pi * (i + 1) / 500;
+                many += dxf_line(300 * std::cos(a), 200 * std::sin(a), 300 * std::cos(b), 200 * std::sin(b));
+            }
+            outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(many)));
+            need(outline.simplified && outline.points.size() <= 128 && outline.original_points == 500, "500-punktowy kontur nie został uproszczony do 128 punktów");
+            ctx.note(std::format("500 → {} punktów po uproszczeniu", outline.points.size()));
+        });
+
+        auto open_sketch = [this] {
+            app->project = fresh(); app->selected.reset(); app->refresh(); app->update();
+            auto* sk = new sketch::Sketch(app, nullptr);
+            app->update();
+            return sk;
+        };
+        auto close_sketch = [this](sketch::Sketch* sk) {
+            try { if (sk->winfo_exists()) sk->destroy(); } catch (const std::exception&) {}
+            app->project = fresh(); app->refresh();
+        };
+
+        run(area, "edytor: ruch myszy daje wskazówkę (punkt końcowy) i zapis w stanie", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_tool("Wielokąt");
+            sk->add_point({0, 0});
+            sk->add_point({100, 0});
+            auto spot = sk->screen({100, 0});
+            tk::Event ev; ev.x = (int)spot.first + 2; ev.y = (int)spot.second - 2; ev.widget = sk->canvas;
+            auto snapped = sk->local(ev);
+            ctx.note(sk->inference.tip);
+            need(sk->inference.kind == Kind::Endpoint && near_to(snapped[0], 100) && near_to(snapped[1], 0), "kursor przy końcu odcinka w edytorze nie złapał punktu końcowego");
+            need(sk->snap_reason == "Punkt końcowy", "podpowiedź przy kursorze nie ma tekstu „Punkt końcowy”");
+            ev.x = (int)sk->screen({300, 0}).first; ev.y = (int)sk->screen({300, 0}).second + 3;
+            sk->local(ev);
+            need(sk->inference.kind == Kind::AxisU, "kursor na wysokości ostatniego punktu nie złapał osi U w edytorze");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: skróty klawiszowe przełączają narzędzia i trafiają do dziennika", where, [=, this](Ctx&) {
+            auto* sk = open_sketch();
+            auto from = log_mark();
+            for (auto [keysym, tool] : std::vector<std::pair<const char*, const char*>>{{"c", "Okrąg"}, {"p", "Wielobok"}, {"a", "Łuk"}, {"r", "Prostokąt"}, {"l", "Wielokąt"}}) {
+                need(sk->key(keysym), std::string("klawisz ") + keysym + " nie został obsłużony");
+                need(sk->mode.get() == tool, std::string("klawisz ") + keysym + " nie przełączył narzędzia na " + tool);
+            }
+            need(!sk->key("Shift_L"), "sam Shift nie powinien być obsłużony jako skrót");
+            need(!sk->key("c", 4), "Ctrl+C nie może przełączać narzędzia (skrót okna)");
+            std::string text = log_since(from);
+            need(has_text(text, "[operacja:szkic] narzędzie szkicu: Okrąg") && has_text(text, "narzędzie szkicu: Łuk"), "przełączenie narzędzia nie zostało zapisane w dzienniku");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor VCB: długość z kątem (250<45) dodaje odcinek we wskazanym kierunku", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_tool("Wielokąt");
+            sk->add_point({0, 0});
+            auto from = log_mark();
+            sk->vcb.set("250<45");
+            need(sk->key("Return"), "Enter z wartością nie został obsłużony");
+            need(sk->points.size() == 2, "wpisana długość nie dodała punktu");
+            double length = std::hypot(sk->points[1][0], sk->points[1][1]), angle = std::atan2(sk->points[1][1], sk->points[1][0]) * 180 / std::numbers::pi;
+            ctx.note(std::format("długość {:.2f}, kąt {:.2f}°", length, angle));
+            need(near_to(length, 250, 1e-6) && near_to(angle, 45, 1e-6), "odcinek z VCB ma zły rozmiar lub kąt");
+            need(sk->vcb.get().empty(), "pole wartości nie zostało wyczyszczone po zatwierdzeniu");
+            need(has_text(log_since(from), "wartość z klawiatury „250<45”"), "wartość z klawiatury nie trafiła do dziennika");
+            // wpisywanie cyfr z klawiatury
+            for (const char* k : {"1", "2", "0"}) sk->key(k);
+            need(sk->vcb.get() == "120", "cyfry z klawiatury nie trafiły do pola wartości");
+            sk->key("BackSpace");
+            need(sk->vcb.get() == "12", "Backspace nie usunął ostatniej cyfry z pola wartości");
+            sk->key("Escape");
+            need(sk->vcb.get().empty(), "Esc nie wyczyścił pola wartości");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor VCB: strzałka blokuje oś, wpisana długość idzie wzdłuż osi", where, [=, this](Ctx&) {
+            auto* sk = open_sketch();
+            sk->set_tool("Wielokąt");
+            sk->add_point({100, 100});
+            need(sk->key("Up") && sk->arrow_lock && near_to((*sk->arrow_lock)[1], 1), "strzałka w górę nie zablokowała osi V");
+            sk->vcb.set("80");
+            sk->vcb_apply();
+            need(sk->points.size() == 2 && near_to(sk->points[1][0], 100) && near_to(sk->points[1][1], 180), "długość przy zablokowanej osi V nie poszła pionowo");
+            sk->key("Right");
+            sk->key("Right");
+            need(!sk->arrow_lock, "ponowna strzałka powinna zdjąć blokadę");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor VCB: prostokąt „szer;wys” po kliknięciu pierwszego narożnika", where, [=, this](Ctx&) {
+            auto* sk = open_sketch();
+            sk->set_tool("Prostokąt");
+            sk->add_point({50, 50});
+            sk->vcb.set("600;400");
+            sk->vcb_apply();
+            need(sk->closed && sk->points.size() == 4, "prostokąt z VCB nie zamknął konturu");
+            double w = std::abs(sk->points[1][0] - sk->points[0][0]), h = std::abs(sk->points[2][1] - sk->points[1][1]);
+            need(near_to(w, 600) && near_to(h, 400), std::format("prostokąt z VCB ma rozmiar {}×{} zamiast 600×400", w, h));
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: okrąg (środek + promień z klawiatury) i wielobok (środek + klik)", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            auto from = log_mark();
+            sk->set_tool("Okrąg");
+            sk->add_point({100, 100});
+            need(sk->pending.size() == 1, "kliknięcie środka okręgu nie zostało zapamiętane");
+            sk->vcb.set("50");
+            sk->vcb_apply();
+            need(sk->closed && sk->points.size() == 48, "okrąg z VCB nie zamknął konturu 48 punktów");
+            for (auto& p : sk->points) need(near_to(std::hypot(p[0] - 100, p[1] - 100), 50, 1e-6), "punkt okręgu leży poza promieniem 50");
+            need(sk->centers.size() == 1, "środek okręgu nie został zapamiętany jako wskazówka");
+            auto [candidate, id] = sk->candidate();
+            candidate->validate();
+            ctx.note("okrąg → element " + id);
+            sk->clear();
+            sk->set_tool("Wielobok");
+            sk->sides.set("6");
+            sk->add_point({0, 0});
+            sk->add_point({0, 120});
+            need(sk->closed && sk->points.size() == 6, "wielobok nie ma 6 boków");
+            std::string text = log_since(from);
+            need(has_text(text, "kształt: okrąg R=50.00") && has_text(text, "kształt: wielobok 6 boków"), "kształty nie zostały zapisane w dzienniku");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: łuk przez trzy punkty dołącza się do konturu", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_tool("Wielokąt");
+            sk->add_point({0, 0});
+            sk->add_point({100, 0});
+            size_t before = sk->points.size();
+            sk->set_tool("Łuk");
+            sk->add_point({150, 50});
+            sk->add_point({100, 100});
+            ctx.note(std::format("kontur: {} → {} punktów", before, sk->points.size()));
+            need(sk->points.size() > before + 3 && sk->pending.empty(), "łuk nie dodał punktów do konturu");
+            need(near_to(sk->points.back()[0], 100) && near_to(sk->points.back()[1], 100), "łuk nie kończy się w ostatnim kliknięciu");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor VCB: błędne wartości są odrzucane z powodem w dzienniku, Esc anuluje okrąg", where, [=, this](Ctx&) {
+            auto* sk = open_sketch();
+            sk->set_tool("Wielokąt");
+            sk->add_point({0, 0});
+            auto from = log_mark();
+            sk->vcb.set("abc");
+            sk->vcb_apply();
+            need(sk->points.size() == 1, "błędna wartość nie powinna dodać punktu");
+            need(has_text(log_since(from), "wartość odrzucona:"), "odrzucona wartość nie zostawiła powodu w dzienniku");
+            sk->vcb.set("");
+            sk->set_tool("Okrąg");
+            sk->add_point({10, 10});
+            need(sk->pending.size() == 1, "środek okręgu nie został ustawiony");
+            sk->key("Escape");
+            need(sk->pending.empty(), "Esc nie anulował rozpoczętego okręgu");
+            need(has_text(log_since(from), "Esc: anulowano rozpoczętą operację"), "Esc nie zostawił wpisu w dzienniku");
+            sk->vcb.set("50");
+            sk->vcb_apply();
+            need(sk->points.size() == 1 && has_text(log_since(from), "najpierw kliknij środek"), "promień bez środka powinien być odrzucony z powodem");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: panel szybkich profili wstawia kontur i element 3D", where, [=, this](Ctx& ctx) {
+            for (const auto& info : sketch_shapes::profile_catalog()) {
+                auto* sk = open_sketch();
+                auto from = log_mark();
+                sk->profile_name.set(info.name);
+                sk->profile_width.set("600");
+                sk->profile_height.set("400");
+                sk->profile_param.set(std::format("{:g}", info.default_param));
+                sk->insert_profile();
+                app->update();
+                need(sk->closed && sk->points.size() >= 3, "profil „" + info.name + "” nie wstawił zamkniętego konturu");
+                auto [candidate, id] = sk->candidate();
+                candidate->validate();
+                need(has_text(log_since(from), "szybki profil „" + info.name + "”"), "profil „" + info.name + "” nie zostawił wpisu w dzienniku");
+                ctx.note(info.name + " OK");
+                close_sketch(sk);
+            }
+        });
+
+        run(area, "edytor: zaokrąglenie, fazowanie i usuwanie punktu zamkniętego konturu", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_sketch_points({{0, 0}, {400, 0}, {400, 300}, {0, 300}});
+            sk->close_contour();
+            auto from = log_mark();
+            sk->fillet_point(1, 40, false);
+            ctx.note(std::format("po zaokrągleniu {} punktów", sk->points.size()));
+            need(sk->points.size() > 4, "zaokrąglenie nie dodało punktów łuku");
+            sk->undo();
+            need(sk->points.size() == 4, "cofnięcie zaokrąglenia nie przywróciło prostokąta");
+            sk->fillet_point(2, 30, true);
+            need(sk->points.size() == 5, "fazowanie nie dodało jednego punktu");
+            sk->remove_point_at(0);
+            need(sk->points.size() == 4, "usunięcie punktu nie zmniejszyło konturu");
+            std::string text = log_since(from);
+            need(has_text(text, "zaokrąglenie narożnika 2") && has_text(text, "fazowanie narożnika 3") && has_text(text, "usunięto punkt 1"), "operacje na narożnikach nie zostały zapisane w dzienniku");
+            bool rejected = false;
+            try { sk->fillet_point(1, 5000, false); } catch (const std::invalid_argument&) { rejected = true; }
+            need(rejected, "zbyt duży promień zaokrąglenia powinien być odrzucony");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: zmiana długości odcinka z napisu wymiaru zamkniętego konturu", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_sketch_points({{0, 0}, {400, 0}, {400, 300}, {0, 300}});
+            sk->close_contour();
+            sk->scale = 0.7; sk->origin = {65, 540};
+            auto a = sk->screen(sk->points[0]), b = sk->screen(sk->points[1]);
+            int hit = sk->dimension_at((int)((a.first + b.first) / 2), (int)((a.second + b.second) / 2 - 12));
+            need(hit == 0, "kliknięcie w napis wymiaru pierwszej krawędzi nie wskazało krawędzi 0");
+            need(sk->dimension_at(5, 5) == -1, "kliknięcie z dala od napisów nie powinno wskazywać krawędzi");
+            auto from = log_mark();
+            sk->apply_edge_length(0, 500);
+            double length = std::hypot(sk->points[1][0] - sk->points[0][0], sk->points[1][1] - sk->points[0][1]);
+            ctx.note(std::format("długość pierwszej krawędzi: {:.2f}", length));
+            need(near_to(length, 500, 1e-6), "apply_edge_length nie ustawiła długości 500 mm");
+            need(has_text(log_since(from), "odcinek 1: długość"), "zmiana wymiaru nie została zapisana w dzienniku");
+            bool rejected = false;
+            try { sk->apply_edge_length(0, -5); } catch (const std::invalid_argument&) { rejected = true; }
+            need(rejected, "ujemna długość odcinka powinna być odrzucona");
+            close_sketch(sk);
+        });
+
+        run(area, "edytor: import DXF z pliku → kontur zamknięty → element 3D (plik + dziennik)", where, [=, this](Ctx& ctx) {
+            auto path = fs::temp_directory_path() / "mebel_selftest_import.dxf";
+            {
+                std::ofstream out(path, std::ios::binary);
+                out << dxf_document(dxf_line(0, 0, 500, 0) + dxf_line(500, 0, 500, 300) + dxf_line(500, 300, 0, 300) + dxf_line(0, 300, 0, 0));
+            }
+            auto* sk = open_sketch();
+            auto from = log_mark();
+            need(sk->import_dxf(path.string(), false), "import poprawnego DXF zwrócił błąd");
+            need(sk->closed && sk->points.size() == 4, "import DXF nie dał zamkniętego prostokąta");
+            auto [candidate, id] = sk->candidate();
+            candidate->validate();
+            std::string text = log_since(from);
+            ctx.note(std::format("import → {} punktów, element {}", sk->points.size(), id));
+            need(has_text(text, "[operacja:szkic] import DXF:") && has_text(text, "[operacja:plik] import DXF"), "import DXF nie zostawił wpisów [szkic] i [plik] w dzienniku");
+            // uszkodzony plik: odrzucony z powodem, kontur bez zmian
+            {
+                std::ofstream out(path, std::ios::binary);
+                out << "to nie jest dxf\n";
+            }
+            from = log_mark();
+            need(!sk->import_dxf(path.string(), false), "uszkodzony DXF powinien zostać odrzucony");
+            need(sk->closed && sk->points.size() == 4, "odrzucony import nie powinien zmieniać konturu");
+            need(has_text(log_since(from), "import DXF odrzucony:"), "odrzucony import nie zostawił powodu w dzienniku");
+            std::error_code ec;
+            fs::remove(path, ec);
+            close_sketch(sk);
+        });
+    }
+
     // ================================================================ render
 
     void test_render_matrix() {
@@ -2630,6 +3091,7 @@ public:
         test_view();
         test_render_matrix();
         test_sketches();
+        test_sketch_tools();
         test_catalogue();
         test_files();
         test_program_files();

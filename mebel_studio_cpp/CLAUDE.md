@@ -11,3 +11,4 @@
 - Nic nie może się psuć po cichu: gdy akcja jest blokowana albo odrzucana, w dzienniku ma być powód (por. `allow_press`, brak uchwytów rozciągania).
 - Komendy: `./dev.sh fulltest` (`PULL=0 ./dev.sh fulltest`), raport w `raporty_testu/OSTATNI_RAPORT.md`.
 - Commity kończą się stopkami `Co-Authored-By` i `Claude-Session`.
+- Logikę geometryczną (wskazówki, kształty, DXF) trzymamy w czystych modułach bez Tk/OCCT (`sketch_inference`, `sketch_shapes`, `dxf_import`) — da się je przetestować poza aplikacją; testy UI są w `test_sketch_tools()`.
