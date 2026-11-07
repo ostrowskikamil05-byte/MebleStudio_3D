@@ -265,8 +265,8 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     templatecombo->pack({{"fill", "x"}, {"pady", 3}});
     templatecombo->bind("<<ComboboxSelected>>", plain([this](tk::Event&) { change_template(); }));
     field(type_section->body, "name", "Nazwa", false, true);
-    for (auto& [key, label] : std::vector<std::pair<std::string, std::string>>{{"width", "Szerokość"}, {"height", "Wysokość całkowita"}, {"depth", "Głębokość"}, {"thickness", "Grubość korpusu"}})
-        field(type_section->body, key, label);
+    field_pair(type_section->body, "width", "Szerokość", "height", "Wysokość");
+    field_pair(type_section->body, "depth", "Głębokość", "thickness", "Grubość korpusu");
     (new ttk::Label(type_section->body, {{"text", "Wysokość obejmuje nóżki i blat."}, {"font", "{Segoe UI} 9"}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     // A visible shortcut strip changes geometry in one click, like the reference tool.
     auto* quick = new ttk::Frame(top);
@@ -302,8 +302,7 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     preview = new tk::Canvas(fronts->body, {{"height", 112}, {"bg", "#f1eee8"}, {"highlightthickness", 0}});
     preview->pack({{"fill", "x"}, {"pady", 4}});
     preview->bind("<Configure>", plain([this](tk::Event&) { draw_preview(); }));
-    field(fronts->body, "front_thickness", "Grubość frontu");
-    field(fronts->body, "gap", "Szczelina frontów");
+    field_pair(fronts->body, "front_thickness", "Grubość frontu", "gap", "Szczelina");
     json openings = {{"Uchwyt / gałka", "handle"}, {"Bez uchwytu", "none"}};
     for (auto& [k, v] : opening_options::OPTIONS.items()) if (k != "none") openings[at(v, "label").get<std::string>()] = k;
     combo(fronts->body, "handle_mode", "Otwieranie / chwyt", openings);
@@ -311,17 +310,16 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     for (int x : {0, 64, 96, 128, 160, 192, 224, 256, 320}) spacing[std::to_string(x) + " mm"] = x;
     combo(fronts->body, "handle_spacing", "Rozstaw uchwytu", spacing);
     combo(fronts->body, "handle_color", "Kolor okucia", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}});
-    for (auto& [key, label] : std::vector<std::pair<std::string, std::string>>{
-             {"front_border", "Szerokość ramki"}, {"front_depth", "Głębokość frezu"}, {"front_radius", "Promień frezu"}, {"flute_width", "Szerokość ryfla"},
-             {"flute_spacing", "Rozstaw ryfli"}, {"flute_count", "Liczba ryfli (0 = auto)"}, {"finger_length", "Długość chwytu"}, {"finger_width", "Szerokość chwytu"},
-             {"finger_depth", "Głębokość chwytu"}})
-        field(fronts->body, key, label, key == "flute_count");
+    field_pair(fronts->body, "front_border", "Szer. ramki", "front_depth", "Głęb. frezu");
+    field_pair(fronts->body, "front_radius", "Promień frezu", "flute_width", "Szer. ryfla");
+    field_pair(fronts->body, "flute_spacing", "Rozstaw ryfli", "flute_count", "Ryfle (0 = auto)", false, true);
+    field_pair(fronts->body, "finger_length", "Dł. chwytu", "finger_width", "Szer. chwytu");
+    field(fronts->body, "finger_depth", "Głębokość chwytu");
     auto* fittings = new Section(body, "Zawiasy i prowadnice");
     sections["fittings"] = fittings;
     combo(fittings->body, "hinge_pattern", "Wiercenie zawiasu", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys 9071205", "hinge_sensys52"}});
-    field(fittings->body, "hinge_count", "Zawiasy na drzwi", true);
     combo(fittings->body, "hinge_spring", "Sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}});
-    field(fittings->body, "opening_angle", "Kąt otwarcia");
+    field_pair(fittings->body, "hinge_count", "Zawiasy na drzwi", "opening_angle", "Kąt otwarcia", true, false);
     json runners = {{"Uniwersalna boczna 12,7", ""}};
     for (auto& [key, profile] : runners_catalog::PROFILES.items()) runners[at(profile, "label").get<std::string>()] = key;
     combo(fittings->body, "runner_profile", "Prowadnica", runners);
@@ -431,6 +429,34 @@ tk::StringVar* QuickInspector::field(tk::Widget* parent, const std::string& key,
     entry->bind("<FocusOut>", plain([this](tk::Event&) { schedule(); }));
     entry->bind("<Escape>", plain([this](tk::Event&) { reset_fields(); }));
     return var.get();
+}
+
+tk::StringVar* QuickInspector::field_cell(tk::Widget* cell, const std::string& key, const std::string& label, bool integer) {
+    auto var = std::make_shared<tk::StringVar>();
+    fields.push_back({key, var, nullptr, integer ? "int" : "number"});
+    std::string unit;
+    if (!integer) unit = label.find("Kąt") != std::string::npos ? "°" : "mm";
+    std::string caption = unit.empty() ? label : label + " [" + unit + "]";
+    (new ttk::Label(cell, {{"text", caption}, {"font", "{Segoe UI} 9"}, {"foreground", forma_theme::MUTED}}))->pack({{"anchor", "w"}});
+    auto* entry = new ttk::Entry(cell, {{"textvariable", *var}, {"width", 6}, {"justify", "right"}});
+    entry->pack({{"fill", "x"}});
+    entry->bind("<Return>", plain([this](tk::Event&) { apply(true); }));
+    entry->bind("<FocusOut>", plain([this](tk::Event&) { schedule(); }));
+    entry->bind("<Escape>", plain([this](tk::Event&) { reset_fields(); }));
+    return var.get();
+}
+
+void QuickInspector::field_pair(tk::Widget* parent, const std::string& key_a, const std::string& label_a, const std::string& key_b, const std::string& label_b, bool int_a, bool int_b) {
+    auto* row = new ttk::Frame(parent);
+    row->pack({{"fill", "x"}, {"pady", 3}});
+    row->columnconfigure(0, {{"weight", 1}, {"uniform", "pairfield"}});
+    row->columnconfigure(1, {{"weight", 1}, {"uniform", "pairfield"}});
+    auto* left = new ttk::Frame(row);
+    left->grid({{"row", 0}, {"column", 0}, {"sticky", "ew"}, {"padx", "0 4"}});
+    auto* right = new ttk::Frame(row);
+    right->grid({{"row", 0}, {"column", 1}, {"sticky", "ew"}, {"padx", "4 0"}});
+    field_cell(left, key_a, label_a, int_a);
+    field_cell(right, key_b, label_b, int_b);
 }
 
 ttk::Combobox* QuickInspector::combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices, bool hidden) {
@@ -549,8 +575,7 @@ void QuickInspector::check(tk::Widget* parent, const std::string& key, const std
 }
 
 void QuickInspector::section_fields(tk::Widget* parent, const std::string& key) {
-    field(parent, key + ".columns", "Komory pionowe", true);
-    field(parent, key + ".shelves", "Półki na komorę", true);
+    field_pair(parent, key + ".columns", "Komory pionowe", key + ".shelves", "Półki na komorę", true, true);
     combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}});
     combo(parent, key + ".doors", "Drzwi na komorę", json{{"1 skrzydło", 1}, {"2 skrzydła", 2}});
     field(parent, key + ".drawers", "Szuflady na komorę", true);
