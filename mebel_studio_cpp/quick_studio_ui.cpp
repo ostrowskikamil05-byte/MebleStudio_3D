@@ -6,6 +6,7 @@
 #include "production_docs.h"
 #include "production_inspector.h"
 #include "sheet_nesting.h"
+#include "text_design.h"
 #include "journal.h"
 #include "tile_glyphs.h"
 
@@ -997,6 +998,74 @@ bool QuickInspector::apply(bool explicit_) {
     return false;
 }
 
+// Okno „Projekt z opisu zdaniem”: pole tekstowe, podgląd tego, co program zrozumiał (na żywo) i jawny przycisk tworzenia.
+static void text_design_dialog(App* app) {
+    struct State {
+        text_design::Result result;
+        tk::Text* input = nullptr;
+        tk::Text* preview = nullptr;
+    };
+    auto state = std::make_shared<State>();
+    auto* d = app->dialog("Projekt z opisu zdaniem", "760x680");
+    (new ttk::Label(d, {{"text", "Opisz, co ma powstać"}, {"style", "Title.TLabel"}, {"padding", "15 12 15 2"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(d, {{"text", "Wpisz po polsku typ mebla, wymiary i wyposażenie. Program pokaże poniżej, jak to zrozumiał — dopiero przycisk „Utwórz meble” dodaje je do projektu."},
+                        {"wraplength", 700}, {"justify", "left"}, {"foreground", forma_theme::MUTED}, {"padding", "15 0 15 6"}}))->pack({{"anchor", "w"}});
+    state->input = new tk::Text(d, {{"height", 5}, {"wrap", "word"}, {"font", "{Segoe UI} 11"}, {"undo", true}});
+    state->input->pack({{"fill", "x"}, {"padx", 15}});
+    auto* examples = new ttk::Frame(d);
+    examples->pack({{"fill", "x"}, {"padx", 15}, {"pady", "6 8"}});
+    (new ttk::Label(examples, {{"text", "Przykłady:"}, {"foreground", forma_theme::MUTED}}))->pack({{"side", "left"}, {"padx", "0 6"}});
+    state->preview = new tk::Text(d, {{"height", 16}, {"wrap", "word"}, {"font", "{Segoe UI} 10"}, {"bg", forma_theme::CARD}, {"relief", "flat"}});
+    auto refresh = [app, state] {
+        try {
+            std::string text = state->input->get("1.0", "end");
+            state->result = text_design::parse(text, *app->project);
+            state->preview->delete_("1.0", "end");
+            bool blank = std::all_of(text.begin(), text.end(), [](unsigned char c) { return std::isspace(c); });
+            state->preview->insert("end", blank ? std::string("Tu pojawi się podgląd.") : text_design::summary(state->result));
+        } catch (const std::exception& e) {
+            state->preview->delete_("1.0", "end");
+            state->preview->insert("end", std::string("Nie udało się odczytać opisu: ") + e.what());
+        }
+    };
+    static const std::vector<std::pair<std::string, std::string>> EXAMPLES{
+        {"Kuchnia 3 m", "kuchnia 3 m"},
+        {"Szafki kuchenne", "4 szafki dolne po 60 cm, 3 wiszące po 80 cm, front grafit, uchwyty 128 mm"},
+        {"Szafka z szufladami", "szafka dolna 80 cm z dwiema szufladami i drzwiami, front biały"},
+        {"Szafa", "szafa 120 cm szerokości, 2 metry wysoka, 3 półki, dąb"}};
+    for (const auto& [label, text] : EXAMPLES) {
+        auto* b = new ttk::Button(examples, {{"text", label}, {"command", std::function<void()>([state, text, refresh] { state->input->delete_("1.0", "end"); state->input->insert("end", text); refresh(); })}});
+        b->pack({{"side", "left"}, {"padx", "0 4"}});
+    }
+    state->preview->pack({{"fill", "both"}, {"expand", true}, {"padx", 15}, {"pady", "0 8"}});
+    state->input->bind("<KeyRelease>", [refresh](tk::Event&) { refresh(); return std::string(); });
+    auto* buttons = new ttk::Frame(d);
+    buttons->pack({{"fill", "x"}, {"padx", 15}, {"pady", "0 12"}});
+    (new ttk::Button(buttons, {{"text", "Zamknij"}, {"command", std::function<void()>([d] { d->destroy(); })}}))->pack({{"side", "right"}});
+    (new ttk::Button(buttons, {{"text", "Utwórz meble"}, {"style", "Accent.TButton"}, {"command", std::function<void()>([app, state, d, refresh] {
+        try {
+            refresh();
+            if (!state->result.ok()) { tk::messagebox::showinfo("Projekt z opisu", "Nie ma jeszcze czego utworzyć — opisz przynajmniej jeden mebel obsługiwany przez szybki kreator.", d); return; }
+            if (!app->flush_parameter_drafts()) return;
+            auto [project, groups] = text_design::build(*app->project, state->result);
+            project->validate();
+            std::optional<std::string> chosen;
+            for (const auto& part : project->parts) if (!groups.empty() && part.group == groups.front()) { chosen = part.id; break; }
+            app->snapshot();
+            app->project = project;
+            app->selected = chosen;
+            app->refresh();
+            app->fit();
+            journal::event(app, "projekt z opisu", std::format("utworzono {} mebli z opisu: {}", groups.size(), py::strip(state->input->get("1.0", "end"))));
+            app->status.set(std::format("Projekt z opisu: dodano {} mebli — Ctrl+Z cofa całość.", groups.size()));
+            d->destroy();
+        } catch (const std::exception& e) {
+            tk::messagebox::showerror("Projekt z opisu", e.what(), d);
+        }
+    })}}))->pack({{"side", "right"}, {"padx", "0 8"}});
+    refresh();
+}
+
 std::optional<std::string> QuickInspector::new_furniture() {
     try {
         json cfg = draft();
@@ -1468,6 +1537,7 @@ void build(App* app) {
     // Zakładka „Mebel": tworzenie, wygląd, wyposażenie (katalogi dopisuje visual_catalogue).
     make_group(pages["Mebel"], "NOWY MEBEL");
     make_button(pages["Mebel"], "+ Mebel", [quick] { quick->new_furniture(); }, true);
+    make_button(pages["Mebel"], "Opisz zdaniem…", [app] { text_design_dialog(app); });
     // Pozycje lewego menu wysuwają po najechaniu okienko wyboru (po prawej stronie panelu); zjazd myszką je chowa.
     hover_flyout::attach(app, make_button(pages["Mebel"], "Biblioteka wszystkich mebli", [app] { if (app->library_dialog) app->library_dialog(); }),
                          "Meble z biblioteki", hover_flyout::catalogue(app, {"furniture"}));

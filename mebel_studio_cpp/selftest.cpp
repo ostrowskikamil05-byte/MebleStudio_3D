@@ -36,6 +36,7 @@
 #include "mechanisms.h"
 #include "native_scene_export.h"
 #include "sheet_nesting.h"
+#include "text_design.h"
 #include "furniture_library.h"
 #include "hardware_report.h"
 #include "opening_options.h"
@@ -1352,6 +1353,124 @@ public:
         });
     }
 
+    void test_text_design() {
+        const char* area = "Projekt z opisu";
+        const char* where = "text_design.cpp (parse, build), quick_studio_ui.cpp (okno „Opisz zdaniem”)";
+        auto sec = [](const json& cfg, const std::string& key) -> json {
+            for (const auto& s : cfg["sections"]) if (s["key"] == key) return s;
+            return json();
+        };
+        auto material_name = [](const Project& q, const json& id) { for (const auto& m : q.materials) if (m.id == id.get<std::string>()) return m.name; return std::string(); };
+        run(area, "normalizacja tekstu: małe litery bez polskich znaków", where, [=](Ctx&) {
+            need(text_design::fold("ŁÓŻKO żółć Wisząca 2×3") == "lozko zolc wiszaca 2x3", "fold: " + text_design::fold("ŁÓŻKO żółć Wisząca 2×3"));
+        });
+        run(area, "szafki kuchenne: ilości, szerokość „po”, rząd wiszący, wspólny front", where, [=](Ctx&) {
+            Project q;
+            auto r = text_design::parse("4 szafki dolne po 60 cm, 3 wiszące po 80 cm, front grafit, uchwyty 128 mm", q);
+            need(r.items.size() == 2, std::format("pozycji {} zamiast 2", r.items.size()));
+            need(r.items[0].count == 4 && r.items[1].count == 3, "ilości sztuk nie zostały odczytane");
+            need(!r.items[0].wall && r.items[1].wall, "rząd wiszący nie został rozpoznany");
+            need(r.items[0].config["width"].get<double>() == 600 && r.items[1].config["width"].get<double>() == 800, "szerokości „po 60 / po 80” nie zostały odczytane");
+            need(material_name(q, r.items[0].config["front_material"]) == "Grafit" && material_name(q, r.items[1].config["front_material"]) == "Grafit", "wspólny „front grafit” nie dotyczy wszystkich mebli");
+            need(r.items[1].config["leg_height"].get<double>() == 0, "szafka wisząca dostała nogi");
+            need(r.furniture_count() == 7, "suma mebli");
+        });
+        run(area, "szuflady i drzwi razem: szuflady w strefie dolnej, drzwi w głównej", where, [=](Ctx&) {
+            Project q;
+            auto r = text_design::parse("szafka dolna 80 cm z dwiema szufladami i drzwiami, front biały", q);
+            need(r.items.size() == 1 && r.items[0].error.empty(), "pozycja nie powstała: " + (r.items.empty() ? std::string() : r.items[0].error));
+            const json& cfg = r.items[0].config;
+            need(cfg["width"].get<double>() == 800, "szerokość 80 cm");
+            json bottom = sec(cfg, "bottom"), main = sec(cfg, "main");
+            need(bottom["enabled"].get<bool>() && bottom["front"] == "drawers" && bottom["drawers"].get<int>() == 2, "strefa dolna powinna mieć 2 szuflady");
+            need(main["front"] == "doors" && main["doors"].get<int>() == 2, "strefa główna powinna mieć drzwi");
+            need(material_name(q, cfg["front_material"]) == "Biały mat", "front biały");
+            need(r.ignored.empty(), "pominięto: " + py::join(r.ignored, ", "));
+        });
+        run(area, "wymiary: 90x80x45, wysokość „2 metry”, szerokość „120 cm”", where, [=](Ctx&) {
+            Project q;
+            auto a = text_design::parse("komoda 3 szuflady 90x80x45", q);
+            need(a.items.size() == 1 && a.items[0].error.empty(), "komoda");
+            need(a.items[0].config["width"].get<double>() == 900 && a.items[0].config["height"].get<double>() == 800 && a.items[0].config["depth"].get<double>() == 450, "90x80x45 → szer × wys × głęb");
+            auto b = text_design::parse("szafa 2 metry wysoka, 120 cm szerokości, 3 półki", q);
+            need(b.items.size() == 1 && b.items[0].error.empty(), "szafa: " + (b.items.empty() ? std::string() : b.items[0].error));
+            need(b.items[0].config["width"].get<double>() == 1200 && b.items[0].config["height"].get<double>() == 2000, "szafa 120 cm × 2 m");
+            need(sec(b.items[0].config, "main")["shelves"].get<int>() == 3, "3 półki");
+        });
+        run(area, "słowa liczebnikowe, cargo z poziomami, zaprzeczenia i okucia", where, [=](Ctx&) {
+            Project q;
+            need(text_design::parse("trzy szafki dolne", q).items.at(0).count == 3, "„trzy szafki” → 3");
+            auto cargo = text_design::parse("słupek cargo 30 cm 3 poziomy", q);
+            need(cargo.items.at(0).error.empty() && sec(cargo.items[0].config, "main")["front"] == "cargo" && sec(cargo.items[0].config, "main")["drawers"].get<int>() == 3, "cargo 3 poziomy");
+            auto bare = text_design::parse("szafka dolna bez półek, bez uchwytów, nogi 15 cm, LED", q);
+            const json& cfg = bare.items.at(0).config;
+            need(sec(cfg, "main")["shelves"].get<int>() == 0, "„bez półek”");
+            need(cfg["handle_mode"] == "none", "„bez uchwytów”");
+            need(cfg["leg_height"].get<double>() == 150 && cfg["led"].get<bool>(), "nogi 15 cm i LED");
+            need(text_design::parse("szafka dolna 60 cm TIP-ON", q).items.at(0).config["handle_mode"] == "tip_short", "TIP-ON na drzwiach");
+            need(text_design::parse("słupek spiżarniany TIP-ON", q).items.at(0).config["handle_mode"] == "tip_long", "wysoki front → długi TIP-ON");
+            auto drawers = text_design::parse("komoda 3 szuflady TIP-ON", q);
+            need(drawers.items.at(0).error.empty() && drawers.items[0].config["handle_mode"] == "handle" && !drawers.ignored.empty(), "TIP-ON na szufladach wraca do uchwytów z informacją");
+        });
+        run(area, "niewspierany typ i bełkot dają jasną informację, nie wyjątek", where, [=](Ctx&) {
+            Project q;
+            auto desk = text_design::parse("biurko 140 cm", q);
+            need(desk.items.size() == 1 && !desk.items[0].error.empty() && !desk.ok(), "biurko powinno być zgłoszone jako niewspierane");
+            auto junk = text_design::parse("xyz abc", q);
+            need(junk.items.empty() && !junk.ok() && !text_design::summary(junk).empty(), "bełkot");
+            need(text_design::parse("", q).items.empty(), "pusty opis");
+        });
+        run(area, "„kuchnia 3 m” buduje zlew, szafki dolne i wiszące na 3 m", where, [=](Ctx& ctx) {
+            Project q;
+            auto r = text_design::parse("kuchnia 3 m", q);
+            need(r.kitchen_layout && r.ok(), "układ kuchni");
+            double floor_width = 0; int wall = 0;
+            for (const auto& item : r.items) { need(item.error.empty(), item.error); if (!item.wall) floor_width += item.config["width"].get<double>(); else ++wall; }
+            need(std::abs(floor_width - 3000) <= 100, std::format("rząd dolny ma {} mm zamiast ok. 3000", floor_width));
+            need(wall >= 4, "brak szafek wiszących");
+            auto [built, groups] = text_design::build(q, r);
+            built->validate();
+            need((int)groups.size() == r.furniture_count(), "liczba utworzonych mebli");
+            double last_hi = -1e9, wall_back = 0, floor_back = 0;
+            for (size_t i = 0; i < groups.size(); ++i) {
+                auto box = furniture_layout::group_bounds(*built, groups[i]);
+                if (!r.items[i].wall) {
+                    if (last_hi > -1e8) need(std::abs(box.first[0] - last_hi) < 0.5, std::format("szafki dolne nie przylegają ({} ≠ {})", box.first[0], last_hi));
+                    last_hi = box.second[0]; floor_back = box.second[1];
+                } else {
+                    need(std::abs(box.first[2] - 1400) < 0.5, std::format("szafka wisząca na wysokości {} zamiast 1400", box.first[2]));
+                    wall_back = box.second[1];
+                }
+            }
+            need(std::abs(wall_back - floor_back) < 0.5, "tyły szafek wiszących nie są w linii z dolnymi");
+            ctx.note(std::format("{} mebli, {} części", groups.size(), built->parts.size()));
+        });
+        run(area, "dokładanie do istniejącego projektu: nowy rząd zaczyna się za ostatnim meblem", where, [=](Ctx&) {
+            auto [base, g] = cabinet(Project(), 0);
+            auto before = furniture_layout::group_bounds(*base, g);
+            auto r = text_design::parse("2 szafki dolne 60 cm", *base);
+            auto [built, groups] = text_design::build(*base, r);
+            need(groups.size() == 2, "dwie szafki");
+            double lo = furniture_layout::group_bounds(*built, groups[0]).first[0];
+            need(std::abs(lo - (before.second[0] + 50)) < 0.5, std::format("nowa szafka zaczyna się w {} zamiast {}", lo, before.second[0] + 50));
+            need(built->parts.size() > base->parts.size() && base->parts.size() == (size_t)std::count_if(built->parts.begin(), built->parts.end(), [&](const Part& p) { return p.group == g; }), "stare meble zostały zmienione");
+        });
+        run(area, "zdania z różnych szablonów budują się i przechodzą kontrolę projektu", where, [=](Ctx& ctx) {
+            Project q;
+            int built_count = 0;
+            for (const char* text : {"szafka pod zlew 90 cm z 2 drzwiami oraz szafka 3 szuflady 60 cm", "szafka nocna z jedną szufladą i drzwiami, nogi 15 cm, LED",
+                                     "regał książkowy 5 półek 80 cm szerokości", "witryna 80 cm", "kosz na pranie cargo", "wyspa 120 cm", "komoda z drzwiami 120 cm",
+                                     "szafka wisząca 60x72x32, bez półek, korpus biały front dąb", "szafa warsztatowa 120 cm", "szafka RTV 160 cm"}) {
+                auto r = text_design::parse(text, q);
+                need(r.ok(), std::string("nie zbudowano: ") + text + " — " + (r.items.empty() ? std::string("brak pozycji") : r.items[0].error));
+                auto [built, groups] = text_design::build(q, r);
+                built->validate();
+                built_count += (int)groups.size();
+            }
+            ctx.note(std::format("{} mebli z 10 opisów", built_count));
+        });
+    }
+
     void test_led_scene_export() {
         const char* area = "LED w widoku 3D";
         const char* where = "native_scene_export.cpp (zbiór pasków LED), viewport_render.cpp (światła LED)";
@@ -2022,6 +2141,7 @@ public:
         test_led_scene_export();
         test_nesting();
         test_inspector();
+        test_text_design();
         test_ui();
         test_log_coverage();
     }
