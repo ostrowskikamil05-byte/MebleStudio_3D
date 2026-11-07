@@ -33,6 +33,7 @@
 #include "pyutil.h"
 #include "quick_studio_ui.h"
 #include "responsive_ui.h"
+#include "selftest.h"
 #include "room_architecture.h"
 #include "room_objects.h"
 #include "runner_installation.h"
@@ -442,6 +443,12 @@ int self_test(const std::string& path) {
 int main(int argc, char** argv) {
     ARGV.assign(argv, argv + argc);
     if (argc > 2 && std::string(argv[1]) == "--self-test") return launcher::self_test(argv[2]);
+    if (argc > 1 && std::string(argv[1]) == "--full-test") {
+        std::string dir;
+        bool pause = false;
+        for (int i = 2; i < argc; ++i) { if (std::string(argv[i]) == "--pause") pause = true; else dir = argv[i]; }
+        return selftest::run_cli(dir, pause);
+    }
     try {
         App().mainloop();
     } catch (const std::exception& exc) {

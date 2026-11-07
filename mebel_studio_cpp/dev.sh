@@ -4,6 +4,8 @@
 #   ./dev.sh run        jw. i od razu uruchom aplikację
 #   ./dev.sh fast       jak wyżej, ale kompilacja bez optymalizacji (-O0) w osobnym katalogu build-dev
 #   ./dev.sh test       sam self-test (bez budowania)
+#   ./dev.sh fulltest   jw. jak „run”, ale zamiast aplikacji uruchamia PEŁNY TEST wszystkich funkcji i zapisuje raport do raporty_testu/
+#                       (ustawienia programu nie są zapisywane; ten sam test: MebelStudio3D_cpp.exe --full-test [katalog])
 #   ./dev.sh addr 0x…   nazwa funkcji dla adresu z logu "Stos postoju" (exe+0x…)
 #   ./dev.sh dll        przebuduj MebelNative3D.dll i MebelModel.dll ze źródeł (ZRODLA_PROGRAMU/native) do native-dll/
 #   ./dev.sh clean      usuń katalog build
@@ -77,4 +79,10 @@ echo "== budowanie ($dir, tylko zmienione pliki)"
 cmake --build "$dir" -- -k 0
 selftest
 [ "$mode" = "run" ] && exec "$(exe)"
+if [ "$mode" = "fulltest" ]; then
+  mkdir -p raporty_testu
+  "$(exe)" --full-test raporty_testu || true
+  echo "Raport: $(ls -t raporty_testu/raport_pelny_test_*.md 2>/dev/null | head -1)"
+  exit 0
+fi
 echo "Gotowe. Uruchom: $(exe)"

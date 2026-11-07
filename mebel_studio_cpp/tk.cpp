@@ -650,6 +650,13 @@ PhotoImage::~PhotoImage() {
 // ------------------------------------------------------------------------------ okna dialogowe
 namespace messagebox {
 namespace {
+bool g_headless = false;                    // tryb testu: okna modalne nie są pokazywane (blokowałyby test bez człowieka)
+std::vector<std::string> g_intercepted;     // „funkcja | tytuł | treść” każdego pominiętego okna
+}  // namespace
+void set_headless(bool on) { g_headless = on; if (on) g_intercepted.clear(); }
+bool headless() { return g_headless; }
+std::vector<std::string> take_intercepted() { return std::exchange(g_intercepted, {}); }
+namespace {
 std::string show(const char* function, const char* type, const char* icon, const std::string& title, const std::string& message,
                  Widget* parent) {
     Registry& r = Registry::get();
@@ -658,6 +665,10 @@ std::string show(const char* function, const char* type, const char* icon, const
         for (const auto& observer : std::vector<std::function<void(const std::string&, const std::string&)>>(observers->second)) {
             observer(title, message);
         }
+    }
+    if (g_headless) {
+        g_intercepted.push_back(std::string(function) + " | " + title + " | " + message);
+        return std::string(type) == "yesno" ? "yes" : std::string(type) == "yesnocancel" ? "no" : "ok";
     }
     Args words{"tk_messageBox", "-type", type, "-icon", icon, "-title", title, "-message", message};
     if (parent) {
@@ -686,11 +697,13 @@ void add_observer(const std::string& function, std::function<void(const std::str
 
 namespace filedialog {
 std::string asksaveasfilename(const Opts& opts) {
+    if (messagebox::headless()) return "";
     Args words{"tk_getSaveFile"};
     add_opts(words, opts, nullptr);
     return run(words);
 }
 std::string askopenfilename(const Opts& opts) {
+    if (messagebox::headless()) return "";
     Args words{"tk_getOpenFile"};
     add_opts(words, opts, nullptr);
     return run(words);
@@ -699,6 +712,7 @@ std::string askopenfilename(const Opts& opts) {
 
 namespace colorchooser {
 std::pair<std::optional<std::string>, std::optional<std::string>> askcolor(const std::string& color, Widget* parent) {
+    if (messagebox::headless()) return {std::nullopt, std::nullopt};
     Args words{"tk_chooseColor"};
     if (!color.empty()) {
         words.push_back("-initialcolor");
@@ -781,6 +795,7 @@ std::string option_text(const Opts& opts, const char* key) {
 }  // namespace
 
 std::optional<double> askfloat(const std::string& title, const std::string& prompt, const Opts& options) {
+    if (messagebox::headless()) return std::nullopt;
     static bool defined = false;
     if (!defined) {
         run({"namespace", "eval", "::mebel", ""});

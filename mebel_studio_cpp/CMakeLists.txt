@@ -96,7 +96,7 @@ set_source_files_properties(tkcore.cpp PROPERTIES
 target_include_directories(MebelStudio3D_cpp SYSTEM PRIVATE ${OpenCASCADE_INCLUDE_DIR})
 target_link_libraries(MebelStudio3D_cpp PRIVATE nlohmann_json::nlohmann_json ${MEBEL_OCCT_LIBS}
                       ${MEBEL_TK_LIBRARY} ${MEBEL_TCL_LIBRARY})
-target_compile_definitions(MebelStudio3D_cpp PRIVATE UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
+target_compile_definitions(MebelStudio3D_cpp PRIVATE UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES MEBEL_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 if(MEBEL_LAUNCHER)
     target_compile_definitions(MebelStudio3D_cpp PRIVATE MEBEL_LAUNCHER)
 endif()

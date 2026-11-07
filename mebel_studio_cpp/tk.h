@@ -288,6 +288,10 @@ void showwarning(const std::string&, const std::string&, Widget* = nullptr);
 bool askyesno(const std::string&, const std::string&, Widget* = nullptr);
 std::optional<bool> askyesnocancel(const std::string&, const std::string&, Widget* = nullptr);
 // Wywoływane przed wyświetleniem okna danej funkcji (showerror / showwarning).
+// Tryb testu bez człowieka: okna modalne (komunikaty, wybór pliku/koloru) nie są pokazywane, tylko zapisywane.
+void set_headless(bool on);
+bool headless();
+std::vector<std::string> take_intercepted();
 void add_observer(const std::string& function, std::function<void(const std::string& title, const std::string& message)>);
 }  // namespace messagebox
 namespace filedialog {

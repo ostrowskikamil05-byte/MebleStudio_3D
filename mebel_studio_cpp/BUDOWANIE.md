@@ -35,6 +35,7 @@ cmake --build build
 
 ```bash
 build/bin/MebelStudio3D_cpp.exe --self-test raport.json   # diagnostyka offline, bez GUI
+build/bin/MebelStudio3D_cpp.exe --full-test raporty_testu  # pełny test funkcji + audyt źródeł (Markdown, JSON i log); to samo robi przycisk „Pełny test” w Logach
 build/bin/MebelStudio3D_cpp.exe                           # aplikacja
 ```
 
@@ -69,6 +70,7 @@ W powłoce MSYS2 UCRT64, w folderze `mebel_studio_cpp`:
 ./dev.sh run      # jw. i od razu start aplikacji
 ./dev.sh fast     # kompilacja -O0 w build-dev: najszybsza przy poprawkach interfejsu
 ./dev.sh test     # sam self-test bez budowania
+./dev.sh fulltest # budowanie + PEŁNY TEST wszystkich funkcji z raportem w raporty_testu/ (ustawienia programu nie są zapisywane)
 ```
 
 Dodatkowo `pacman -S --needed mingw-w64-ucrt-x86_64-ccache` przyspiesza ponowne budowanie

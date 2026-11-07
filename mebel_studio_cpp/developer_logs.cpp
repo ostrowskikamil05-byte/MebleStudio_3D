@@ -14,6 +14,7 @@
 
 #include "app.h"
 #include "perf_monitor.h"
+#include "selftest.h"
 #include "pyutil.h"
 
 namespace fs = std::filesystem;
@@ -287,6 +288,7 @@ LogDocument::LogDocument(App* app_) : dock_workspace::DockDocument(app_) {
     (new ttk::Button(bar, {{"text", "Stan mebli"}, {"command", std::function<void()>([this] { journal::dump_groups(this->app, *this->app->project, "Stan na żądanie"); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Historia pliku"}, {"command", std::function<void()>([this] { history(); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Zeruj statystyki"}, {"command", std::function<void()>([this] { perf::reset(); this->app->log->info("[wydajność] Statystyki wyzerowane"); })}}))->pack({{"side", "right"}, {"padx", 4}});
+    (new ttk::Button(bar, {{"text", "Pełny test"}, {"command", std::function<void()>([this] { selftest::launch_in_new_process(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Test zakładek"}, {"command", std::function<void()>([this] { perf::self_test(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Diagnoza widgetów"}, {"command", std::function<void()>([this] { perf::diagnose_widgets(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});
     (new ttk::Button(bar, {{"text", "Diagnoza rysowania"}, {"command", std::function<void()>([this] { perf::diagnose_redraw(this->app); })}}))->pack({{"side", "right"}, {"padx", 4}});

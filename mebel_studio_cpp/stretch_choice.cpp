@@ -622,17 +622,22 @@ void show_dialog(App* app, const std::string& title, const std::string& lead, st
 
 }  // namespace
 
-void offer(App* app, const core::Project& base, const std::string& group, const std::string& face) {
-    if (face.size() < 2) return;
+namespace {
+struct Prompt {
+    std::string title, lead, group;
+    std::vector<Option> options;
+    json config;
+};
+
+// Wspólna część dla okna wyboru i testów: jakie warianty daje rozciągnięcie ściany `face` (puste = zmiana za mała albo mebel spoza kreatora).
+std::optional<Prompt> make_prompt(const core::Project& base, const core::Project& stretched, const std::string& group, const std::string& face) {
+    if (face.size() < 2) return std::nullopt;
     json before = furniture_configurator::read_config(base, group);
-    json after = furniture_configurator::read_config(*app->project, group);
-    if (before.is_null() || after.is_null()) return;
-    journal::event(app, "rozciąganie", std::format("{}: ściana {} · wymiary {:g}×{:g}×{:g} → {:g}×{:g}×{:g} · początek {} → {}", group, face, num(before["width"]), num(before["depth"]), num(before["height"]),
-                                                    num(after["width"]), num(after["depth"]), num(after["height"]), before.at("origin").dump(), after.at("origin").dump()));
-    journal::dump_groups(app, *app->project, "po rozciągnięciu (przed wyborem)");
+    json after = furniture_configurator::read_config(stretched, group);
+    if (before.is_null() || after.is_null()) return std::nullopt;
     if (face[0] == 'y') {
         double old_depth = num(before["depth"]), new_depth = num(after["depth"]);
-        if (new_depth - old_depth < MIN_CHANGE) return;
+        if (new_depth - old_depth < MIN_CHANGE) return std::nullopt;
         double old_width = num(before["width"]);
         auto corner = [group, old_depth, old_width, new_depth](const std::string& side) {
             return [=](const core::Project& project, const Overrides&) {
@@ -643,18 +648,18 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
         auto arrangement = [group, old_depth, base_origin](bool min_side, bool max_side) {
             return [=](const core::Project& project, const Overrides& ov) { return build_arrangement(project, group, old_depth, base_origin, min_side, max_side, ov); };
         };
-        show_dialog(app, "Rozciągnięto front do siebie", std::format("Głębokość {:g} → {:g} mm. Co ma z tego powstać?", old_depth, new_depth),
+        return Prompt{"Rozciągnięto front do siebie", std::format("Głębokość {:g} → {:g} mm. Co ma z tego powstać?", old_depth, new_depth), group,
                     {{"keep_depth", "Pogłębienie", "tylko głębszy mebel", true, nullptr},
                      {"corner_left", "Narożnik L", "jedna szafka, w lewo", true, corner("left")},
                      {"corner_right", "Narożnik L", "jedna szafka, w prawo", true, corner("right")},
                      {"arr_l_left", "Układ L", "szafki z lewej", true, arrangement(true, false)},
                      {"arr_l_right", "Układ L", "szafki z prawej", true, arrangement(false, true)},
                      {"arr_u", "Układ U", "szafki z obu stron", true, arrangement(true, true)}},
-                    group, after);
+                    after};
     } else if (face[0] == 'z') {
         double old_height = num(before["height"]), new_height = num(after["height"]);
         double delta = new_height - old_height;
-        if (delta < MIN_CHANGE) return;
+        if (delta < MIN_CHANGE) return std::nullopt;
         auto reconfigure = [group](std::function<void(json&)> change) {
             return [=](const core::Project& project, const Overrides& ov) {
                 json config = furniture_configurator::read_config(project, group);
@@ -668,7 +673,7 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
         auto stacked = [group, old_height, base_origin](bool hanging) {
             return [=](const core::Project& project, const Overrides& ov) { return build_stack(project, group, old_height, base_origin, hanging, ov); };
         };
-        show_dialog(app, "Rozciągnięto mebel do góry", std::format("Wysokość {:g} → {:g} mm. Jakim meblem ma być?", old_height, new_height),
+        return Prompt{"Rozciągnięto mebel do góry", std::format("Wysokość {:g} → {:g} mm. Jakim meblem ma być?", old_height, new_height), group,
                     {{"keep_height", "Wyższa szafka", "bez zmian typu", true, nullptr},
                      {"with_upper", "Z pawlaczem", "strefa górna", true, reconfigure([delta](json& config) {
                           json main = section_of(config, "main");
@@ -687,37 +692,130 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
                           set_section(config, "upper", {{"enabled", false}});
                           set_section(config, "main", {{"front", "open"}, {"shelves", (long long)std::clamp(std::lround(new_height / 350.0), 2L, 8L)}});
                       })}},
-                    group, after);
+                    after};
     }
+    return std::nullopt;
+}
+}  // namespace
+
+void offer(App* app, const core::Project& base, const std::string& group, const std::string& face) {
+    auto prompt = make_prompt(base, *app->project, group, face);
+    json before = furniture_configurator::read_config(base, group);
+    json after = furniture_configurator::read_config(*app->project, group);
+    if (before.is_null() || after.is_null()) return;
+    journal::event(app, "rozciąganie", std::format("{}: ściana {} · wymiary {:g}×{:g}×{:g} → {:g}×{:g}×{:g} · początek {} → {}", group, face, num(before["width"]), num(before["depth"]), num(before["height"]),
+                                                    num(after["width"]), num(after["depth"]), num(after["height"]), before.at("origin").dump(), after.at("origin").dump()));
+    journal::dump_groups(app, *app->project, "po rozciągnięciu (przed wyborem)");
+    if (prompt) show_dialog(app, prompt->title, prompt->lead, prompt->options, prompt->group, prompt->config);
 }
 
-void open_configuration(App* app, const std::string& group) {
+std::vector<Variant> variants(const core::Project& base, const core::Project& stretched, const std::string& group, const std::string& face) {
+    std::vector<Variant> out;
+    auto prompt = make_prompt(base, stretched, group, face);
+    if (!prompt) return out;
+    for (const Option& option : prompt->options) {
+        Variant v{option.id, option.label + " / " + option.hint, nullptr};
+        if (option.build) v.build = [build = option.build](const core::Project& p) { return build(p, Overrides{}); };
+        out.push_back(std::move(v));
+    }
+    return out;
+}
+
+namespace {
+// Jedno okno Konfiguruj naraz: kolejne kliknięcie w mebel zastępuje poprzednie okno (to samo albo inne) zamiast otwierać drugie.
+tk::Toplevel* g_config_dialog = nullptr;
+std::string g_config_group;
+}  // namespace
+
+tk::Widget* configuration_dialog() {
+    try {
+        if (g_config_dialog != nullptr && g_config_dialog->winfo_exists()) return g_config_dialog;
+    } catch (const tk::TclError&) {}
+    return nullptr;
+}
+
+void open_configuration(App* app, const std::string& group, const std::string& notice) {
     json cfg = furniture_configurator::read_config(*app->project, group);
     if (cfg.is_null()) {
         journal::event(app, "konfiguracja", group + ": mebel nie pochodzi z kreatora — brak konfiguracji");
         app->status.set("„" + group + "” nie pochodzi z kreatora mebli — okucia i korpus ustawisz w panelu Właściwości");
         return;
     }
+    if (g_config_dialog != nullptr) {
+        try {
+            if (g_config_dialog->winfo_exists()) {
+                journal::event(app, "konfiguracja", std::format("zamknięto poprzednie okno ({}) — zastąpione oknem dla {}", g_config_group, group));
+                g_config_dialog->destroy();
+            }
+        } catch (const tk::TclError&) {}
+        g_config_dialog = nullptr;
+    }
     auto row_now = furniture_layout::row_groups(*app->project, group);
     journal::event(app, "konfiguracja", std::format("otwarto okno dla {} (rząd: {} szafek)", group, row_now.size()));
     auto* dialog = new tk::Toplevel(app);
+    g_config_dialog = dialog;
+    g_config_group = group;
     dialog->title("Konfiguracja mebla — " + group);
     dialog->transient(app);
-    auto* body = new ttk::Frame(dialog, {{"padding", 14}});
-    body->pack({{"fill", "both"}, {"expand", true}});
+    // Układ: stopka z przyciskiem i komunikatem na dole, nad nią przewijana treść (okno nigdy nie wychodzi poza ekran).
+    auto* footer = new ttk::Frame(dialog, {{"padding", "14 8"}});
+    footer->pack({{"side", "bottom"}, {"fill", "x"}});
+    auto* area = new ttk::Frame(dialog);
+    area->pack({{"fill", "both"}, {"expand", true}});
+    auto* viewport = new tk::Canvas(area, {{"highlightthickness", 0}, {"bg", forma_theme::PANEL}});
+    auto* scrollbar = new ttk::Scrollbar(area, {{"command", viewport->path() + " yview"}});
+    scrollbar->pack({{"side", "right"}, {"fill", "y"}});
+    viewport->pack({{"side", "left"}, {"fill", "both"}, {"expand", true}});
+    viewport->configure({{"yscrollcommand", scrollbar->path() + " set"}});
+    auto* body = new ttk::Frame(viewport, {{"padding", 14}});
+    int window = viewport->create_window(0, 0, {{"window", body->path()}, {"anchor", "nw"}});
+    body->bind("<Configure>", [viewport](tk::Event&) {
+        auto box = viewport->bbox("all");
+        if (box) viewport->configure({{"scrollregion", std::format("{} {} {} {}", (long long)(*box)[0], (long long)(*box)[1], (long long)(*box)[2], (long long)(*box)[3])}});
+        return std::string();
+    });
+    viewport->bind("<Configure>", [viewport, window](tk::Event& e) { viewport->itemconfigure(window, {{"width", e.width}}); return std::string(); });
     (new ttk::Label(body, {{"text", std::format("{}  ·  {:g} × {:g} × {:g} mm", group, num(cfg["width"]), num(cfg["depth"]), num(cfg["height"]))}, {"font", "{Segoe UI} 11 bold"}}))
         ->pack({{"anchor", "w"}, {"pady", "0 4"}});
-    (new ttk::Label(body, {{"text", "Zmiany stosują się od razu po kliknięciu · Ctrl+Z cofa. Kliknij nagłówek sekcji, aby ją rozwinąć albo zwinąć."}, {"wraplength", 560}}))
+    (new ttk::Label(body, {{"text", "Zmiany stosują się od razu po kliknięciu · Ctrl+Z cofa. Kliknij nagłówek sekcji, aby ją rozwinąć albo zwinąć. Kliknięcie innego mebla przełącza to okno na niego."}, {"wraplength", 520}}))
         ->pack({{"anchor", "w"}});
     std::string apply_text = row_now.size() > 1 ? std::format("Zmieniaj cały rząd szafek ({})", row_now.size()) : std::string("Zmieniaj cały rząd szafek");
     auto settings = build_settings(app, body, cfg, true, "Konfiguracja", apply_text);
-    auto close = [dialog, app, keep = settings] { app->after(1, [dialog] { try { dialog->destroy(); } catch (const tk::TclError&) {} }); };
-    auto buttons = new ttk::Frame(body);
-    buttons->pack({{"fill", "x"}, {"pady", "12 0"}});
-    (new ttk::Button(buttons, {{"text", "Gotowe"}, {"style", "Accent.TButton"}, {"command", std::function<void()>(close)}}))->pack({{"side", "right"}});
+    auto close = [dialog, app, keep = settings] {
+        app->after(1, [dialog] {
+            try { dialog->destroy(); } catch (const tk::TclError&) {}
+            if (g_config_dialog == dialog) g_config_dialog = nullptr;
+        });
+    };
+    auto* message = new ttk::Label(footer, {{"text", notice}, {"foreground", "#b3261e"}, {"wraplength", 420}, {"justify", "left"}});
+    message->pack({{"side", "left"}, {"fill", "x"}, {"expand", true}});
+    (new ttk::Button(footer, {{"text", "Gotowe"}, {"style", "Accent.TButton"}, {"command", std::function<void()>(close)}}))->pack({{"side", "right"}});
+    dialog->protocol("WM_DELETE_WINDOW", close);
+    auto wheel = [viewport](tk::Event& event) { viewport->yview_scroll(event.delta > 0 ? -1 : 1, "units"); return std::string(); };
+    std::function<void(tk::Widget*)> bind_wheel = [&](tk::Widget* widget) {
+        for (auto* child : widget->winfo_children()) {
+            std::string cls = child->winfo_class();
+            if (cls != "TCombobox" && cls != "Treeview" && cls != "Text" && cls != "Listbox") child->bind("<MouseWheel>", wheel, true);
+            bind_wheel(child);
+        }
+    };
+    bind_wheel(body);
+    // Rozmiar i położenie: przy prawej krawędzi okna programu, wysokość ograniczona do ekranu.
+    dialog->update_idletasks();
+    {
+        int screen_w = app->winfo_screenwidth(), screen_h = app->winfo_screenheight();
+        int want_w = std::clamp(body->winfo_reqwidth() + 24, 420, std::max(420, screen_w - 40));
+        int want_h = std::min(body->winfo_reqheight() + footer->winfo_reqheight() + 8, std::max(320, screen_h - 120));
+        int x = app->winfo_rootx() + app->winfo_width() - want_w - 12;
+        int y = app->winfo_rooty() + 48;
+        x = std::clamp(x, 0, std::max(0, screen_w - want_w - 8));
+        y = std::clamp(y, 0, std::max(0, screen_h - want_h - 80));
+        dialog->geometry(std::format("{}x{}+{}+{}", want_w, want_h, x, y));
+        journal::event(app, "konfiguracja", std::format("okno {}×{} w ({}, {}); ekran {}×{}", want_w, want_h, x, y, screen_w, screen_h));
+    }
     // Podgląd na żywo: każda zmiana pola od razu przebudowuje mebel (albo cały rząd), z osobnym krokiem cofania.
     std::weak_ptr<Settings> weak = settings;
-    auto apply_now = [app, group, weak] {
+    auto apply_now = [app, group, weak, dialog] {
         auto settings = weak.lock();
         if (!settings) return;
         Overrides ov = settings->collect();
@@ -740,10 +838,15 @@ void open_configuration(App* app, const std::string& group) {
             settings->rebase();
             app->status.set(std::format("Skonfigurowano {} (szt. {}) · Ctrl+Z cofa zmianę", group, targets.size()));
         } catch (const std::exception& error) {
-            journal::event(app, "konfiguracja", std::string("BŁĄD: ") + error.what());
-            app->status.set(std::string("Konfiguracja: ") + error.what());
-            tk::messagebox::showerror("Konfiguracja mebla", error.what(), app);
-            settings->rebase();  // pola zostają, ale kolejna zmiana nie ponawia błędnej
+            std::string what = error.what();
+            journal::event(app, "konfiguracja", "BŁĄD: " + what);
+            if (what.find("Obróbka nie przecina") != std::string::npos)
+                what = "Ta kombinacja ustawień nie jest możliwa do zbudowania (listwy usztywniające nie przecinają materiału) — zmiana cofnięta.";
+            else
+                what = "Nie udało się zastosować: " + what + " — zmiana cofnięta.";
+            app->status.set(what);
+            // Model się nie zmienił — odtwórz okno z aktualnym stanem mebla, żeby pola nie pokazywały nieudanej wartości.
+            app->after(1, [app, group, what] { open_configuration(app, group, what); });
         }
     };
     auto pending = std::make_shared<bool>(false);
