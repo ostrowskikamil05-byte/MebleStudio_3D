@@ -580,6 +580,8 @@ void show_dialog(App* app, const std::string& title, const std::string& lead, st
     auto* row = new ttk::Frame(body);
     row->pack({{"fill", "x"}});
     auto settings = build_settings(app, body, config);
+    auto* notice = new ttk::Label(body, {{"text", ""}, {"foreground", "#b3261e"}, {"wraplength", (int)(options.size() * (TILE_W + 10))}, {"justify", "left"}});
+    notice->pack({{"anchor", "w"}, {"pady", "6 0"}});
     auto close = [dialog, app] { app->after(1, [dialog] { try { dialog->destroy(); } catch (const tk::TclError&) {} }); };
     int column = 0;
     for (const Option& option : options) {
@@ -592,9 +594,8 @@ void show_dialog(App* app, const std::string& title, const std::string& lead, st
         canvas->create_text(TILE_W / 2, 82, {{"text", option.label}, {"fill", option.enabled ? forma_theme::TEXT : forma_theme::MUTED}, {"font", "{Segoe UI} 9 bold"}});
         canvas->create_text(TILE_W / 2, 96, {{"text", option.hint}, {"fill", forma_theme::MUTED}, {"font", "{Segoe UI} 8"}});
         if (!option.enabled) continue;
-        auto pick = [app, group, option, close, settings](tk::Event&) {
+        auto pick = [app, group, option, close, settings, notice](tk::Event&) {
             Overrides ov = settings->collect();
-            close();
             try {
                 auto build = option.build;
                 if (!build && !ov.values.empty()) {
@@ -605,7 +606,7 @@ void show_dialog(App* app, const std::string& title, const std::string& lead, st
                         return furniture_configurator::configure(project, config, group, config.at("origin")).first;
                     };
                 }
-                if (!build) { app->status.set("Zostawiono rozciągnięcie bez zmiany typu mebla"); return std::string(); }
+                if (!build) { close(); app->status.set("Zostawiono rozciągnięcie bez zmiany typu mebla"); return std::string(); }
                 journal::event(app, "rozciąganie", std::format("wybór „{}” dla {} · zmienione ustawienia: {} · zastosuj też do pierwszej: {}", option.label + " / " + option.hint, group,
                                                               ov.values.empty() ? std::string("brak") : ov.values.dump(), ov.apply_first ? "tak" : "nie"));
                 core::ProjectPtr result = build(*app->project, ov);
@@ -615,9 +616,12 @@ void show_dialog(App* app, const std::string& title, const std::string& lead, st
                 for (auto& part : app->project->parts) if (part.group == group) { app->selected = part.id; break; }
                 app->refresh();
                 app->status.set(option.label + " · Ctrl+Z cofa zmianę");
+                close();
             } catch (const std::exception& error) {
+                // Okno zostaje otwarte, a powód widać w nim samym — wcześniej błąd znikał w pasku stanu i wyglądało, że nic się nie stało.
                 journal::event(app, "rozciąganie", std::string("BŁĄD: ") + error.what());
                 app->status.set(error.what());
+                try { notice->configure({{"text", "Nie udało się: " + std::string(error.what())}}); } catch (const tk::TclError&) {}
             }
             return std::string();
         };
@@ -638,6 +642,8 @@ struct Prompt {
 };
 
 // Wspólna część dla okna wyboru i testów: jakie warianty daje rozciągnięcie ściany `face` (puste = zmiana za mała albo mebel spoza kreatora).
+std::string journal_note;  // ostatni powód wyłączenia wariantu (do dziennika)
+
 std::optional<Prompt> make_prompt(const core::Project& base, const core::Project& stretched, const std::string& group, const std::string& face) {
     if (face.size() < 2) return std::nullopt;
     json before = furniture_configurator::read_config(base, group);
@@ -660,7 +666,7 @@ std::optional<Prompt> make_prompt(const core::Project& base, const core::Project
         auto arrangement = [group, old_depth, base_origin](bool min_side, bool max_side) {
             return [=](const core::Project& project, const Overrides& ov) { return build_arrangement(project, group, old_depth, base_origin, min_side, max_side, ov); };
         };
-        return Prompt{"Rozciągnięto front do siebie", std::format("Głębokość {:g} → {:g} mm. Co ma z tego powstać?", old_depth, new_depth), group,
+        Prompt prompt{"Rozciągnięto front do siebie", std::format("Głębokość {:g} → {:g} mm. Co ma z tego powstać?", old_depth, new_depth), group,
                     {{"keep_depth", "Pogłębienie", "tylko głębszy mebel", true, nullptr},
                      {"corner_left", "Narożnik L", can_corner("left") ? "jedna szafka, w lewo" : "za wąska szafka", can_corner("left"), corner("left")},
                      {"corner_right", "Narożnik L", can_corner("right") ? "jedna szafka, w prawo" : "za wąska szafka", can_corner("right"), corner("right")},
@@ -668,6 +674,19 @@ std::optional<Prompt> make_prompt(const core::Project& base, const core::Project
                      {"arr_l_right", "Układ L", "szafki z prawej", true, arrangement(false, true)},
                      {"arr_u", "Układ U", "szafki z obu stron", true, arrangement(true, true)}},
                     after};
+        // Układ, który się nie zmieści przy tej szerokości (np. U wymaga ok. 2 × głębokość ramienia), jest wyłączony z podpisem zamiast cichego błędu po kliknięciu.
+        for (Option& option : prompt.options) {
+            if (!option.build || option.id.rfind("arr_", 0) != 0) continue;
+            try {
+                option.build(stretched, Overrides{});
+            } catch (const std::exception& error) {
+                option.enabled = false;
+                std::string why = error.what();
+                option.hint = why.find("nachodzi") != std::string::npos ? "szafka za wąska" : "niemożliwy";
+                journal_note = "układ „" + option.label + " / " + option.id + "” niedostępny: " + why;
+            }
+        }
+        return prompt;
     } else if (face[0] == 'z') {
         double old_height = num(before["height"]), new_height = num(after["height"]);
         double delta = new_height - old_height;
@@ -718,6 +737,11 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
     journal::event(app, "rozciąganie", std::format("{}: ściana {} · wymiary {:g}×{:g}×{:g} → {:g}×{:g}×{:g} · początek {} → {}", group, face, num(before["width"]), num(before["depth"]), num(before["height"]),
                                                     num(after["width"]), num(after["depth"]), num(after["height"]), before.at("origin").dump(), after.at("origin").dump()));
     journal::dump_groups(app, *app->project, "po rozciągnięciu (przed wyborem)");
+    if (prompt) {
+        for (const auto& option : prompt->options) if (!option.enabled) journal::event(app, "rozciąganie", "wariant wyłączony: " + option.label + " / " + option.hint);
+        if (!journal_note.empty()) journal::event(app, "rozciąganie", journal_note);
+        journal_note.clear();
+    }
     if (prompt) show_dialog(app, prompt->title, prompt->lead, prompt->options, prompt->group, prompt->config);
 }
 

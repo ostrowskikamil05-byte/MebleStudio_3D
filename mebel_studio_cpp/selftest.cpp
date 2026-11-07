@@ -614,7 +614,7 @@ public:
         add("0 półek", 0, [](json& c) { section(c, "main")["shelves"] = 0; });
         add("5 półek", 0, [](json& c) { section(c, "main")["shelves"] = 5; });
         add("pawlacz (strefa górna)", 0, [](json& c) { auto& u = section(c, "upper"); u["enabled"] = true; u["front"] = "doors"; });
-        add("strefa dolna", 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["shelves"] = 0; });
+        add("strefa dolna", 0, [](json& c) { auto& b = section(c, "bottom"); b["enabled"] = true; b["front"] = "drawers"; b["shelves"] = 0; b["height"] = 320; c["height"] = 1200; });
         add("szuflady + prowadnica z katalogu", 3, [](json& c) { c["runner_profile"] = runners_catalog::PROFILES.begin().key(); }, "", nullptr);
         add("wymiary minimalne 300×400×300", 0, [](json& c) { c["width"] = 300; c["height"] = 400; c["depth"] = 300; });
         add("wymiary duże 1200×2400×700", 0, [](json& c) { c["width"] = 1200; c["height"] = 2400; c["depth"] = 700; });
@@ -750,12 +750,35 @@ public:
             run(area, std::string("konwersja szafki 900 mm w narożnik L ") + side, where, [=](Ctx& ctx) {
                 auto [p, g] = cabinet(Project(), 0, [](json& c) { c["width"] = 900; });
                 json cfg = furniture_configurator::read_config(*p, g);
-                auto stretched = direct_edit::resize_furniture_face(*p, g, "y0", 250);
+                auto stretched = direct_edit::resize_furniture_face(*p, g, "y1", 250);
                 json after = furniture_configurator::read_config(*stretched, g);
                 auto [r, g2] = corner_furniture::convert_to_corner(*stretched, g, "L", side, json(num(cfg["depth"])), json(num(cfg["width"])), json(num(after["depth"])));
                 r->validate();
                 ctx.note(std::format("{} części", r->parts.size()));
                 check_overlaps(ctx, *r);
+            });
+        }
+    }
+
+    void test_arrangements_widths() {
+        const char* where = "stretch_choice.cpp (build_arrangement / make_prompt), furniture_layout.cpp (snap_group)";
+        for (double width : {600.0, 900.0, 1200.0, 1500.0, 1800.0}) {
+            run("Układy L i U", std::format("szafka {:.0f} mm rozciągnięta w głąb o 250: które układy są dostępne i czy się budują", width), where, [=](Ctx& ctx) {
+                auto [p, g] = cabinet(Project(), 0, [=](json& c) { c["width"] = width; });
+                auto stretched = direct_edit::resize_furniture_face(*p, g, "y1", 250);
+                auto variants = stretch_choice::variants(*p, *stretched, g, "y1");
+                std::string summary;
+                for (const auto& v : variants) {
+                    if (!v.build) continue;
+                    summary += v.id + (v.enabled ? "=dostępny " : "=wyłączony ");
+                    if (!v.enabled) continue;
+                    ProjectPtr r = v.build(*stretched);
+                    r->validate();
+                    check_overlaps(ctx, *r);
+                    auto groups = furniture_layout::groups(*r);
+                    if (v.id.rfind("arr_", 0) == 0 && groups.size() < 2) ctx.warn("układ " + v.id + " nie utworzył rzędu szafek (jest " + std::to_string(groups.size()) + ")");
+                }
+                ctx.note(summary);
             });
         }
     }
@@ -775,10 +798,15 @@ public:
         run("Konfigurator (opcje mebla)", "zależności w oknie Konfiguruj: szuflady zerują półki, TIP-ON ustawia zawias bez sprężyny", "stretch_choice.cpp (merge_overrides)", [](Ctx&) {
             auto [p, g] = cabinet(Project());
             json cfg = furniture_configurator::read_config(*p, g);
-            // to samo, co robi okno Konfiguruj po zmianie pól (sekcja główna → szuflady, uchwyt → TIP-ON)
+            // to samo, co robi okno Konfiguruj po zmianie pól: najpierw TIP-ON na drzwiach (zawias bez sprężyny ustawiany sam), potem szuflady z zerowymi półkami
+            json tip = cfg;
+            stretch_choice::apply_overrides(tip, json{{"handle_mode", "tip_short"}});
+            need(tip.value("hinge_spring", std::string()) == "unsprung", "TIP-ON nie ustawił zawiasu bez sprężyny");
+            ProjectPtr with_tip = furniture_configurator::configure(*p, tip, g, tip.at("origin")).first;
+            with_tip->validate();
             json sections = cfg["sections"];
             for (auto& s : sections) if (s.value("key", std::string()) == "main") { s["front"] = "drawers"; s["shelves"] = 2; }
-            stretch_choice::apply_overrides(cfg, json{{"handle_mode", "tip_short"}, {"sections", sections}});
+            stretch_choice::apply_overrides(cfg, json{{"sections", sections}});
             ProjectPtr r = furniture_configurator::configure(*p, cfg, g, cfg.at("origin")).first;
             r->validate();
             (void)r;
@@ -938,10 +966,13 @@ public:
         const char* where = "visual_catalogue.cpp (catalogue_items, apply_item), library_panel.cpp, catalogue_previews.cpp";
         for (const auto& [kind, title] : visual_catalogue::KINDS) {
             run(area, "rodzaj „" + title + "” (" + kind + ")", where, [this, kind](Ctx& ctx) {
-                app->project = fresh();
+                // identyfikatory materiałów są losowe dla każdego projektu: karty katalogu muszą pochodzić z tego samego projektu, na którym je zastosujemy
+                ProjectPtr scratch = fresh();
+                if (kind != "furniture" && kind != "shaped" && kind != "appliance") scratch = cabinet(Project()).first;
+                app->project = scratch;
                 app->selected.reset();
                 if (app->hardware_drag != nullptr && app->hardware_drag->active()) app->hardware_drag->cancel();
-                json items = visual_catalogue::catalogue_items(kind, *app->project);
+                json items = visual_catalogue::catalogue_items(kind, *scratch);
                 need(items.is_array() && !items.empty(), "katalog nie zwrócił żadnych elementów");
                 ctx.note(std::format("{} elementów w katalogu", items.size()));
                 // kilka pierwszych elementów realnie dodajemy do pustego projektu (ścieżka z klikania w kartę)
@@ -950,12 +981,10 @@ public:
                 size_t limit = kind == "furniture" ? 3 : 2;
                 for (size_t i = 0; i < items.size() && i < limit; ++i) {
                     try {
-                        app->project = fresh();
+                        app->project = scratch;
                         app->selected.reset();
-                        items = visual_catalogue::catalogue_items(kind, *app->project);  // karty są związane z projektem, z którego powstały
                         if (kind != "furniture" && kind != "shaped" && kind != "appliance") {
-                            auto [p, g] = cabinet(Project());
-                            app->project = p;
+                            const ProjectPtr& p = scratch;
                             for (const auto& q : p->parts) if (q.role == "door") { app->selected = q.id; break; }
                             if (!app->selected && !p->parts.empty()) app->selected = p->parts[0].id;
                         }
@@ -1493,6 +1522,7 @@ public:
         test_stretching();
         test_corners();
         test_narrow_corner();
+        test_arrangements_widths();
         test_layout();
         test_hardware();
         test_exports();
