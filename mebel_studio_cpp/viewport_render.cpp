@@ -868,7 +868,7 @@ Context::Context(const Project& project, const std::vector<PartKey>& part_keys) 
     for (const auto& h : project.hardware) {
         json kind = py::get(h, "kind");
         if (kind.is_string() && kind.get<std::string>() == "led_strip")
-            leds.insert({py::str(py::get(h, "owner_id")), py::get(h, "color", "#fff3bf").get<std::string>()});
+            leds.insert(std::pair<std::string, std::string>(py::str(py::get(h, "owner_id")), py::get(h, "color", "#fff3bf").get<std::string>()));
     }
     for (const auto& record : fittings) {
         bool led = leds.contains({record->owner, record->color});

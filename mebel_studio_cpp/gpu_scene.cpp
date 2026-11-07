@@ -111,7 +111,7 @@ std::vector<MeshGroupPtr> mesh_groups(viewport_render::Context& context, bool in
         for (auto& h : context.hardware) {
             if (!h.is_object() || py::get(h, "kind") != json("led_strip")) continue;
             json owner = py::get(h, "owner_id"), color = py::get(h, "color", json("#fff3bf"));
-            if (owner.is_string() && color.is_string()) leds.insert({owner.get<std::string>(), color.get<std::string>()});
+            if (owner.is_string() && color.is_string()) leds.insert(std::pair<std::string, std::string>(owner.get<std::string>(), color.get<std::string>()));
         }
     }
     bool led_enabled = !context.scene.is_object() || !context.scene.contains("led_enabled") || py::truthy(context.scene["led_enabled"]);
