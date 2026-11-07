@@ -19,6 +19,9 @@ void offer(App* app, const core::Project& base, const std::string& group, const 
 // opcjonalnie dla całego rzędu szafek. Narzędzie „Konfiguruj” w palecie CAD.
 void open_configuration(App* app, const std::string& group, const std::string& notice = "");
 
+// Nakłada zmienione pola na konfigurację mebla tak, jak okno Konfiguruj (łącznie z zależnościami: szuflady bez półek, TIP-ON bez sprężyny).
+void apply_overrides(core::json& config, const core::json& values);
+
 // Otwarte okno Konfiguruj (jedno naraz) albo nullptr.
 tk::Widget* configuration_dialog();
 
@@ -26,6 +29,7 @@ tk::Widget* configuration_dialog();
 struct Variant {
     std::string id, label;
     std::function<core::ProjectPtr(const core::Project&)> build;
+    bool enabled = true;  // false = kafelek wyłączony w oknie (wariant niemożliwy dla tego mebla)
 };
 std::vector<Variant> variants(const core::Project& base, const core::Project& stretched, const std::string& group, const std::string& face);
 

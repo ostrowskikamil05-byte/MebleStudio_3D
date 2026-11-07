@@ -61,6 +61,14 @@ void merge_overrides(json& cfg, const json& values) {
         }
     }
     if (cfg.value("leg_height", 0.0) <= 0) cfg["plinth"] = false;  // cokół wymaga nóżek
+    // Zależności, które kreator inaczej odrzuciłby błędem: strefa szuflad nie ma półek; magnetyczny TIP-ON wymaga zawiasów bez sprężyny.
+    if (cfg.contains("sections") && cfg["sections"].is_array())
+        for (auto& section : cfg["sections"])
+            if (section.value("front", std::string()) == "drawers" && section.value("shelves", 0) != 0) section["shelves"] = 0;
+    if (values.contains("handle_mode") && !values.contains("hinge_spring") && cfg.value("handle_mode", json()).is_string()) {
+        auto it = opening_options::OPTIONS.find(cfg["handle_mode"].get<std::string>());
+        if (it != opening_options::OPTIONS.end() && it->contains("hinge_spring")) cfg["hinge_spring"] = (*it)["hinge_spring"];
+    }
 }
 
 struct ChoiceRow {
@@ -644,14 +652,18 @@ std::optional<Prompt> make_prompt(const core::Project& base, const core::Project
                 return corner_furniture::convert_to_corner(project, group, "L", side, json(old_depth), json(old_width), json(new_depth)).first;
             };
         };
+        // Narożnik jednej szafki wymaga szerokości większej od głębokości ramienia — gdy się nie da, kafelek jest wyłączony zamiast błędu po kliknięciu.
+        auto can_corner = [&](const std::string& side) {
+            try { corner(side)(stretched, Overrides{}); return true; } catch (const std::exception&) { return false; }
+        };
         json base_origin = before.at("origin");
         auto arrangement = [group, old_depth, base_origin](bool min_side, bool max_side) {
             return [=](const core::Project& project, const Overrides& ov) { return build_arrangement(project, group, old_depth, base_origin, min_side, max_side, ov); };
         };
         return Prompt{"Rozciągnięto front do siebie", std::format("Głębokość {:g} → {:g} mm. Co ma z tego powstać?", old_depth, new_depth), group,
                     {{"keep_depth", "Pogłębienie", "tylko głębszy mebel", true, nullptr},
-                     {"corner_left", "Narożnik L", "jedna szafka, w lewo", true, corner("left")},
-                     {"corner_right", "Narożnik L", "jedna szafka, w prawo", true, corner("right")},
+                     {"corner_left", "Narożnik L", can_corner("left") ? "jedna szafka, w lewo" : "za wąska szafka", can_corner("left"), corner("left")},
+                     {"corner_right", "Narożnik L", can_corner("right") ? "jedna szafka, w prawo" : "za wąska szafka", can_corner("right"), corner("right")},
                      {"arr_l_left", "Układ L", "szafki z lewej", true, arrangement(true, false)},
                      {"arr_l_right", "Układ L", "szafki z prawej", true, arrangement(false, true)},
                      {"arr_u", "Układ U", "szafki z obu stron", true, arrangement(true, true)}},
@@ -714,7 +726,7 @@ std::vector<Variant> variants(const core::Project& base, const core::Project& st
     auto prompt = make_prompt(base, stretched, group, face);
     if (!prompt) return out;
     for (const Option& option : prompt->options) {
-        Variant v{option.id, option.label + " / " + option.hint, nullptr};
+        Variant v{option.id, option.label + " / " + option.hint, nullptr, option.enabled};
         if (option.build) v.build = [build = option.build](const core::Project& p) { return build(p, Overrides{}); };
         out.push_back(std::move(v));
     }
@@ -726,6 +738,8 @@ namespace {
 tk::Toplevel* g_config_dialog = nullptr;
 std::string g_config_group;
 }  // namespace
+
+void apply_overrides(core::json& config, const core::json& values) { merge_overrides(config, values); }
 
 tk::Widget* configuration_dialog() {
     try {
