@@ -69,6 +69,7 @@ public:
     std::optional<size_t> drag_index;             // przeciągany punkt (narzędzie Przesuń)
     std::optional<Point> drag_origin;
     bool drag_moved = false;
+    bool imported_holes = false;                  // part.holes pochodzą z importu DXF (okręgi wewnątrz obrysu)
     tk::BooleanVar automatic, replace_existing;
     std::map<std::string, tk::StringVar> fields;  // name, group, t
 

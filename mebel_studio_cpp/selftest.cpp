@@ -2284,6 +2284,13 @@ public:
             std::string holes = dxf_pair(0, "CIRCLE") + dxf_number(10, 250) + dxf_number(20, 150) + dxf_number(40, 20) + dxf_pair(0, "CIRCLE") + dxf_number(10, 900) + dxf_number(20, 900) + dxf_number(40, 20);
             outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(polyline + holes)));
             need(outline.inner_circles == 1 && outline.outer_candidates == 1, "okrąg wewnątrz obrysu nie został policzony jako otwór");
+            need(outline.holes.size() == 1 && near_to(outline.holes[0].diameter, 40) && near_to(outline.holes[0].u, 250) && near_to(outline.holes[0].v, 150), "okrąg wewnątrz obrysu nie stał się otworem o średnicy 40 w (250; 150)");
+            std::string too_big = dxf_pair(0, "CIRCLE") + dxf_number(10, 250) + dxf_number(20, 150) + dxf_number(40, 400);
+            outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(polyline + too_big)));
+            need(outline.holes.empty() || outline.inner_circles == 0, "okrąg większy od obrysu nie powinien zostać otworem");
+            std::string near_edge = dxf_pair(0, "CIRCLE") + dxf_number(10, 10) + dxf_number(20, 150) + dxf_number(40, 20);
+            outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(polyline + near_edge)));
+            need(outline.holes.empty() && outline.skipped_holes == 1, "okrąg wystający poza obrys powinien być pominięty i policzony w skipped_holes");
             std::string half = dxf_pair(0, "LWPOLYLINE") + dxf_pair(90, "2") + dxf_pair(70, "1") + dxf_number(10, 0) + dxf_number(20, 0) + dxf_number(42, 1) + dxf_number(10, 100) + dxf_number(20, 0);
             outline = dxf_import::pick_outline(dxf_import::parse(dxf_document(half)));
             need(near_to(outline.width, 100, 1e-6) && near_to(outline.height, 50, 0.5), "półokrąg z wybrzuszeniem (bulge) ma zły rozmiar");
@@ -2542,6 +2549,23 @@ public:
             std::string text = log_since(from);
             ctx.note(std::format("import → {} punktów, element {}", sk->points.size(), id));
             need(has_text(text, "[operacja:szkic] import DXF:") && has_text(text, "[operacja:plik] import DXF"), "import DXF nie zostawił wpisów [szkic] i [plik] w dzienniku");
+            // obrys z okręgiem wewnątrz → otwór przelotowy w elemencie
+            {
+                std::ofstream out(path, std::ios::binary);
+                out << dxf_document(dxf_line(0, 0, 500, 0) + dxf_line(500, 0, 500, 300) + dxf_line(500, 300, 0, 300) + dxf_line(0, 300, 0, 0) +
+                                    dxf_pair(0, "CIRCLE") + dxf_number(10, 250) + dxf_number(20, 150) + dxf_number(40, 20));
+            }
+            from = log_mark();
+            need(sk->import_dxf(path.string(), false), "import DXF z okręgiem zwrócił błąd");
+            need(sk->part.holes.size() == 1 && near_to(sk->part.holes[0][2], 40), "okrąg z DXF nie stał się otworem o średnicy 40 w elemencie");
+            need(has_text(log_since(from), "otwory przelotowe z okręgów: 1"), "dziennik nie podaje liczby otworów z DXF");
+            auto [with_hole, hole_id] = sk->candidate();
+            with_hole->validate();
+            bool has_hole = false;
+            for (auto& p : with_hole->parts) if (p.id == hole_id) has_hole = p.holes.size() == 1;
+            need(has_hole, "element z importu nie ma otworu po zbudowaniu kandydata");
+            sk->clear();
+            need(sk->part.holes.empty(), "wyczyszczenie szkicu powinno usunąć otwory z importu");
             // uszkodzony plik: odrzucony z powodem, kontur bez zmian
             {
                 std::ofstream out(path, std::ios::binary);

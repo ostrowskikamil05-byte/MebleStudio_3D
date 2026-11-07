@@ -295,6 +295,20 @@ Outline pick_outline(const Result& result, size_t max_points) {
     double xmin = pts[0][0], ymin = pts[0][1], xmax = xmin, ymax = ymin;
     for (const auto& p : pts) { xmin = std::min(xmin, p[0]); ymin = std::min(ymin, p[1]); xmax = std::max(xmax, p[0]); ymax = std::max(ymax, p[1]); }
     for (auto& p : pts) p = {p[0] - xmin, p[1] - ymin};
+    auto in_polygon = [&](const Point& q) {
+        bool in = false;
+        for (size_t i = 0, j = pts.size() - 1; i < pts.size(); j = i++)
+            if (((pts[i][1] > q[1]) != (pts[j][1] > q[1])) && (q[0] < (pts[j][0] - pts[i][0]) * (q[1] - pts[i][1]) / (pts[j][1] - pts[i][1]) + pts[i][0])) in = !in;
+        return in;
+    };
+    for (const auto& c : result.contours) {
+        if (!c.closed || &c == best || !c.is_circle || !inside(c)) continue;
+        Hole hole{c.center[0] - xmin, c.center[1] - ymin, c.radius * 2};
+        bool fits = hole.diameter >= 1 && out.holes.size() < 100;
+        for (int k = 0; fits && k < 72; ++k)
+            fits = in_polygon({hole.u + hole.diameter / 2 * std::cos(k * 2 * PI / 72), hole.v + hole.diameter / 2 * std::sin(k * 2 * PI / 72)});
+        if (fits) out.holes.push_back(hole); else ++out.skipped_holes;
+    }
     out.points = std::move(pts);
     out.width = xmax - xmin;
     out.height = ymax - ymin;

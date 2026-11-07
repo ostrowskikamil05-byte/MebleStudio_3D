@@ -33,6 +33,10 @@ struct Result {
 // Wczytuje tekst DXF. Zgłasza std::invalid_argument, gdy plik jest binarny, uszkodzony albo bez obsługiwanych obiektów.
 Result parse(const std::string& text);
 
+struct Hole {
+    double u = 0, v = 0, diameter = 0;   // środek i średnica w układzie obrysu (min = 0, 0)
+};
+
 struct Outline {
     std::vector<Point> points;   // przesunięte tak, by min = (0, 0), orientacja przeciwna do ruchu wskazówek
     size_t original_points = 0;  // przed uproszczeniem
@@ -40,6 +44,8 @@ struct Outline {
     double width = 0, height = 0;
     size_t inner_contours = 0;   // zamknięte kontury wewnątrz obrysu (otwory) — niewczytane do szkicu
     size_t inner_circles = 0;    // w tym okręgi
+    std::vector<Hole> holes;     // okręgi w całości wewnątrz obrysu (średnica ≥ 1 mm) — kandydaci na otwory przelotowe
+    size_t skipped_holes = 0;    // okręgi wewnętrzne, które nie nadają się na otwór (za małe, wystają poza obrys, zbyt wiele)
     size_t outer_candidates = 0; // zamknięte kontury poza obrysem (ignorowane)
     size_t open_paths = 0;       // niezamknięte łamane (ignorowane)
 };

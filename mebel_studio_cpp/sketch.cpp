@@ -531,6 +531,8 @@ std::pair<core::ProjectPtr, std::string> Sketch::candidate() {
         else if (key == "name") base.name = var.get();
         else if (key == "group") base.group = var.get();
     }
+    if (imported_holes)
+        for (auto& hole : base.holes) hole[3] = base.t;  // otwory z DXF są przelotowe: głębokość = grubość
     without(base.operations, [](const json& op) { return py::get(op, "recipe_id") == "handle"; });
     base.plane = plane.get();
     base.material = app->project->materials.at(material->current()).id;
@@ -983,6 +985,7 @@ void Sketch::clear() {
     arrow_lock.reset();
     guides.clear();
     measured.reset();
+    if (imported_holes) { part.holes.clear(); imported_holes = false; }
     update_list();
     draw();
 }
@@ -1182,6 +1185,7 @@ bool Sketch::new_element(bool discard_confirmed) {
     centers.clear();
     guides.clear();
     measured.reset();
+    if (imported_holes) { part.holes.clear(); imported_holes = false; }
     arrow_lock.reset();
     value_text.set("");
     cursor.reset();
@@ -1672,12 +1676,17 @@ bool Sketch::import_dxf(const std::string& path_in, bool confirm_replace) {
                                           outline.width, outline.height, outline.inner_contours, outline.inner_circles, outline.outer_candidates, outline.open_paths);
         for (const auto& w : result.warnings) summary += " · " + w;
         pending.clear();
+        if (imported_holes) { part.holes.clear(); imported_holes = false; }
         set_sketch_points(outline.points);
         if (!closed) close_contour();
+        for (const auto& hole : outline.holes) part.holes.push_back({hole.u, hole.v, hole.diameter, part.t});
+        imported_holes = !outline.holes.empty();
+        summary += std::format(" · otwory przelotowe z okręgów: {}{}", outline.holes.size(), outline.skipped_holes ? std::format(" (pominięto {} niemieszczących się)", outline.skipped_holes) : "");
         journal::event(app, "szkic", "import DXF: " + summary);
         journal::file_event(app, "import DXF", path, elapsed(), "wczytano obrys " + std::format("{:.1f}×{:.1f} mm", outline.width, outline.height));
         std::string note = std::format("Zaimportowano obrys {:.1f}×{:.1f} mm z DXF", outline.width, outline.height);
-        if (outline.inner_contours) note += std::format(" · pominięto {} wewnętrznych konturów (otwory dodaj w edytorze CAD)", outline.inner_contours);
+        if (!outline.holes.empty()) note += std::format(" · {} otworów przelotowych z okręgów", outline.holes.size());
+        if (outline.inner_contours > outline.holes.size()) note += std::format(" · pominięto {} wewnętrznych konturów (inne niż okręgi lub niemieszczące się)", outline.inner_contours - outline.holes.size());
         if (outline.simplified) note += std::format(" · uproszczono z {} do {} punktów", outline.original_points, outline.points.size());
         if (!result.warnings.empty()) note += " · " + result.warnings.front();
         status.set(note + ".");
