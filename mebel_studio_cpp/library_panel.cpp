@@ -8,6 +8,7 @@
 #include "app.h"
 #include "catalogue_previews.h"
 #include "forma_theme.h"
+#include "journal.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
 #include "perf_monitor.h"
@@ -184,6 +185,14 @@ void LibraryPanel::highlight(const std::string& id, bool on) {
     }
 }
 
+void LibraryPanel::report_failure(const std::string& what) {
+    // Błąd widać w dolnej notatce, na pasku stanu i w dzienniku — wcześniej był tylko w notatce.
+    std::string text = what.empty() ? std::string("Nie udało się zastosować karty.") : what;
+    note_.set(text);
+    app_->status.set("Biblioteka: " + text);
+    journal::event(app_, "biblioteka", "błąd: " + text);
+}
+
 void LibraryPanel::activate(const json& item) {
     try {
         if (generation_ != app_->project_generation) {
@@ -210,13 +219,13 @@ void LibraryPanel::activate(const json& item) {
         if (!previous_id.empty()) highlight(previous_id, false);
         highlight(selected_id_, true);
     } catch (const std::invalid_argument& error) {
-        note_.set(error.what());
+        report_failure(error.what());
     } catch (const std::out_of_range& error) {
-        note_.set(error.what());
+        report_failure(error.what());
     } catch (const core::json::exception& error) {
-        note_.set(error.what());
+        report_failure(error.what());
     } catch (const py::StopIteration& error) {
-        note_.set(error.what());
+        report_failure(error.what());
     }
 }
 

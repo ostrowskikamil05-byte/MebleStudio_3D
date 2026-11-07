@@ -16,6 +16,7 @@
 #include "app.h"
 #include "configurator_presets.h"
 #include "corner_furniture.h"
+#include "hover_flyout.h"
 #include "corner_quick_ui.h"
 #include "dock_workspace.h"
 #include "furniture_configurator.h"
@@ -887,8 +888,21 @@ void QuickInspector::refresh() {
             note.set(std::format("Wspólny blat: wymiary formatki, wysokość oznacza grubość. Poziom blatu {:g} mm. PPM → Dopasuj blat lub panel Elementy / CAD.", top->z));
             apply_button->configure({{"text", "Edytuj przez menu PPM"}, {"state", "disabled"}});
         } else {
-            note.set("Mebel z wcześniejszej biblioteki. Przycisk spróbuje przejąć go do kreatora; szkice pozostają w panelu Elementy / CAD.");
-            apply_button->configure({{"text", "Przejmij mebel do kreatora"}, {"state", "normal"}});
+            // Mebel spoza kreatora: jeżeli to nieprzerobiony wzorzec biblioteki, pokazujemy jego prawdziwe
+            // ustawienia, a każda zmiana w panelu (materiał, LED, nóżki…) przejmie go do kreatora.
+            bool recognised = false;
+            try {
+                set_config(infer_config(*app->project, *group));
+                recognised = true;
+            } catch (const std::exception&) {
+            }
+            if (recognised) {
+                note.set("Zmiany w panelu (materiały, LED, nóżki, fronty) od razu przejmą ten mebel do kreatora.");
+                apply_button->configure({{"text", "Zastosuj do mebla"}, {"state", "normal"}});
+            } else {
+                note.set("Mebel z własną geometrią lub obróbkami — kreator by ją nadpisał. Użyj edytorów w panelu Elementy / CAD albo dodaj nowy mebel z biblioteki.");
+                apply_button->configure({{"text", "Przejmij mebel do kreatora"}, {"state", "normal"}});
+            }
         }
     } else {
         set_config(default_config(0, *app->project));
@@ -921,14 +935,25 @@ bool QuickInspector::apply(bool explicit_) {
     try {
         if (generation != app->project_generation) throw py::ValueError("Projekt zmienił się. Wybierz mebel ponownie.");
         bool has_group = group && !group->empty();
-        if (has_group && read_config(*app->project, *group).is_null()) {
-            if (!explicit_) return false;
-            json inferred = infer_config(*app->project, *group);
-            set_config(inferred);
+        json previous = has_group ? read_config(*app->project, *group) : json(nullptr);
+        bool takeover = false;
+        if (has_group && previous.is_null()) {
+            // Mebel bez konfiguracji kreatora (np. z biblioteki): zmiana w panelu przejmuje go do kreatora,
+            // o ile da się go rozpoznać. Narożniki i wspólne blaty mają własne edytory.
+            if (py::truthy(corner_furniture::read_corner_config(*app->project, *group))) return false;
+            try {
+                previous = infer_config(*app->project, *group);
+                takeover = true;
+            } catch (const py::ValueError& e) {
+                if (!explicit_) {
+                    note.set(e.what());
+                    return false;
+                }
+                throw;
+            }
         }
         json cfg = draft();
-        json previous = has_group ? read_config(*app->project, *group) : json(nullptr);
-        if (py::truthy(previous) && normalize_config(cfg, *app->project) == normalize_config(previous, *app->project)) {
+        if (py::truthy(previous) && !(takeover && explicit_) && normalize_config(cfg, *app->project) == normalize_config(previous, *app->project)) {
             has_draft = false;
             return true;
         }
@@ -1438,14 +1463,24 @@ void build(App* app) {
     // Zakładka „Mebel": tworzenie, wygląd, wyposażenie (katalogi dopisuje visual_catalogue).
     make_group(pages["Mebel"], "NOWY MEBEL");
     make_button(pages["Mebel"], "+ Mebel", [quick] { quick->new_furniture(); }, true);
-    make_button(pages["Mebel"], "Biblioteka wszystkich mebli", [app] { if (app->library_dialog) app->library_dialog(); });
+    // Pozycje lewego menu wysuwają po najechaniu okienko wyboru (po prawej stronie panelu); zjazd myszką je chowa.
+    hover_flyout::attach(app, make_button(pages["Mebel"], "Biblioteka wszystkich mebli", [app] { if (app->library_dialog) app->library_dialog(); }),
+                         "Meble z biblioteki", hover_flyout::catalogue(app, {"furniture"}));
     make_group(pages["Mebel"], "WYGLĄD");
-    make_button(pages["Mebel"], "Kształty i style", [app] { if (app->style_library) app->style_library(); });
-    make_button(pages["Mebel"], "Kolory", [app] { if (app->palette_dialog) app->palette_dialog(); });
+    hover_flyout::attach(app, make_button(pages["Mebel"], "Kształty i style", [app] { if (app->style_library) app->style_library(); }),
+                         "Kształty i style", hover_flyout::catalogue(app, {"shaped"}));
+    hover_flyout::attach(app, make_button(pages["Mebel"], "Kolory", [app] { if (app->palette_dialog) app->palette_dialog(); }),
+                         "Kolory i materiały", hover_flyout::catalogue(app, {"material"}));
     make_group(pages["Mebel"], "WYPOSAŻENIE");
     for (auto& [label, key] : std::vector<std::pair<std::string, std::string>>{{"Fronty / uchwyty", "fronts"}, {"Zawiasy / prowadnice", "fittings"}, {"Nóżki / blat", "legs"},
-                                                                               {"Materiały", "materials"}, {"LED", "led"}})
-        make_button(pages["Fronty i okucia"], label, [app, key] { focus_section(app, key); });
+                                                                               {"Materiały", "materials"}, {"LED", "led"}}) {
+        auto* entry = make_button(pages["Fronty i okucia"], label, [app, key] { focus_section(app, key); });
+        static const std::map<std::string, std::pair<std::string, std::vector<std::string>>> flyouts = {
+            {"fronts", {"Fronty i uchwyty", {"handle"}}}, {"fittings", {"Zawiasy i prowadnice", {"hinge", "runner"}}}, {"legs", {"Nóżki", {"leg"}}},
+            {"materials", {"Materiały", {"material"}}}, {"led", {"Oświetlenie LED", {"led"}}}};
+        const auto& flyout = flyouts.at(key);
+        hover_flyout::attach(app, entry, flyout.first, hover_flyout::catalogue(app, flyout.second));
+    }
     make_button(pages["Fronty i okucia"], "Okucia elementu…", [app] { if (app->fittings_dialog) app->fittings_dialog(); });
     // Zakładka „CAD": szkic, element, tryb pracy myszą.
     make_group(pages["Szkic / CAD"], "SZKIC");
@@ -1474,9 +1509,30 @@ void build(App* app) {
     make_group(pages["Układ"], "NAROŻNIKI I BLATY");
     // Zakładka „Produkcja": dokumenty i eksport (ceny są w Ustawieniach, pomoc też).
     make_group(pages["Produkcja"], "DOKUMENTY");
-    for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Drukuj komplet…", [app] { if (app->print_project) app->print_project(); }},
-                                                                       {"Eksport CAD / CNC", [app] { app->export_(); }}})
-        make_button(pages["Produkcja"], label, fn);
+    {
+        auto show_tab = [app](const std::string& name) {
+            try {
+                app->workspace->select(app->tabs);
+                for (const std::string& path : tk::split_list(app->tabs->call({app->tabs->path(), "tabs"})))
+                    if (app->tabs->call({app->tabs->path(), "tab", path, "-text"}) == name) {
+                        app->tabs->call({app->tabs->path(), "select", path});
+                        return;
+                    }
+                app->status.set("Nie znaleziono karty „" + name + "”.");
+            } catch (const std::exception& error) {
+                app->status.set(std::string("Produkcja: ") + error.what());
+            }
+        };
+        std::vector<hover_flyout::Action> production = {
+            {"Drukuj komplet…", "Dokumenty do druku: formatki, okucia, rysunki", [app] { if (app->print_project) app->print_project(); }},
+            {"Eksport CAD / CNC", "DXF, pliki do cięcia i obróbki", [app] { app->export_(); }},
+            {"Lista formatek", "Wymiary do cięcia, obrzeża, materiały", [show_tab] { show_tab("Formatki"); }},
+            {"Kosztorys", "Materiały, okucia, robocizna i narzut", [show_tab] { show_tab("Kosztorys"); }},
+            {"Ceny, robocizna i narzut", "Ustawienia kosztorysu", [app] { app->settings(); }}};
+        for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Drukuj komplet…", [app] { if (app->print_project) app->print_project(); }},
+                                                                           {"Eksport CAD / CNC", [app] { app->export_(); }}})
+            hover_flyout::attach(app, make_button(pages["Produkcja"], label, fn), "Produkcja", hover_flyout::actions(production));
+    }
     make_group(pages["Produkcja"], "DIAGNOSTYKA");
     // Zakładka „Widok" jest budowana wyżej (kamera, pokaż) i w view_modes_ui (silnik 3D).
     build_production(app);
@@ -1520,6 +1576,9 @@ void build(App* app) {
 }
 
 void focus_section(App* app, const std::string& key) {
+    // Gdy po prawej był otwarty panel narzędzia lub pozycji katalogu, panel „Mebel” był ukryty — skoki do sekcji
+    // (Nóżki, Materiały, LED…) działały „w ciemno”. Najpierw wracamy do właściwości mebla.
+    side_panels::hide(app);
     if (app->ui_layout) app->ui_layout->show_inspector(true);
     app->workspace->select(app->design_page);
     app->inspector_tabs->select("0");

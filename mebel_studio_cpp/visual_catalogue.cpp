@@ -7,6 +7,7 @@
 #include <set>
 
 #include "app.h"
+#include "assembly.h"
 #include "library_panel.h"
 #include "quick_studio_ui.h"
 #include "catalogue_previews.h"
@@ -397,6 +398,15 @@ bool apply_item(App* app, const json& item) {
             double lo = furniture_layout::group_bounds(*candidate, group).first[0];
             candidate = furniture_layout::move_group(*candidate, group, right + 50 - lo);
         }
+        // Mebel z biblioteki od razu trafia do kreatora, dzięki czemu panel „Mebel” (materiały, LED, nóżki,
+        // fronty) i karty biblioteki mogą go zmieniać. Gdy nie da się go rozpoznać, zostaje zwykły mebel.
+        try {
+            json inferred = furniture_configurator::infer_config(*candidate, group);
+            auto taken = furniture_configurator::configure(*candidate, inferred, group);
+            if (taken.second == group) candidate = taken.first;
+        } catch (const std::exception& error) {
+            journal::event(app, "biblioteka", std::string("mebel zostaje bez kreatora: ") + error.what());
+        }
         auto chosen = std::find_if(candidate->parts.begin(), candidate->parts.end(), [&](const core::Part& p) { return p.group == group; });
         if (chosen == candidate->parts.end()) throw py::StopIteration();
         return commit(app, candidate, chosen->id, std::nullopt, true);
@@ -431,12 +441,28 @@ bool apply_item(App* app, const json& item) {
         return commit(app, candidate, std::nullopt, object_id, true);
     }
     core::Part* part = app->selected_part();
+    if (part == nullptr) {
+        // Brak zaznaczenia: jeżeli w projekcie jest dokładnie jeden mebel, to jego dotyczy karta.
+        std::set<std::string> groups;
+        for (auto& p : app->project->parts) groups.insert(p.group);
+        if (groups.size() == 1) {
+            part = &app->project->parts.front();
+            app->selected = part->id;
+            app->selected_scene.reset();
+        }
+    }
     if (part == nullptr) throw ValueError("Najpierw zaznacz mebel lub jego część w projekcie.");
     std::string part_id = part->id, part_group = part->group;
     if (kind == "leg") {
         json corner = corner_furniture::read_corner_config(*app->project, part_group);
         json cfg = py::truthy(corner) ? corner : furniture_configurator::read_config(*app->project, part_group);
-        if (cfg.is_null()) throw ValueError("Nogi z katalogu wymagają parametrycznego mebla lub narożnika. Przejmij mebel do kreatora.");
+        if (cfg.is_null()) {
+            try {
+                cfg = furniture_configurator::infer_config(*app->project, part_group);
+            } catch (const ValueError& error) {
+                throw ValueError(std::string("Nogi z katalogu wymagają parametrycznego mebla lub narożnika. ") + error.what());
+            }
+        }
         double delta = num(payload.at("leg_height")) - num(py::get(cfg, "leg_height", 0));
         cfg["height"] = add_numbers(cfg.at("height"), delta);
         for (auto& [key, value] : payload.items()) cfg[key] = value;
@@ -470,6 +496,30 @@ bool apply_item(App* app, const json& item) {
         }
         auto target = std::find_if(candidate->parts.begin(), candidate->parts.end(), [&](const core::Part& p) { return p.id == part_id; });
         if (target == candidate->parts.end()) throw py::StopIteration();
+        {
+            // Mebel z kreatora lub narożnik: materiał dotyczy całego korpusu (albo frontów, gdy zaznaczono front).
+            std::string role = assembly::inferred_role(*target);
+            const char* key = (role == "door" || role == "drawer") ? "front_material" : "material";
+            json corner = corner_furniture::read_corner_config(*candidate, part_group);
+            json cfg = py::truthy(corner) ? corner : furniture_configurator::read_config(*candidate, part_group);
+            if (cfg.is_null()) {
+                try {
+                    cfg = furniture_configurator::infer_config(*candidate, part_group);
+                } catch (const std::exception&) {
+                }
+            }
+            if (cfg.is_object()) {
+                cfg[key] = ident;
+                try {
+                    core::ProjectPtr grouped = py::truthy(corner) ? corner_furniture::create_corner(*candidate, cfg, part_group).first
+                                                                  : furniture_configurator::configure(*candidate, cfg, part_group).first;
+                    journal::event(app, "biblioteka", std::format("materiał całego mebla {} → {} ({})", part_group, ident, key));
+                    return commit(app, grouped, part_id);
+                } catch (const std::exception& error) {
+                    journal::event(app, "biblioteka", std::string("materiał tylko dla części (kreator odmówił): ") + error.what());
+                }
+            }
+        }
         target->material = ident;
         return commit(app, candidate, part_id);
     }

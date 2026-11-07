@@ -32,6 +32,7 @@
 #include "fittings.h"
 #include "furniture_configurator.h"
 #include "furniture_layout.h"
+#include "hover_flyout.h"
 #include "furniture_library.h"
 #include "hardware_report.h"
 #include "opening_options.h"
@@ -1012,6 +1013,112 @@ public:
         });
     }
 
+
+    void test_library_on_furniture() {
+        const char* area = "Panel Mebel i karty biblioteki na meblu";
+        const char* where = "visual_catalogue.cpp (apply_item: furniture/leg/material), quick_studio_ui.cpp (QuickInspector::apply), furniture_configurator.cpp (infer_config)";
+        auto add_first = [this](size_t index) {
+            ProjectPtr scratch = fresh();
+            app->project = scratch;
+            app->selected.reset();
+            json items = visual_catalogue::catalogue_items("furniture", *scratch);
+            need(items.is_array() && items.size() > index, "katalog mebli jest za krótki");
+            visual_catalogue::apply_item(app, items[index]);
+            app->update();
+            need(app->selected_part() != nullptr, "po dodaniu mebla nic nie jest zaznaczone");
+            return app->selected_part()->group;
+        };
+        run(area, "mebel dodany z biblioteki ma konfigurację kreatora (panel Mebel może go zmieniać)", where, [=](Ctx& ctx) {
+            int configured = 0, total = 0;
+            std::string missing;
+            for (size_t i = 0; i < 6; ++i) {
+                std::string group = add_first(i);
+                ++total;
+                if (!furniture_configurator::read_config(*app->project, group).is_null()) ++configured;
+                else missing += (missing.empty() ? "" : ", ") + group;
+            }
+            ctx.note(std::format("z kreatorem: {} z {}", configured, total));
+            if (!missing.empty()) ctx.warn("bez kreatora: " + missing);
+            need(configured > 0, "żaden mebel z biblioteki nie trafił do kreatora");
+        });
+        run(area, "karta Materiał zmienia materiał całego mebla", where, [=](Ctx& ctx) {
+            std::string group = add_first(0);
+            json before = furniture_configurator::read_config(*app->project, group);
+            need(!before.is_null(), "mebel nie ma konfiguracji");
+            json items = visual_catalogue::catalogue_items("material", *app->project);
+            need(items.is_array() && items.size() > 1, "katalog materiałów jest pusty");
+            bool changed = false;
+            for (const json& item : items) {
+                visual_catalogue::apply_item(app, item);
+                json after = furniture_configurator::read_config(*app->project, group);
+                if (after.at("material") != before.at("material")) { changed = true; break; }
+            }
+            ctx.note(changed ? "materiał korpusu zmieniony w konfiguracji" : "materiał nie zmienił się");
+            need(changed, "karta materiału nie zmieniła materiału korpusu w konfiguracji mebla");
+        });
+        run(area, "karta Nogi zmienia wysokość nóżek w konfiguracji", where, [=](Ctx& ctx) {
+            std::string group = add_first(0);
+            json items = visual_catalogue::catalogue_items("leg", *app->project);
+            need(items.is_array() && !items.empty(), "katalog nóg jest pusty");
+            json payload = items[0].at("payload");
+            visual_catalogue::apply_item(app, items[0]);
+            json after = furniture_configurator::read_config(*app->project, group);
+            ctx.note(std::format("leg_height = {}", after.value("leg_height", -1.0)));
+            need(after.contains("leg_height") && after.at("leg_height").get<double>() == payload.at("leg_height").get<double>(), "wysokość nóżek w konfiguracji nie zgadza się z kartą");
+        });
+        run(area, "karta bez zaznaczenia działa, gdy w projekcie jest jeden mebel", where, [=](Ctx&) {
+            std::string group = add_first(0);
+            app->selected.reset();
+            json items = visual_catalogue::catalogue_items("leg", *app->project);
+            visual_catalogue::apply_item(app, items[0]);
+            need(!furniture_configurator::read_config(*app->project, group).is_null(), "po karcie mebel stracił konfigurację");
+        });
+        run(area, "mebel spoza kreatora: rozpoznanie wzorca i zmiana materiału przez przejęcie", where, [](Ctx& ctx) {
+            auto [legacy, group] = furniture_library::create_furniture(Project(), 0);
+            need(furniture_configurator::read_config(*legacy, group).is_null(), "to miał być mebel bez konfiguracji");
+            json inferred = furniture_configurator::infer_config(*legacy, group);
+            inferred["leg_height"] = 100;
+            auto [taken, name] = furniture_configurator::configure(*legacy, inferred, group);
+            need(furniture_configurator::read_config(*taken, name).at("leg_height") == json(100), "przejęcie nie zapisało nóżek");
+            ctx.note("infer_config + configure działa dla szablonu 0");
+        });
+    }
+
+    void test_flyout() {
+        const char* area = "Okienko wyboru wysuwane z lewego menu";
+        const char* where = "hover_flyout.cpp (catalogue/actions/show_now), quick_studio_ui.cpp (attach przy pozycjach menu)";
+        struct Spec { const char* name; std::vector<std::string> kinds; };
+        for (const Spec& spec : std::vector<Spec>{{"Meble", {"furniture"}}, {"Kształty i style", {"shaped"}}, {"Kolory i materiały", {"material"}}, {"Fronty i uchwyty", {"handle"}},
+                                                  {"Zawiasy i prowadnice", {"hinge", "runner"}}, {"Nóżki", {"leg"}}, {"Oświetlenie LED", {"led"}}}) {
+            run(area, std::string("okienko „") + spec.name + "” buduje karty i da się je kliknąć", where, [this, spec](Ctx& ctx) {
+                app->project = cabinet(Project()).first;
+                app->selected.reset();
+                for (const auto& q : app->project->parts) if (q.role == "door") { app->selected = q.id; break; }
+                if (!app->selected && !app->project->parts.empty()) app->selected = app->project->parts[0].id;
+                hover_flyout::show_now(app, spec.name, hover_flyout::catalogue(app, spec.kinds));
+                app->update();
+                need(hover_flyout::visible(), "okienko się nie pokazało");
+                int count = hover_flyout::last_item_count();
+                ctx.note(std::format("{} pozycji", count));
+                need(count > 0, "okienko jest puste");
+                need(hover_flyout::click_item(0), "nie udało się kliknąć pierwszej pozycji");
+                if (app->hardware_drag != nullptr && app->hardware_drag->active()) app->hardware_drag->cancel();
+                hover_flyout::hide(app);
+                need(!hover_flyout::visible(), "okienko nie schowało się");
+                app->project = fresh();
+            });
+        }
+        run(area, "okienko poleceń Produkcja", where, [this](Ctx& ctx) {
+            int clicked = 0;
+            hover_flyout::show_now(app, "Produkcja", hover_flyout::actions({{"A", "opis A", [&clicked] { ++clicked; }}, {"B", "opis B", [&clicked] { ++clicked; }}}));
+            need(hover_flyout::last_item_count() == 2, "okienko poleceń ma złą liczbę pozycji");
+            need(hover_flyout::click_item(1), "kliknięcie polecenia nie zadziałało");
+            need(clicked == 1, "polecenie nie zostało wykonane");
+            hover_flyout::hide(app);
+            ctx.note("2 polecenia");
+        });
+    }
+
     void test_exports() {
         const char* area = "Produkcja i eksporty";
         const char* where = "core.cpp (csv/dxf/report/manufacturing), cad_geometry.cpp (STEP/STL), project_print.cpp, production_docs.cpp";
@@ -1534,6 +1641,8 @@ public:
         test_catalogue();
         test_files();
         test_program_files();
+        test_library_on_furniture();
+        test_flyout();
         test_ui();
         test_log_coverage();
     }

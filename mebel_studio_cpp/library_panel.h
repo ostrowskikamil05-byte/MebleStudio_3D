@@ -34,6 +34,7 @@ private:
     void schedule();
     void render_later();
     void activate(const json& item);
+    void report_failure(const std::string& what);
 
     App* app_;
     std::string kind_ = "furniture";
