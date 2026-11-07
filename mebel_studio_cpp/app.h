@@ -2,6 +2,7 @@
 #pragma once
 #include <algorithm>
 #include <array>
+#include <source_location>
 #include <charconv>
 #include <chrono>
 #include <cmath>
@@ -332,7 +333,13 @@ public:
         else tk::messagebox::showinfo("Szkic", "Wybierz element w drzewie projektu.", this);
     }
 
-    void snapshot() {
+    std::string last_snapshot_site;  // plik:linia ostatniego snapshot() — dziennik opisuje nim, co zmieniło projekt
+    void snapshot(std::source_location where = std::source_location::current()) {
+        {
+            std::string file = where.file_name();
+            auto slash = file.find_last_of("/\\");
+            last_snapshot_site = (slash == std::string::npos ? file : file.substr(slash + 1)) + ":" + std::to_string(where.line());
+        }
         if (_native_document != nullptr) {
             _sync_native_document();
             _native_pending = true; changed(); return;
@@ -421,6 +428,7 @@ public:
         loading = false; load_form(); refresh_production(); draw();
         if (room_scene_panel) room_scene_panel->refresh();
         if (corner_panel) corner_panel->refresh();
+        journal::project_refreshed(this);
     }
 
     void load_form() {
@@ -781,8 +789,10 @@ public:
         if (edit_mode.get() == "resize" || edit_mode.get() == "furniture") {
             const Handle* nearest = nullptr;
             for (auto& hd : handles) if (!nearest || std::hypot(e.x - hd.x, e.y - hd.y) < std::hypot(e.x - nearest->x, e.y - nearest->y)) nearest = &hd;
-            if (nearest && std::hypot(e.x - nearest->x, e.y - nearest->y) < 12)
+            if (nearest && std::hypot(e.x - nearest->x, e.y - nearest->y) < 12) {
                 drag_edit = DragEdit{*nearest, std::make_shared<Project>(*project), nullptr, selected, 0};
+                journal::event(this, "rozciąganie", std::format("chwycono uchwyt {} ({}) w trybie {}", nearest->face, nearest->group ? *nearest->group : std::string("(część)"), edit_mode.get()));
+            }
             else if (edit_mode.get() == "furniture")
                 journal::event(this, "rozciąganie", nearest ? std::format("kliknięcie poza uchwytami (najbliższy {} w odległości {:.0f} px)", nearest->face, std::hypot(e.x - nearest->x, e.y - nearest->y))
                                                            : std::string("kliknięcie w trybie rozciągania, ale nie ma żadnych uchwytów"));
@@ -857,6 +867,8 @@ public:
             if (selected && selected->starts_with("scene:")) selected.reset();
             if (selected) { tree->selection_set(*selected); tree->see(*selected); }
             else tree->selection_remove(tree->selection());
+            if (Part* chosen = selected_part()) journal::event(this, "zaznaczenie", std::format("kliknięcie w widoku ({}, {}) w trybie {}: {} [{}] grupa {}", e.x, e.y, edit_mode.get(), chosen->name, chosen->role, chosen->group));
+            else journal::event(this, "zaznaczenie", std::format("kliknięcie w widoku ({}, {}) w trybie {}: nic nie zaznaczono", e.x, e.y, edit_mode.get()));
             load_form(); draw();
             if (edit_mode.get() == "configure") {
                 if (Part* part = selected_part(); part != nullptr && !part->group.empty()) stretch_choice::open_configuration(this, part->group);

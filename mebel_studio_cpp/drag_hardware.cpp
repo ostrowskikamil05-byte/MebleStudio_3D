@@ -4,6 +4,7 @@
 // profile does not invent manufacturer clip drilling or notches. LED groove
 // machining is available only on the CAD engine's broad +T/-T surfaces.
 #include "drag_hardware.h"
+#include "journal.h"
 
 #include <algorithm>
 #include <cmath>
@@ -320,6 +321,7 @@ std::string HardwareDragController::begin(const std::string& kind_, const json& 
         _note("Popraw parametry mebla przed montażem wyposażenia."); return "break";
     }
     cancel(); kind = kind_; options = py::truthy(options_) ? options_ : json::object();
+    journal::event(app, "okucia", "wybrano do montażu: " + kind_ + (options.is_object() && !options.empty() ? " · opcje " + options.dump() : std::string()) + (event != nullptr ? " (przeciąganie z panelu)" : " (kliknięcie kafelka)"));
     project_generation = app->project_generation;
     start = event != nullptr ? std::optional<std::pair<double, double>>({(double)event->x_root, (double)event->y_root}) : std::nullopt;
     _note("Przeciągnij na mebel albo kliknij wybrany element. Esc anuluje.");
@@ -415,17 +417,22 @@ std::optional<std::string> HardwareDragController::target_click(const tk::Event&
     move(event, true);
     if (!active()) return "break";
     if (proposal.is_null() || !py::truthy(proposal["valid"])) {
-        _note(!proposal.is_null() ? proposal["message"].get<std::string>() : "Wskaż element."); return "break";
+        std::string why = !proposal.is_null() ? proposal["message"].get<std::string>() : "Wskaż element.";
+        journal::event(app, "okucia", "montaż " + *kind + " odrzucony: " + why);
+        _note(why); return "break";
     }
-    auto failed = [&](const std::exception& error) { _note(error.what()); };
+    auto failed = [&](const std::exception& error) { journal::event(app, "okucia", std::string("montaż nie powiódł się: ") + error.what()); _note(error.what()); };
     try {
-        json p = proposal; ProjectPtr candidate = attach(*app->project, *kind, py::get(p, "target_id"), py::get(p, "local_hit"), options);
+        json p = proposal;
+        journal::event(app, "okucia", "montaż " + *kind + " na części " + py::get(p, "target_id").dump() + " · miejsce " + py::get(p, "local_hit").dump());
+        ProjectPtr candidate = attach(*app->project, *kind, py::get(p, "target_id"), py::get(p, "local_hit"), options);
         app->snapshot(); app->project = candidate;
-        json target = py::get(p, "target_id"); std::string message = p["message"]; std::string commit_kind = *kind; cancel();
+        json target = py::get(p, "target_id"); std::string message = p["message"]; std::string commit_kind = *kind; kind.reset(); cancel();  // kind.reset() — udany montaż nie jest „anulowaniem”
         if (commit_kind == "lamp" || commit_kind == "bulb" || commit_kind == "light") {
             app->selected.reset(); app->selected_scene = candidate->scene["objects"].back()["id"].get<std::string>();
             app->edit_mode.set("layout");
         } else if (!target.is_null()) app->selected = target.get<std::string>();
+        journal::event(app, "okucia", "dodano " + commit_kind + ": " + message);
         app->refresh(); app->draw(); _note("Dodano: " + message);
     } catch (const ValueError& error) { failed(error); } catch (const py::TypeError& error) { failed(error); } catch (const std::out_of_range& error) { failed(error); }
     return "break";
@@ -441,6 +448,7 @@ std::optional<std::string> HardwareDragController::end(const tk::Event& event) {
 }
 
 std::string HardwareDragController::cancel(tk::Event*) {
+    if (kind) journal::event(app, "okucia", "anulowano montaż: " + *kind);
     kind.reset(); options = json::object(); proposal = nullptr; pointer.reset(); start.reset(); dragging = false;
     _last_move = 0;
     _cache.clear(); _cache_project = nullptr;

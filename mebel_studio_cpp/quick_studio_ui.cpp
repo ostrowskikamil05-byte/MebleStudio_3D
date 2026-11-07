@@ -968,7 +968,8 @@ bool QuickInspector::apply(bool explicit_) {
         {
             std::string changed;
             if (py::truthy(previous) && cfg.is_object())
-                for (auto& [key, value] : cfg.items()) if (!previous.contains(key) || previous.at(key) != value) changed += (changed.empty() ? "" : ", ") + key;
+                for (auto& [key, value] : cfg.items()) if (!previous.contains(key) || previous.at(key) != value)
+                    changed += (changed.empty() ? "" : ", ") + key + (previous.contains(key) ? " " + previous.at(key).dump().substr(0, 60) + "→" : "→") + value.dump().substr(0, 60);
             journal::event(app, "inspektor", std::format("zmiana {}: {}", has_group ? *group : std::string("(nowy mebel)"), changed.empty() ? std::string("przeliczenie") : changed));
         }
         app->snapshot();
@@ -984,10 +985,12 @@ bool QuickInspector::apply(bool explicit_) {
         return true;
     } catch (const py::ValueError& e) {
         note.set(e.what());
+        journal::event(app, "inspektor", std::string("zmiana odrzucona: ") + e.what());
         app->status.set(std::string("Kreator: ") + e.what());
         if (explicit_) tk::messagebox::showerror("Kreator mebla", e.what(), app);
     } catch (const py::KeyError& e) {
         note.set(e.what());
+        journal::event(app, "inspektor", std::string("zmiana odrzucona: ") + e.what());
         app->status.set(std::string("Kreator: ") + e.what());
         if (explicit_) tk::messagebox::showerror("Kreator mebla", e.what(), app);
     } catch (const py::StopIteration& e) {

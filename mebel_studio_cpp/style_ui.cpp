@@ -9,6 +9,7 @@
 
 #include "app.h"
 #include "core.h"
+#include "journal.h"
 #include "pyutil.h"
 #include "responsive_ui.h"
 #include "shaped_furniture.h"
@@ -50,6 +51,7 @@ std::string casefold(const std::string& text) {
 }
 
 void commit(App* app, const core::ProjectPtr& project) {
+    journal::event(app, "kształty", "zatwierdzono zmianę kształtu / stylu mebla");
     app->snapshot();
     app->project = project;
     app->refresh();
@@ -59,7 +61,7 @@ void commit(App* app, const core::ProjectPtr& project) {
 // _guard(app, fn): ValueError, OSError, KeyError, StopIteration -> okno błędu.
 Cmd guarded(App* app, std::function<void()> fn) {
     return [app, fn = std::move(fn)] {
-        auto fail = [app](const char* what) { tk::messagebox::showerror("Sprawdź wymiary", what, app); };
+        auto fail = [app](const char* what) { journal::event(app, "kształty", std::string("odrzucono: ") + what); tk::messagebox::showerror("Sprawdź wymiary", what, app); };
         try {
             fn();
         } catch (const std::invalid_argument& e) { fail(e.what()); }

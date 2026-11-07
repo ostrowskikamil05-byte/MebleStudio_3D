@@ -43,6 +43,7 @@
 #include "perf_monitor.h"
 #include "production_docs.h"
 #include "production_inspector.h"
+#include "journal.h"
 #include "project_print.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
@@ -2101,13 +2102,168 @@ public:
         });
     }
 
+    static bool has_text(const std::string& text, const std::string& needle) { return text.find(needle) != std::string::npos; }
+
+    // Dziennik zdarzeń: każda akcja użytkownika (narożniki, rozciąganie, konfiguracja, okucia, LED, fronty) zostawia czytelny ślad w logu.
+    void test_journal_actions() {
+        const char* area = "Dziennik zdarzeń";
+        // Fragment logu dopisany od znacznika — bez zależności od obrotu pliku.
+        auto mark = [this]() -> uintmax_t { std::error_code ec; return fs::exists(app->developer_log_path) ? fs::file_size(app->developer_log_path, ec) : 0; };
+        auto since = [this](uintmax_t from) -> std::string {
+            std::string text = read_file(app->developer_log_path);
+            return from <= text.size() ? text.substr(from) : text;
+        };
+        auto has = [](const std::string& text, const std::string& needle) { return text.find(needle) != std::string::npos; };
+
+        run(area, "opis różnic projektu: rozciąganie, przesunięcie, nowy mebel, usunięcie", "journal.cpp (describe_difference)", [](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            ProjectPtr stretched = direct_edit::resize_furniture_face(*p, g, "y1", 128);
+            std::string d = journal::describe_difference(*p, *stretched);
+            ctx.note(d);
+            need(has_text(d, "wymiary"), "rozciągnięcie nie zostało opisane jako zmiana wymiarów: " + d);
+            need(has_text(d, g), "opis nie wymienia mebla " + g);
+            ProjectPtr moved = furniture_layout::move_group(*p, g, 700);
+            d = journal::describe_difference(*p, *moved);
+            need(has_text(d, "położenie"), "przesunięcie nie zostało opisane: " + d);
+            auto [two, g2] = cabinet(*p);
+            d = journal::describe_difference(*p, *two);
+            need(has_text(d, "nowe meble"), "dodanie mebla nie zostało opisane: " + d);
+            d = journal::describe_difference(*two, *p);
+            need(has_text(d, "usunięte meble"), "usunięcie mebla nie zostało opisane: " + d);
+            need(journal::describe_difference(*p, *p).empty(), "brak zmian powinien dać pusty opis");
+        });
+
+        run(area, "opis różnic projektu: LED, nóżki, uchwyty i zawiasy jako okucia", "journal.cpp, configurator_accessories.cpp", [](Ctx& ctx) {
+            auto [plain, g] = cabinet(Project(), 0, [](json& c) { c["led"] = false; c["leg_height"] = 0; });
+            auto [led, g2] = furniture_configurator::configure(*plain, [&] { json c = furniture_configurator::read_config(*plain, g); c["led"] = true; return c; }(), g);
+            std::string d = journal::describe_difference(*plain, *led);
+            ctx.note(d);
+            need(has_text(d, "LED"), "włączenie LED nie pojawiło się w opisie okuć: " + d);
+            auto [legs, g3] = furniture_configurator::configure(*plain, [&] { json c = furniture_configurator::read_config(*plain, g); c["leg_height"] = 100; return c; }(), g);
+            d = journal::describe_difference(*plain, *legs);
+            need(has_text(d, "nóżka"), "nóżki nie pojawiły się w opisie okuć: " + d);
+        });
+
+        run(area, "refresh zapisuje wpis [zmiana] ze źródłem i trybem", "app.h (refresh/snapshot), journal.cpp (project_refreshed)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh();
+            auto from = mark();
+            ProjectPtr stretched = direct_edit::resize_furniture_face(*p, g, "y1", 128);
+            app->snapshot(); app->project = stretched; app->refresh();
+            std::string text = since(from);
+            app->project = fresh(); app->refresh();
+            ctx.note("wpis zawiera źródło snapshotu");
+            need(has(text, "[operacja:zmiana]"), "brak wpisu [operacja:zmiana] po zmianie projektu");
+            need(has(text, "wymiary"), "wpis [zmiana] nie mówi o wymiarach");
+            need(has(text, "źródło selftest.cpp:"), "wpis [zmiana] nie wskazuje miejsca w kodzie (snapshot)");
+            need(has(text, "tryb "), "wpis [zmiana] nie zawiera trybu pracy");
+        });
+
+        run(area, "tryb Rozciągnij: uchwyty, chwycenie uchwytu i brak zaznaczenia są w dzienniku", "app.h (draw_original, mouse_down), journal.cpp", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            auto from = mark();
+            app->selected = p->parts.front().id;
+            app->edit_mode.set("furniture"); app->draw();
+            std::string text = since(from);
+            ctx.note(std::format("uchwytów: {}", app->handles.size()));
+            need(!app->handles.empty(), "w trybie Rozciągnij zaznaczony mebel nie ma uchwytów");
+            (void)text;
+            const auto handle = app->handles.front();
+            tk::Event down; down.x = (int)handle.x; down.y = (int)handle.y; down.widget = app->canvas;
+            auto at = mark();
+            app->mouse_down(down);
+            std::string grabbed = since(at);
+            bool began = (bool)app->drag_edit;
+            app->drag_edit.reset();
+            need(began, "kliknięcie w uchwyt nie rozpoczęło rozciągania");
+            need(has(grabbed, "chwycono uchwyt " + handle.face), "dziennik nie zawiera wpisu o chwyceniu uchwytu " + handle.face);
+            // kliknięcie obok uchwytów
+            at = mark();
+            tk::Event miss; miss.x = (int)handle.x + 200; miss.y = (int)handle.y + 200; miss.widget = app->canvas;
+            app->mouse_down(miss);
+            need(has(since(at), "poza uchwytami"), "kliknięcie poza uchwytami nie zostało zapisane w dzienniku");
+            // brak zaznaczenia
+            at = mark();
+            app->selected.reset(); app->draw();
+            need(has(since(at), "brak uchwytów rozciągania: brak zaznaczonej części"), "brak zaznaczenia w trybie Rozciągnij nie został wyjaśniony w dzienniku");
+            app->edit_mode.set("camera");
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "zrzut stanu interakcji zawiera tryb, zaznaczenie, uchwyty i okno konfiguracji", "journal.cpp (interaction_state)", [this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh();
+            app->selected = p->parts.front().id;
+            std::string state = journal::interaction_state(app);
+            ctx.note(state);
+            for (const char* part : {"tryb ", "zaznaczenie ", "uchwytów ", "przeciąganie ", "konfiguracja "}) need(has_text(state, part), std::string("w zrzucie stanu brakuje: ") + part);
+            app->selected.reset();
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "okno konfiguracji: otwarcie i zamknięcie zapisane w dzienniku", "stretch_choice.cpp (open_configuration)", [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            auto from = mark();
+            stretch_choice::open_configuration(app, g);
+            app->update();
+            std::string text = since(from);
+            need(has(text, "[operacja:konfiguracja] otwarto okno dla " + g), "otwarcie okna konfiguracji nie zostało zapisane");
+            need(has(text, "okno "), "brak wpisu o rozmiarze i położeniu okna");
+            ctx.note("okno konfiguracji otwarte");
+            close_extra_windows();
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "montaż okuć: wybór i anulowanie zapisane w dzienniku", "drag_hardware.cpp (begin/cancel)", [=, this](Ctx& ctx) {
+            if (app->hardware_drag == nullptr) { ctx.note("kontroler okuć niedostępny w tym oknie — pominięto"); return; }
+            auto from = mark();
+            app->hardware_drag->begin("hinge", json::object(), nullptr);
+            app->hardware_drag->cancel();
+            std::string text = since(from);
+            need(has(text, "[operacja:okucia] wybrano do montażu: hinge"), "wybór zawiasu do montażu nie został zapisany");
+            need(has(text, "anulowano montaż: hinge"), "anulowanie montażu nie zostało zapisane");
+        });
+
+        run(area, "narożniki: tworzenie z panelu zostawia wpisy [narożnik] i [zmiana]", "corner_quick_ui.cpp (new_corner, commit)", [=, this](Ctx& ctx) {
+            if (app->corner_panel == nullptr) { ctx.note("panel narożnika niedostępny — pominięto"); return; }
+            app->project = fresh(); app->refresh(); app->update();
+            auto from = mark();
+            bool ok = false;
+            try { ok = app->corner_panel->new_corner(); } catch (const std::exception& error) { ctx.note(std::string("wyjątek: ") + error.what()); }
+            std::string text = since(from);
+            ctx.note(ok ? "narożnik utworzony" : "kreator odrzucił domyślne wartości");
+            need(has(text, "[operacja:narożnik] nowy narożnik:"), "tworzenie narożnika nie zostało zapisane w dzienniku");
+            if (ok) {
+                need(has(text, "[operacja:narożnik] zapis narożnika"), "zapis narożnika nie został zapisany w dzienniku");
+                need(has(text, "[operacja:zmiana]"), "utworzenie narożnika nie wygenerowało wpisu [zmiana]");
+                need(has(text, "nowe meble"), "wpis [zmiana] nie mówi o nowym meblu (narożniku)");
+            }
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "narożniki: konwersja szafki zapisana w dzienniku", "corner_quick_ui.cpp (convert_selected)", [=, this](Ctx& ctx) {
+            if (app->corner_panel == nullptr) { ctx.note("panel narożnika niedostępny — pominięto"); return; }
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->selected = p->parts.front().id; app->corner_panel->refresh(); app->update();
+            auto from = mark();
+            bool ok = false;
+            try { ok = app->corner_panel->convert_selected(); } catch (const std::exception& error) { ctx.note(std::string("wyjątek: ") + error.what()); }
+            std::string text = since(from);
+            ctx.note(ok ? "skonwertowano" : "konwersja odrzucona");
+            need(has(text, "[operacja:narożnik] konwersja") || has(text, "odrzucone"), "konwersja do narożnika nie zostawiła wpisu w dzienniku");
+            app->project = fresh(); app->refresh();
+        });
+    }
+
     void test_log_coverage() {
         run("Logi", "dziennik zawiera wpisy z testowanych obszarów", "journal.cpp, developer_logs.cpp, sketch.cpp, app.h (file_event/draw_done/undo), form_dialog.cpp", [this](Ctx& ctx) {
             need(fs::exists(app->developer_log_path), "brak pliku logu: " + py::path_str(app->developer_log_path));
             std::string text = read_file(app->developer_log_path);
             std::string missing;
             long long found = 0;
-            for (const char* category : {"szkic", "plik", "okno", "konfiguracja", "cofanie", "biblioteka", "render", "rozciąganie"}) {
+            for (const char* category : {"szkic", "plik", "okno", "konfiguracja", "cofanie", "biblioteka", "render", "rozciąganie", "zmiana", "okucia", "narożnik"}) {
                 if (text.find(std::string("[operacja:") + category + "]") != std::string::npos) ++found;
                 else missing += std::string(missing.empty() ? "" : ", ") + category;
             }
@@ -2143,6 +2299,7 @@ public:
         test_inspector();
         test_text_design();
         test_ui();
+        test_journal_actions();
         test_log_coverage();
     }
 };

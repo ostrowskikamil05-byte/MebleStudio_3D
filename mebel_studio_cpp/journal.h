@@ -21,4 +21,14 @@ void file_event(App* app, const std::string& action, const std::string& path, do
 // Wypisuje każdą grupę (mebel): zakres X/Y/Z, obrót, kierunek frontu, a potem odstępy między sąsiadującymi meblami (≤ 250 mm).
 void dump_groups(App* app, const core::Project& project, const std::string& label);
 
+// Porównuje projekt z poprzednim stanem zapisanym w dzienniku i opisuje różnicę jednym wpisem [operacja:zmiana] (części, meble, okucia, wiercenia,
+// wymiary / położenie / materiały), razem z miejscem w kodzie, które zrobiło migawkę (App::snapshot). Brak różnic = brak wpisu.
+// Zwraca opis (pusty, gdy nic się nie zmieniło) — używane też przez testy dziennika.
+std::string project_refreshed(App* app);
+std::string describe_difference(const core::Project& before, const core::Project& after);
+void forget_project_state(App* app);
+
+// Zrzut stanu interakcji (tryb, zaznaczenie, uchwyty, otwarte okna, przeciągania) — ułatwia diagnozę „nic się nie dzieje po kliknięciu”.
+std::string interaction_state(App* app);
+
 }  // namespace journal

@@ -222,7 +222,12 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
             if (*is_open) body->pack({{"fill", "x"}});
             else body->pack_forget();
         };
-        auto toggle = [is_open, show_state](tk::Event&) mutable { *is_open = !*is_open; show_state(); return std::string(); };
+        std::string section_title = g.title;
+        auto toggle = [app, is_open, show_state, section_title, title](tk::Event&) mutable {
+            *is_open = !*is_open; show_state();
+            journal::event(app, "konfiguracja", std::format("{}: sekcja „{}” {}", title, section_title, *is_open ? "rozwinięta" : "zwinięta"));
+            return std::string();
+        };
         for (tk::Widget* w : std::vector<tk::Widget*>{header, icon, title_label, arrow_label, summary_label}) w->bind("<Button-1>", toggle);
         show_state();
         // zmienne tej sekcji — do podsumowania w nagłówku
@@ -269,7 +274,12 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
                 ++column;
                 std::string chosen = label;
                 canvas->bind("<Configure>", [redraw](tk::Event&) { redraw(); return std::string(); });
-                canvas->bind("<Button-1>", [var, chosen](tk::Event&) mutable { var.set(chosen); return std::string(); });
+                std::string row_label = row.label;
+                canvas->bind("<Button-1>", [app, var, chosen, row_label, key](tk::Event&) mutable {
+                    journal::event(app, "konfiguracja", std::format("kafelek „{}”: {} → {}", row_label, var.get(), chosen));
+                    var.set(chosen);
+                    return std::string();
+                });
             }
             var.trace_add("write", redraw);
         }
@@ -281,12 +291,17 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
                 settings->checks.push_back({key, label, tk::BooleanVar(value), value});
                 tk::BooleanVar var = settings->checks.back().var;
                 var.trace_add("write", notify);
+                var.trace_add("write", [app, var, label = label]() mutable { journal::event(app, "konfiguracja", std::format("pole „{}”: {}", label, var.get() ? "włączone" : "wyłączone")); });
                 (new ttk::Checkbutton(extras, {{"text", label}, {"variable", var}}))->pack({{"side", "left"}, {"padx", "0 14"}});
             }
         }
         update_summary();
     }
     settings->apply_first = tk::BooleanVar(!full);
+    {
+        tk::BooleanVar apply_var = settings->apply_first;
+        apply_var.trace_add("write", [app, apply_var, apply_text]() mutable { journal::event(app, "konfiguracja", std::format("„{}”: {}", apply_text, apply_var.get() ? "tak" : "nie")); });
+    }
     (new ttk::Checkbutton(box, {{"text", apply_text}, {"variable", settings->apply_first}}))->pack({{"anchor", "w"}, {"pady", "8 0"}});
     return settings;
 }
@@ -822,7 +837,8 @@ void open_configuration(App* app, const std::string& group, const std::string& n
         ->pack({{"anchor", "w"}});
     std::string apply_text = row_now.size() > 1 ? std::format("Zmieniaj cały rząd szafek ({})", row_now.size()) : std::string("Zmieniaj cały rząd szafek");
     auto settings = build_settings(app, body, cfg, true, "Konfiguracja", apply_text);
-    auto close = [dialog, app, keep = settings] {
+    auto close = [dialog, app, keep = settings, group] {
+        journal::event(app, "konfiguracja", "zamknięto okno konfiguracji (" + group + ")");
         app->after(1, [dialog] {
             try { dialog->destroy(); } catch (const tk::TclError&) {}
             if (g_config_dialog == dialog) g_config_dialog = nullptr;

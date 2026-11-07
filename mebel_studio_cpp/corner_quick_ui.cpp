@@ -10,10 +10,31 @@
 #include "corner_furniture.h"
 #include "furniture_configurator.h"
 #include "furniture_layout.h"
+#include "journal.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
 
 namespace corner_quick_ui {
+
+namespace {
+
+std::string corner_summary(const json& c) {
+    auto pick = [&](const char* key) -> std::string { return c.is_object() && c.contains(key) ? py::str(c.at(key)) : std::string("?"); };
+    return std::format("kształt {} · strona {} · fronty {} · {}×{}×{} mm · ramię {}", pick("shape"), pick("side"), pick("fronts"), pick("width"), pick("depth"), pick("height"), pick("arm_depth"));
+}
+
+std::string corner_changes(const json& before, const json& after) {
+    std::string out;
+    if (!before.is_object() || !after.is_object()) return out;
+    for (auto it = after.begin(); it != after.end(); ++it)
+        if (!before.contains(it.key()) || before.at(it.key()) != it.value())
+            out += (out.empty() ? "" : ", ") + it.key() + (before.contains(it.key()) ? " " + py::str(before.at(it.key())) + "→" : "→") + py::str(it.value());
+    return out.empty() ? std::string("bez zmian pól") : out;
+}
+
+void log_failure(App* app, const char* what, const std::string& reason) { journal::event(app, "narożnik", std::string(what) + " odrzucone: " + reason); }
+
+}  // namespace
 
 using namespace corner_furniture;
 
@@ -124,12 +145,14 @@ void CornerPanel::destroyed(tk::Event& event) {
 
 void CornerPanel::changed() {
     if (syncing) return;
+    journal::event(app, "narożnik", std::string("zmiana pola w panelu") + (group ? " (narożnik " + *group + ", przeliczenie za 450 ms)" : " (jeszcze bez narożnika)"));
     has_draft = (bool)group;
     cancel_pending(); draw_preview();
     if (group) job = after(450, [this] { apply(); });
 }
 
 void CornerPanel::quick_shape(const std::string& shape) {
+    journal::event(app, "narożnik", "szybki wybór kształtu: " + shape);
     config["shape"] = shape;
     std::string fronts = shape == "L" ? "orthogonal" : shape == "chamfer" ? "diagonal" : "open";
     var("fronts").set(label_for("fronts", fronts)); changed();
@@ -176,7 +199,8 @@ void CornerPanel::refresh() {
 }
 
 bool CornerPanel::commit(core::ProjectPtr result, const std::string& group_) {
-    if (result->data() == app->project->data()) return true;
+    if (result->data() == app->project->data()) { journal::event(app, "narożnik", group_ + ": wynik identyczny z projektem — nic do zapisania"); return true; }
+    journal::event(app, "narożnik", std::format("zapis narożnika {} ({} części → {})", group_, app->project->parts.size(), result->parts.size()));
     std::optional<std::string> oldselected = app->selected; app->snapshot(); app->project = result;
     bool kept = false; for (auto& p : result->parts) if (oldselected && p.id == *oldselected) kept = true;
     if (kept) app->selected = oldselected;
@@ -197,8 +221,9 @@ bool CornerPanel::apply() {
         if (generation != app->project_generation) throw py::ValueError("Projekt zmienił się. Wybierz narożnik ponownie.");
         json c = normalize_corner_config(draft(), app->project.get()); json previous = read_corner_config(*app->project, group);
         if (c == normalize_corner_config(previous, app->project.get())) { has_draft = false; return true; }
+        journal::event(app, "narożnik", "zastosowanie zmian w " + *group + ": " + corner_changes(previous, c));
         auto [result, group_] = create_corner(*app->project, c, group); return commit(result, group_);
-    } catch (const py::ValueError& e) { note.set(e.what()); return false; }
+    } catch (const py::ValueError& e) { log_failure(app, "zmiana", e.what()); note.set(e.what()); return false; }
     catch (const py::KeyError& e) { note.set(e.what()); return false; }
     catch (const json::out_of_range& e) { note.set(e.what()); return false; }
     catch (const py::StopIteration&) { note.set(""); return false; }  // str(StopIteration()) == ''
@@ -220,10 +245,11 @@ bool CornerPanel::convert_selected() {
         }
         options["shape"] = at(c, "shape"); options["material"] = at(c, "material"); options["front_material"] = at(c, "front_material");
         std::string shape = options["shape"].get<std::string>(); options.erase("shape");
+        journal::event(app, "narożnik", "konwersja „" + part->group + "” na narożnik: " + corner_summary(c));
         auto [result, group_] = convert_to_corner(*app->project, part->group, shape, at(c, "side").get<std::string>(), at(c, "arm_depth"), at(c, "width"), at(c, "depth"),
                                                   at(c, "fronts").get<std::string>(), options);
         return commit(result, group_);
-    } catch (const py::ValueError& e) { note.set(e.what()); return false; }
+    } catch (const py::ValueError& e) { log_failure(app, "konwersja", e.what()); note.set(e.what()); return false; }
     catch (const py::KeyError& e) { note.set(e.what()); return false; }
     catch (const json::out_of_range& e) { note.set(e.what()); return false; }
     catch (const py::StopIteration&) { note.set(""); return false; }
@@ -233,6 +259,7 @@ bool CornerPanel::new_corner() {
     cancel_pending();
     try {
         json c = draft(); c["name"] = at(c, "furniture_type") == "wardrobe" ? "Szafa narożna" : "Korpus narożny"; c["origin"] = json::array({0, 0, 0});
+        journal::event(app, "narożnik", "nowy narożnik: " + corner_summary(c));
         auto [result, group_] = create_corner(*app->project, c);
         if (!app->project->parts.empty()) {
             std::set<std::string> groups; for (auto& p : app->project->parts) groups.insert(p.group);
@@ -241,7 +268,7 @@ bool CornerPanel::new_corner() {
             auto [lo, _] = furniture_layout::group_bounds(*result, group_); result = furniture_layout::move_group(*result, group_, right + 50 - lo[0]);
         }
         return commit(result, group_);
-    } catch (const py::ValueError& e) { note.set(e.what()); return false; }
+    } catch (const py::ValueError& e) { log_failure(app, "tworzenie", e.what()); note.set(e.what()); return false; }
     catch (const py::KeyError& e) { note.set(e.what()); return false; }
     catch (const json::out_of_range& e) { note.set(e.what()); return false; }
     catch (const py::StopIteration&) { note.set(""); return false; }

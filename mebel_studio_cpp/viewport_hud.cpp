@@ -122,6 +122,7 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
                     else if (target == "configure") app->status.set("Konfiguracja: kliknij mebel, aby otworzyć okno z uchwytami, nóżkami, zawiasami, materiałami i dodatkami");
                     else if (target == "resize") app->status.set(app->selected ? "Rozciąganie części: przeciągnij kolorowe uchwyty (U / V / T) zaznaczonego elementu" : "Rozciąganie części: zaznacz element, potem przeciągnij uchwyty");
                 }
+                journal::event(app, "narzędzie", "stan po kliknięciu „" + tool_label + "”: " + journal::interaction_state(app));
             }});
         }
     }
