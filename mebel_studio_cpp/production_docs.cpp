@@ -7,6 +7,7 @@
 
 #include "features.h"
 #include "pyutil.h"
+#include "sheet_nesting.h"
 
 namespace production_docs {
 
@@ -132,14 +133,19 @@ void labels_export(Project& project, const std::string& path) {
         "h3{margin:2mm 0}.id{font:bold 15px Consolas}svg{width:28mm;height:20mm;float:right}@media print{button{display:none}}</style>"
         "<button onclick=\"print()\">Drukuj etykiety</button><div class=\"labels\">";
     int index = 1;
+    // Numer płyty i pozycja formatki z planu rozkroju (to samo, co pokazuje zakładka Rozkrój i arkusze).
+    auto placement = sheet_nesting::placements(sheet_nesting::plan(project).first);
     for (const auto& part : project.parts) {
         auto [a, b] = part.blank(project.edge_t);
+        std::string cutting_place = "poza płytą (nie mieści się)";
+        if (auto found = placement.find(part.id); found != placement.end())
+            cutting_place = std::format("płyta {} · poz. {}{}", found->second.sheet, found->second.position, found->second.rotated ? " · obrócona" : "");
         std::string edges;
         for (size_t k = 0; k < part.edges.size(); ++k) edges += (k ? " / " : "") + std::string(part.edges[k] ? "tak" : "—");
         out += std::format("<section class=\"label\">{}<small>{} · #{}</small><h3>{}</h3><div>{}</div><div>{}</div><div>Gotowe: {} × {} × {} mm</div>"
-                           "<div>Cięcie: {} × {} mm · włókna: {}</div><div>Obrzeża U0/U1/V0/V1: {}</div><div class=\"id\">{}</div></section>",
+                           "<div>Cięcie: {} × {} mm · włókna: {}</div><div>Rozkrój: <b>{}</b></div><div>Obrzeża U0/U1/V0/V1: {}</div><div class=\"id\">{}</div></section>",
                            part_svg(project, part), esc(project.name), index, esc(part.name), esc(part.group), esc(project.mat(part.material).name), g(part.u), g(part.v), g(part.t),
-                           g(a), g(b), part.grain ? "U" : "dowolnie", edges, esc(part.id));
+                           g(a), g(b), part.grain ? "U" : "dowolnie", esc(cutting_place), edges, esc(part.id));
         ++index;
     }
     out += "</div></html>";

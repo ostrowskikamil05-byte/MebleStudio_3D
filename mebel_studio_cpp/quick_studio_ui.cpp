@@ -3,6 +3,8 @@
 #include "forma_widgets.h"
 #include "perf_monitor.h"
 #include "quick_studio_ui.h"
+#include "production_docs.h"
+#include "sheet_nesting.h"
 #include "journal.h"
 #include "tile_glyphs.h"
 
@@ -1529,6 +1531,7 @@ void build(App* app) {
             {"Drukuj komplet…", "Dokumenty do druku: formatki, okucia, rysunki", [app] { if (app->print_project) app->print_project(); }},
             {"Eksport CAD / CNC", "DXF, pliki do cięcia i obróbki", [app] { app->export_(); }},
             {"Lista formatek", "Wymiary do cięcia, obrzeża, materiały", [show_tab] { show_tab("Formatki"); }},
+            {"Rozkrój płyt", "Układ formatek na płytach, odpad, arkusze do druku i DXF", [show_tab] { show_tab("Rozkrój"); }},
             {"Kosztorys", "Materiały, okucia, robocizna i narzut", [show_tab] { show_tab("Kosztorys"); }},
             {"Ceny, robocizna i narzut", "Ustawienia kosztorysu", [app] { app->settings(); }}};
         for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Drukuj komplet…", [app] { if (app->print_project) app->print_project(); }},
@@ -1643,13 +1646,40 @@ void build_production(App* app) {
     auto* cut = new ttk::Frame(app->tabs, {{"padding", "18 14"}});
     app->tabs->add(cut, {{"text", "Rozkrój"}});
     app->cutlabel = header(cut, "Rozkrój", "");
+    {
+        // Tryb optymalizatora i eksporty arkuszy (HTML do druku, DXF); etykiety formatek niosą numer płyty i pozycję.
+        static const bool optimizer_default = [] { sheet_nesting::set_mode(sheet_nesting::Mode::Optimized); return true; }();  // program startuje w trybie optymalnym
+        (void)optimizer_default;
+        auto* tools = new ttk::Frame(cut);
+        tools->pack({{"anchor", "w"}, {"pady", "0 8"}});
+        static const std::pair<const char*, sheet_nesting::Mode> MODES[] = {{"Optymalny — wiele wariantów, najmniej płyt", sheet_nesting::Mode::Optimized},
+                                                                         {"Klasyczny — jak w wersji Python", sheet_nesting::Mode::Classic}};
+        auto* mode_var = new tk::StringVar(sheet_nesting::mode() == sheet_nesting::Mode::Optimized ? MODES[0].first : MODES[1].first);
+        auto* mode_combo = new ttk::Combobox(tools, {{"textvariable", *mode_var}, {"state", "readonly"}, {"width", 42}, {"values", std::vector<std::string>{MODES[0].first, MODES[1].first}}});
+        mode_combo->pack({{"side", "left"}, {"padx", "0 8"}});
+        mode_combo->bind("<<ComboboxSelected>>", plain([app, mode_var](tk::Event&) {
+            sheet_nesting::set_mode(mode_var->get() == MODES[0].first ? sheet_nesting::Mode::Optimized : sheet_nesting::Mode::Classic);
+            app->refresh_production();
+        }));
+        make_button(tools, "Arkusze · druk", [app] { app->export_cut_plan("cutting"); })->pack({{"side", "left"}, {"padx", "0 6"}});
+        make_button(tools, "Arkusze · DXF", [app] { app->export_cut_plan("cutting_dxf"); })->pack({{"side", "left"}, {"padx", "0 6"}});
+        make_button(tools, "Etykiety z numerem płyty", [app] {
+            std::string path = tk::filedialog::asksaveasfilename({{"parent", app}, {"defaultextension", ".html"}, {"initialfile", app->project->name + " — etykiety.html"}, {"filetypes", tk::FileTypes{{"Etykiety", "*.html"}}}});
+            if (path.empty()) return;
+            try {
+                production_docs::labels_export(app->project, path);
+                app->status.set("Wyeksportowano etykiety: " + path);
+                py::webbrowser_open(py::as_uri(std::filesystem::weakly_canonical(py::to_path(path))));
+            } catch (const std::exception& e) { tk::messagebox::showerror("Błąd eksportu etykiet", e.what(), app); }
+        })->pack({{"side", "left"}});
+    }
     app->sheetcombo = new ttk::Combobox(cut, {{"textvariable", app->sheetvar}, {"state", "readonly"}, {"width", 65}});
     app->sheetcombo->pack({{"anchor", "w"}});
     app->sheetcombo->bind("<<ComboboxSelected>>", plain([app](tk::Event&) { app->draw_cut(); }));
     app->cutcanvas = new tk::Canvas(cut, {{"bg", forma_theme::CARD}, {"highlightthickness", 1}, {"highlightbackground", forma_theme::BORDER}});
     app->cutcanvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 10}});
     app->cutcanvas->bind("<Configure>", plain([app](tk::Event&) { app->draw_cut(); }));
-    (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony; nieregularne kontury używają prostokątnych półfabrykatów."}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}});
+    (new ttk::Label(cut, {{"text", "Rozkrój gilotynowy jest przybliżony (tryb optymalny wybiera najlepszy z wielu wariantów); nieregularne kontury używają prostokątnych półfabrykatów."}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}});
 }
 
 ttk::Button* _button(tk::Widget* parent, const std::string& label, std::function<void()> command, bool accent) {

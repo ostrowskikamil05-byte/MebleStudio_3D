@@ -26,6 +26,7 @@
 #include "library_panel.h"
 #include "perf_monitor.h"
 #include "side_panels.h"
+#include "sheet_nesting.h"
 #include "view_style.h"
 #include "viewport_hud.h"
 #include "forma_theme.h"
@@ -551,14 +552,11 @@ public:
         auto c = project->costs(); table = tables["costs"]; table->delete_(table->get_children()); zebra = 0;
         for (auto& [label, key] : std::vector<std::pair<std::string, std::string>>{{"Materiał · powierzchnia netto", "panels"}, {"Obrzeża", "edges"}, {"Akcesoria", "hardware"}, {"Robocizna", "labor"}, {"Koszt bazowy", "base"}, {std::format("Cena z narzutem {:g}%", project->markup), "total"}})
             table->insert("", "end", {{"values", std::vector<std::string>{label, std::format("{:.2f}", c.at(key))}}, {"tags", key == "total" ? "total" : key == "base" ? "subtotal" : (zebra++ % 2) ? "odd" : "even"}});
-        auto [sheets_, bad] = cut_plan(*project); sheets = sheets_;
+        auto [sheets_, bad] = sheet_nesting::plan(*project); sheets = sheets_;
         double stock = 0;
         for (auto& s : sheets) { Part blank; blank.u = s["u"]; blank.v = s["v"]; blank.t = s["thickness"]; stock += project->mat(s["material"].get<std::string>()).cost(blank); }
         costnote->configure({{"text", std::format("Pełne płyty według rozkroju: {:.2f} zł · ceny własne, bez podatku i transportu; materiał netto nie zawiera odpadów.", stock)}});
-        double used = 0;
-        for (auto& p : project->parts) if (std::find(bad.begin(), bad.end(), p.id) == bad.end()) used += p.blank(project->edge_t).first * p.blank(project->edge_t).second;
-        double total = 0; for (auto& s : sheets) total += s["u"].get<double>() * s["v"].get<double>();
-        cutlabel->configure({{"text", std::format("Płyty: {} · wykorzystanie półfabrykatów: {:.1f}% · nie mieszczą się: {} · rzaz {:g} mm / margines {:g} mm", sheets.size(), total ? used / total * 100 : 0, bad.size(), project->kerf, project->margin)}});
+        cutlabel->configure({{"text", sheet_nesting::summary_line(*project, sheets, bad)}});
         std::vector<std::string> vals;
         for (size_t i = 0; i < sheets.size(); ++i) { auto& s = sheets[i]; vals.push_back(std::format("{}. {} · {:g} mm · {:g} × {:g}", i + 1, project->mat(s["material"].get<std::string>()).name, s["thickness"].get<double>(), s["u"].get<double>(), s["v"].get<double>())); }
         sheetcombo->configure({{"values", vals}});
@@ -574,6 +572,17 @@ public:
         double su = s["u"], sv = s["v"];
         double scale = std::min((w - 50) / su, (h - 50) / sv); double ox = (w - su * scale) / 2; double oy = (h - sv * scale) / 2;
         c->create_rectangle(ox, oy, ox + su * scale, oy + sv * scale, {{"fill", "#f1eee8"}, {"outline", "#6b7266"}});
+        // Wolne pola po rozkroju (odpady): przerywany obrys, a większe z podpisem wymiaru.
+        if (s.contains("free") && s["free"].is_array()) {
+            for (auto& f : s["free"]) {
+                double fw = f[2].get<double>() - project->kerf, fh = f[3].get<double>() - project->kerf;
+                if (fw <= 0 || fh <= 0) continue;
+                double fx = ox + f[0].get<double>() * scale, fy = oy + f[1].get<double>() * scale;
+                c->create_rectangle(fx, fy, fx + fw * scale, fy + fh * scale, {{"fill", "#e4e1da"}, {"outline", "#9aa4ae"}, {"dash", "4 3"}});
+                if (fw * scale > 90 && fh * scale > 30)
+                    c->create_text(fx + fw * scale / 2, fy + fh * scale / 2, {{"text", std::format("odpad {:.0f} × {:.0f}", fw, fh)}, {"font", "{Segoe UI} 8"}, {"fill", "#6b7684"}});
+            }
+        }
         for (size_t n = 0; n < s["pieces"].size(); ++n) {
             auto& r = s["pieces"][n];
             Part* p = nullptr; for (auto& q : project->parts) if (json(q.id) == r["id"]) { p = &q; break; }
@@ -582,7 +591,7 @@ public:
             double x = ox + r["x"].get<double>() * scale, y = oy + r["y"].get<double>() * scale;
             c->create_rectangle(x, y, x + ru * scale, y + rv * scale, {{"fill", project->mat(p->material).color}, {"outline", "#45546b"}});
             if (ru * scale > 70 && rv * scale > 32)
-                c->create_text(x + ru * scale / 2, y + rv * scale / 2, {{"text", std::format("{}. {}\n{:g} × {:g}", n + 1, p->name, ru, rv)}, {"font", "{Segoe UI} 9"}, {"width", std::max(30.0, ru * scale - 8)}, {"fill", "#172332"}});
+                c->create_text(x + ru * scale / 2, y + rv * scale / 2, {{"text", std::format("{}. {}\n{:g} × {:g}{}", n + 1, p->name, ru, rv, r.value("rotated", false) ? " ⟳" : "")}, {"font", "{Segoe UI} 9"}, {"width", std::max(30.0, ru * scale - 8)}, {"fill", "#172332"}});
         }
     }
 
@@ -1219,7 +1228,7 @@ public:
         auto* d = dialog("Eksport dokumentacji", "610x760");
         (new ttk::Label(d, {{"text", "Dokumentacja projektu"}, {"style", "Title.TLabel"}, {"padding", 15}}))->pack({{"anchor", "w"}});
         auto run = [this, d](const std::string& kind) {
-            std::string ext = std::map<std::string, std::string>{{"csv", ".csv"}, {"dxf", ".dxf"}, {"html", ".html"}, {"svg", ".svg"}, {"json", ".json"}, {"step", ".step"}, {"stl", ".stl"}, {"drawings", ".html"}, {"labels", ".html"}, {"project_print", ".html"}}.at(kind);
+            std::string ext = std::map<std::string, std::string>{{"csv", ".csv"}, {"dxf", ".dxf"}, {"html", ".html"}, {"svg", ".svg"}, {"json", ".json"}, {"step", ".step"}, {"stl", ".stl"}, {"drawings", ".html"}, {"labels", ".html"}, {"project_print", ".html"}, {"cutting", ".html"}, {"cutting_dxf", ".dxf"}}.at(kind);
             std::string path_ = tk::filedialog::asksaveasfilename({{"parent", d}, {"defaultextension", ext}, {"initialfile", project->name + ext}, {"filetypes", tk::FileTypes{{"Eksport", "*" + ext}}}});
             if (path_.empty()) return;
             auto export_started = std::chrono::steady_clock::now();
@@ -1233,6 +1242,10 @@ public:
                 else if (kind == "json") manufacturing_export(*project, path_);
                 else if (kind == "drawings" || kind == "labels") {
                     if (kind == "drawings") production_docs::drawings_export(project, path_); else production_docs::labels_export(project, path_);
+                } else if (kind == "cutting") {
+                    sheet_nesting::sheets_export(*project, path_);
+                } else if (kind == "cutting_dxf") {
+                    sheet_nesting::sheets_dxf_export(*project, path_);
                 } else if (kind == "project_print") {
                     project_print::export_project_print(project, path_);
                 } else if (kind == "stl") {
@@ -1244,14 +1257,34 @@ public:
                 }
                 status.set("Wyeksportowano: " + path_);
                 journal::file_event(this, "eksport " + kind, path_, export_ms(), "OK");
-                if (kind == "html" || kind == "svg" || kind == "drawings" || kind == "labels" || kind == "project_print") py::webbrowser_open(py::as_uri(fs::weakly_canonical(py::to_path(path_))));
+                if (kind == "html" || kind == "svg" || kind == "drawings" || kind == "labels" || kind == "project_print" || kind == "cutting") py::webbrowser_open(py::as_uri(fs::weakly_canonical(py::to_path(path_))));
                 else tk::messagebox::showinfo("Eksport gotowy", "Zapisano plik:\n" + path_, d);
             } catch (const OSError& e) { on_error(e); } catch (const ValueError& e) { on_error(e); }
         };
-        for (auto& [label, kind] : std::vector<std::pair<std::string, std::string>>{{"Komplet + rozstrzelone szafki + rozkrój · druk / PDF", "project_print"}, {"Formatki CSV · Excel / rozkrój", "csv"}, {"Kontury i otwory DXF · dokumentacja 2D", "dxf"}, {"Bryły STEP · dokładna geometria obróbek", "step"}, {"Model STL · siatka 3D", "stl"}, {"Rysunki części · wymiary i obróbki", "drawings"}, {"Etykiety części · druk A4", "labels"}, {"Dane produkcyjne JSON · geometria i wiercenia", "json"}, {"Raport HTML · wydruk / zapis PDF", "html"}, {"Widok SVG · prezentacja klientowi", "svg"}})
+        for (auto& [label, kind] : std::vector<std::pair<std::string, std::string>>{{"Komplet + rozstrzelone szafki + rozkrój · druk / PDF", "project_print"}, {"Rozkrój płyt · arkusze z numerami · druk", "cutting"}, {"Rozkrój płyt · DXF (płyty i formatki)", "cutting_dxf"}, {"Formatki CSV · Excel / rozkrój", "csv"}, {"Kontury i otwory DXF · dokumentacja 2D", "dxf"}, {"Bryły STEP · dokładna geometria obróbek", "step"}, {"Model STL · siatka 3D", "stl"}, {"Rysunki części · wymiary i obróbki", "drawings"}, {"Etykiety części · druk A4", "labels"}, {"Dane produkcyjne JSON · geometria i wiercenia", "json"}, {"Raport HTML · wydruk / zapis PDF", "html"}, {"Widok SVG · prezentacja klientowi", "svg"}})
             (new ttk::Button(d, {{"text", label}, {"command", std::function<void()>([run, k = kind] { run(k); })}}))->pack({{"fill", "x"}, {"padx", 15}, {"pady", 6}});
         (new ttk::Label(d, {{"text", "DXF nie jest programem maszyny CNC.\nRaport zawiera model, rzuty, formatki, rozkrój i kosztorys.\nPDF zapiszesz z raportu przez „Drukuj”."}, {"padding", 15}}))->pack({{"anchor", "w"}});
         return true;
+    }
+
+    // Z zakładki Rozkrój: zapis arkuszy rozkroju (HTML do druku albo DXF).
+    void export_cut_plan(const std::string& kind) {
+        if (!flush_parameter_drafts()) return;
+        std::string ext = kind == "cutting_dxf" ? ".dxf" : ".html";
+        std::string path_ = tk::filedialog::asksaveasfilename({{"parent", this}, {"defaultextension", ext}, {"initialfile", project->name + " — rozkrój" + ext}, {"filetypes", tk::FileTypes{{"Rozkrój", "*" + ext}}}});
+        if (path_.empty()) return;
+        auto started = std::chrono::steady_clock::now();
+        auto elapsed = [&] { return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count(); };
+        try {
+            project->validate();
+            if (kind == "cutting_dxf") sheet_nesting::sheets_dxf_export(*project, path_); else sheet_nesting::sheets_export(*project, path_);
+            status.set("Wyeksportowano rozkrój: " + path_);
+            journal::file_event(this, "eksport " + kind, path_, elapsed(), "OK");
+            if (kind == "cutting") py::webbrowser_open(py::as_uri(fs::weakly_canonical(py::to_path(path_))));
+        } catch (const std::exception& e) {
+            journal::file_event(this, "eksport " + kind, path_, elapsed(), std::string("BŁĄD: ") + e.what());
+            tk::messagebox::showerror("Błąd eksportu rozkroju", e.what(), this);
+        }
     }
 
     void help() {

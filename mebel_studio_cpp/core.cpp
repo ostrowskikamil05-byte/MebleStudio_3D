@@ -1,5 +1,6 @@
 // Mebel Studio 3D: shared geometry, project and manufacturing model (millimetres).
 #include "core.h"
+#include "sheet_nesting.h"
 
 #include <algorithm>
 #include <cctype>
@@ -940,7 +941,7 @@ void dxf_export(const Project& project, const std::string& path) {
 }
 
 void report_export(Project& project, const std::string& path) {
-    auto esc = py::html_escape; auto [sheets, bad] = cut_plan(project); auto c = project.costs();
+    auto esc = py::html_escape; auto [sheets, bad] = sheet_nesting::plan(project); auto c = project.costs();
     auto part_name = [&](const json& id) -> std::string {
         for (auto& p : project.parts) if (json(p.id) == id) return p.name;
         throw StopIteration();
@@ -977,7 +978,7 @@ void report_export(Project& project, const std::string& path) {
         out.push_back(std::format("<tr><td>{}</td><td>{:g}</td><td>{}</td><td>{}</td></tr>", esc(item.at("name").get<std::string>()), item.at("qty").get<double>(), esc(owner), py::truthy(py::get(item, "owner_id")) ? "Wzorzec roboczy — do sprawdzenia" : "Ręczne"));
     }
     out.push_back("</table>");
-    out.push_back("<h2>Układ rozkroju</h2><p>Heurystyka gilotynowa; nie gwarantuje minimum płyt. Grupowanie według materiału i grubości. Kierunek włókien wzdłuż U. Rzaz " + std::format("{:g} mm; margines {:g} mm.</p>", project.kerf, project.margin));
+    out.push_back("<h2>Układ rozkroju</h2><p>" + std::string(sheet_nesting::mode() == sheet_nesting::Mode::Optimized ? "Optymalizator gilotynowy (wiele wariantów, wybrany najlepszy); nie gwarantuje absolutnego minimum płyt." : "Heurystyka gilotynowa; nie gwarantuje minimum płyt.") + " Grupowanie według materiału i grubości. Kierunek włókien wzdłuż U. Rzaz " + std::format("{:g} mm; margines {:g} mm.</p>", project.kerf, project.margin));
     for (size_t i = 0; i < sheets.size(); ++i) {
         auto& s = sheets[i];
         out.push_back(std::format("<h3>Płyta {}: {}, {:g} mm</h3><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {} {}\"><rect width=\"{}\" height=\"{}\" fill=\"#f2f4f7\" stroke=\"#333\"/>", i + 1, esc(project.mat(s["material"].get<std::string>()).name), s["thickness"].get<double>(), py::str(s["u"]), py::str(s["v"]), py::str(s["u"]), py::str(s["v"])));

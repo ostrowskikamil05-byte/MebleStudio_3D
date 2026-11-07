@@ -12,6 +12,7 @@
 #include "configurator_accessories.h"
 #include "fitting_visuals.h"
 #include "production_docs.h"
+#include "sheet_nesting.h"
 #include "pyutil.h"
 
 namespace project_print {
@@ -465,7 +466,7 @@ json export_project_print(const Project& project, const std::string& path, const
     }
     json sheets = json::array();
     std::vector<std::string> unplaced;
-    if (options.include_cut_plan) std::tie(sheets, unplaced) = core::cut_plan(nominal);
+    if (options.include_cut_plan) std::tie(sheets, unplaced) = sheet_nesting::plan(nominal);
     int sheet_no = 1;
     for (const auto& sheet : sheets) {
         const auto& material = nominal.mat(sheet.at("material").get<std::string>());

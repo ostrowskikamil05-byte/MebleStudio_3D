@@ -35,6 +35,7 @@
 #include "hover_flyout.h"
 #include "mechanisms.h"
 #include "native_scene_export.h"
+#include "sheet_nesting.h"
 #include "furniture_library.h"
 #include "hardware_report.h"
 #include "opening_options.h"
@@ -1109,6 +1110,107 @@ public:
 
     // Regresja: z włączonym LED rysowanie 3D rzucało json::type_error 302 („type must be array, but is string”),
     // bo native_scene_export wstawiał do std::set<pair<json,json>> przez insert({json, json}).
+    // Rozkrój płyt: optymalizator nigdy nie jest gorszy od klasycznego, formatki się nie nakładają i mieszczą się w marginesie.
+    void test_nesting() {
+        const char* area = "Rozkrój płyt";
+        const char* where = "sheet_nesting.cpp (optimize, statistics, sheets_export, sheets_dxf_export), production_docs.cpp (etykiety), app.h (zakładka Rozkrój)";
+        auto random_project = [](int count, unsigned seed) {
+            Project q;
+            std::mt19937 rng(seed);
+            for (int i = 0; i < count; ++i) {
+                Part pt; pt.name = "Formatka " + std::to_string(i + 1);
+                pt.u = 100 + rng() % 900; pt.v = 80 + rng() % 600; pt.t = 18; pt.material = q.materials[0].id; pt.grain = rng() % 2;
+                q.parts.push_back(pt);
+            }
+            return q;
+        };
+        auto check_valid = [](const Project& q, const json& sheets) {
+            std::set<std::string> seen;
+            for (const auto& sheet : sheets) {
+                const auto& pieces = sheet["pieces"];
+                for (size_t i = 0; i < pieces.size(); ++i) {
+                    double x = pieces[i]["x"], y = pieces[i]["y"], u = pieces[i]["u"], v = pieces[i]["v"];
+                    need(x >= q.margin - 1e-6 && y >= q.margin - 1e-6 && x + u <= sheet["u"].get<double>() - q.margin + 1e-6 && y + v <= sheet["v"].get<double>() - q.margin + 1e-6,
+                         "formatka wychodzi poza użyteczny obszar płyty");
+                    need(seen.insert(pieces[i]["id"].get<std::string>()).second, "formatka wstawiona dwa razy");
+                    for (size_t j = i + 1; j < pieces.size(); ++j) {
+                        double x2 = pieces[j]["x"], y2 = pieces[j]["y"], u2 = pieces[j]["u"], v2 = pieces[j]["v"], k = q.kerf;
+                        need(!(x < x2 + u2 + k - 1e-6 && x2 < x + u + k - 1e-6 && y < y2 + v2 + k - 1e-6 && y2 < y + v + k - 1e-6), "formatki nakładają się lub brakuje rzazu między nimi");
+                    }
+                }
+            }
+            return (int)seen.size();
+        };
+        for (unsigned seed : {1u, 2u, 3u}) {
+            run(area, std::format("losowy zestaw {} formatek (ziarno {}): optymalny ≤ klasyczny, bez nakładania", 40 + 40 * (int)seed, seed), where, [=](Ctx& ctx) {
+                Project q = random_project(40 + 40 * (int)seed, seed);
+                auto classic = core::cut_plan(q);
+                auto better = sheet_nesting::optimize(q);
+                need(better.first.size() <= classic.first.size(), std::format("optymalny {} płyt, klasyczny {}", better.first.size(), classic.first.size()));
+                int placed = check_valid(q, better.first);
+                need(placed + (int)better.second.size() == (int)q.parts.size(), "nie wszystkie formatki są na płytach lub na liście nieumieszczonych");
+                ctx.note(std::format("klasyczny {} płyt → optymalny {}", classic.first.size(), better.first.size()));
+            });
+        }
+        run(area, "formatki z włóknami nie są obracane, bez włókien mogą być", where, [=](Ctx&) {
+            Project q = random_project(60, 9);
+            auto result = sheet_nesting::optimize(q);
+            std::map<std::string, bool> grain;
+            for (const auto& p : q.parts) grain[p.id] = p.grain;
+            for (const auto& sheet : result.first)
+                for (const auto& piece : sheet["pieces"]) need(!(grain[piece["id"].get<std::string>()] && piece["rotated"].get<bool>()), "formatka z włóknami została obrócona");
+        });
+        run(area, "za duża formatka trafia na listę nieumieszczonych", where, [=](Ctx&) {
+            Project q = random_project(5, 4);
+            Part big; big.name = "Za duża"; big.u = 5000; big.v = 300; big.t = 18; big.material = q.materials[0].id; big.grain = true;
+            q.parts.push_back(big);
+            auto result = sheet_nesting::optimize(q);
+            need(result.second.size() == 1 && result.second[0] == big.id, "za duża formatka nie została zgłoszona");
+        });
+        run(area, "tryb klasyczny = core::cut_plan, statystyki zgadzają się z płytami", where, [=](Ctx& ctx) {
+            Project q = random_project(50, 5);
+            sheet_nesting::Mode previous = sheet_nesting::mode();
+            sheet_nesting::set_mode(sheet_nesting::Mode::Classic);
+            auto plan = sheet_nesting::plan(q);
+            auto classic = core::cut_plan(q);
+            sheet_nesting::set_mode(previous);
+            need(plan.first.size() == classic.first.size() && plan.second == classic.second, "tryb klasyczny różni się od core::cut_plan");
+            json st = sheet_nesting::statistics(q, plan.first, plan.second);
+            need(st["sheets"].get<long long>() == (long long)plan.first.size(), "statystyki: zła liczba płyt");
+            double used = 0;
+            for (const auto& p : q.parts) used += p.blank(q.edge_t).first * p.blank(q.edge_t).second;
+            need(std::abs(st["used_area_m2"].get<double>() * 1e6 - used) < 1.0, "statystyki: suma pól formatek różni się od sumy pól na płytach");
+            need(st["waste"].get<double>() > 0 && st["waste"].get<double>() < 100, "statystyki: odpad poza zakresem");
+            ctx.note(std::format("wykorzystanie {:.1f}%", st["utilization"].get<double>()));
+        });
+        run(area, "kuchnia z kreatora: wszystkie formatki na płytach, eksport HTML/DXF i etykiety z numerem płyty", where, [=](Ctx& ctx) {
+            ProjectPtr p = std::make_shared<Project>();
+            for (int i = 0; i < 6; ++i) p = cabinet(*p, i % 2 ? 4 : 0, [i](json& c) { c["width"] = 400 + 50 * i; }).first;
+            p->validate();
+            sheet_nesting::Mode previous = sheet_nesting::mode();
+            sheet_nesting::set_mode(sheet_nesting::Mode::Optimized);
+            auto plan = sheet_nesting::plan(*p);
+            auto classic = core::cut_plan(*p);
+            need(plan.first.size() <= classic.first.size(), "optymalny rozkrój jest gorszy od klasycznego");
+            need(plan.second.empty(), "formatki kuchni nie mieszczą się na płytach");
+            int placed = check_valid(*p, plan.first);
+            need(placed == (int)p->parts.size(), "nie wszystkie formatki kuchni są na płytach");
+            TempDir tmp("MebelStudio3D-test-");
+            std::string html = py::path_str(tmp.path / "rozkroj.html"), dxf = py::path_str(tmp.path / "rozkroj.dxf"), labels = py::path_str(tmp.path / "etykiety.html");
+            sheet_nesting::sheets_export(*p, html);
+            sheet_nesting::sheets_dxf_export(*p, dxf);
+            production_docs::labels_export(*p, labels);
+            sheet_nesting::set_mode(previous);
+            auto slurp = [](const std::string& path) { std::ifstream f(fs::path(path), std::ios::binary); return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>()); };
+            std::string html_text = slurp(html), dxf_text = slurp(dxf), label_text = slurp(labels);
+            need(html_text.find("Płyta 1 z ") != std::string::npos && html_text.find("<svg") != std::string::npos, "arkusz HTML nie zawiera rysunku płyty");
+            need(dxf_text.find("SHEET_1") != std::string::npos && dxf_text.find("LWPOLYLINE") != std::string::npos, "DXF nie zawiera obrysu płyty");
+            need(std::all_of(dxf_text.begin(), dxf_text.end(), [](unsigned char c) { return c < 0x80; }), "DXF zawiera znaki spoza ASCII");
+            need(label_text.find("płyta 1 · poz. ") != std::string::npos, "etykiety nie niosą numeru płyty i pozycji");
+            ctx.note(std::format("{} części → {} płyt (klasyczny {})", p->parts.size(), plan.first.size(), classic.first.size()));
+        });
+    }
+
     void test_led_scene_export() {
         const char* area = "LED w widoku 3D";
         const char* where = "native_scene_export.cpp (zbiór pasków LED), viewport_render.cpp (światła LED)";
@@ -1251,6 +1353,8 @@ public:
             {"model STL", "model.stl", [](Project& p, const std::string& f) { cad_geometry::stl_export(p, f); }},
             {"widok SVG", "widok.svg", [](Project& p, const std::string& f) { py::write_text(f, core::svg_view(p)); }},
             {"komplet do druku (rozkrój)", "komplet.html", [](Project& p, const std::string& f) { project_print::export_project_print(p, f); }},
+            {"arkusze rozkroju HTML", "rozkroj.html", [](Project& p, const std::string& f) { sheet_nesting::sheets_export(p, f); }},
+            {"arkusze rozkroju DXF", "rozkroj.dxf", [](Project& p, const std::string& f) { sheet_nesting::sheets_dxf_export(p, f); }},
         };
         for (auto& e : exports) {
             run(area, e.name, where, [=](Ctx& ctx) {
@@ -1770,6 +1874,7 @@ public:
         test_flyout();
         test_cargo();
         test_led_scene_export();
+        test_nesting();
         test_ui();
         test_log_coverage();
     }
