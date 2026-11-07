@@ -363,6 +363,9 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                 } else {
                     double level = gap + index * (height + gap); double raise_by = std::max(0.0, f.inner_bottom - (lo[2] + level + gap)) + 6;
                     double drawer_height = std::min(120.0, height - num(c["drawer_bottom_thickness"]) - 2 * gap - raise_by);
+                    // Strefa nad inną strefą (bottom_mid/top_mid): front sięga do osi przegrody, a skrzynka musi zmieścić się pod jej spodem.
+                    // Bez tego górna szuflada strefy dolnej wystawała ponad przegrodę i kreator zgłaszał „Skrzynka szuflady nie mieści się”.
+                    drawer_height = std::min(drawer_height, f.inner_top - (lo[2] + level + gap + raise_by) - num(c["drawer_bottom_thickness"]) - 0.5);
                     if (drawer_height < 20) throw ValueError("Front szuflady jest za niski dla skrzynki. Zmniejsz liczbę szuflad lub zwiększ strefę.");
                     json drawer_values = {{"level", level}, {"drawer_raise", raise_by}, {"drawer_height", drawer_height}, {"drawer_t", c["drawer_side_thickness"]},
                                           {"drawer_bottom", c["drawer_bottom_thickness"]}, {"drawer_clearance", 12.7}, {"drawer_depth", c["runner_length"]},
@@ -402,7 +405,13 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
     result = configurator_accessories::install_accessories(*result, group, c,
         {{"floor", floor}, {"body_x", ox}, {"body_y", oy}, {"body_z", oz}, {"width", w}, {"depth", d}, {"body_height", h}}, false);
     for (auto& p : result->parts) {
-        if (p.group == group) for (auto& op : p.operations) op["config_auto"] = true;
+        if (p.group != group) continue;
+        for (auto& op : p.operations) op["config_auto"] = true;
+        // Frezowane uchwyty z trybu „Uchwyty” (kieszeń/otwór podłużny) to też obróbka kreatora. Bez tego znacznika
+        // przy następnej zmianie (np. listwy zamiast wieńca) stare frezowanie było kopiowane jako „ręczne”
+        // obok nowego i drugie cięcie nie miało już czego ciąć: „Obróbka nie przecina materiału”.
+        for (auto& cut : p.machining)
+            if (py::truthy(py::get(cut, "opening_owner")) && !cut.contains("config_auto")) { cut["config_auto"] = true; cut["configure_feature"] = "handle_mode"; }
     }
     std::set<std::string> ids; for (auto& p : result->parts) if (p.group == group) ids.insert(p.id);
     for (auto& item : result->hardware) {

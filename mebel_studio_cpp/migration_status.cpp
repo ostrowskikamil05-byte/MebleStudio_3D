@@ -58,7 +58,18 @@ form_dialog::Form* open_status(App* app) {
     auto manifest_path = py::executable_dir() / "MIGRACJA_CPP.json";
     auto refresh = [d, note, table, details, manifest_path, app] {
         json info = native_model::diagnostics();
-        json manifest = json::parse(py::read_text(py::path_str(manifest_path)));
+        // Plik bywa w innym miejscu niż exe (build/bin): szukamy też wyżej w drzewie, a brak pliku nie może wywalać okna.
+        json manifest = json{{"modules", json::array()}};
+        for (auto candidate : {manifest_path, manifest_path.parent_path().parent_path() / "MIGRACJA_CPP.json", manifest_path.parent_path().parent_path().parent_path() / "MIGRACJA_CPP.json",
+                               std::filesystem::path("MIGRACJA_CPP.json")}) {
+            std::error_code ec;
+            if (!std::filesystem::is_regular_file(candidate, ec)) continue;
+            try {
+                manifest = json::parse(py::read_text(py::path_str(candidate)));
+            } catch (const std::exception&) {
+            }
+            break;
+        }
         table->delete_(table->get_children());
         for (auto& module : manifest.at("modules")) {
             json operations = py::get(module, "cpp_operations", json::array());
