@@ -34,6 +34,7 @@
 #include "furniture_layout.h"
 #include "hover_flyout.h"
 #include "mechanisms.h"
+#include "native_scene_export.h"
 #include "furniture_library.h"
 #include "hardware_report.h"
 #include "opening_options.h"
@@ -1106,6 +1107,25 @@ public:
     }
 
 
+    // Regresja: z włączonym LED rysowanie 3D rzucało json::type_error 302 („type must be array, but is string”),
+    // bo native_scene_export wstawiał do std::set<pair<json,json>> przez insert({json, json}).
+    void test_led_scene_export() {
+        const char* area = "LED w widoku 3D";
+        const char* where = "native_scene_export.cpp (zbiór pasków LED), viewport_render.cpp (światła LED)";
+        for (const char* mount : {"under_shelf", "side"}) {
+            run(area, std::string("snapshot sceny z LED: ") + mount, where, [=](Ctx& ctx) {
+                auto [p, g] = cabinet(Project(), 0, [mount](json& c) { c["led"] = true; c["led_mount"] = mount; });
+                p->validate();
+                bool has_led = false;
+                for (const auto& h : p->hardware) if (py::get(h, "kind") == json("led_strip")) has_led = true;
+                need(has_led, "mebel nie ma paska LED");
+                auto [bytes, info] = native_scene_export::build_snapshot(*p);
+                need(!bytes.empty(), "pusty snapshot sceny");
+                ctx.note(std::format("{} B", bytes.size()));
+            });
+        }
+    }
+
     void test_cargo() {
         const char* area = "Cargo (wysuwany mebel z koszami)";
         const char* where = "furniture_configurator.cpp (front cargo/laundry), furniture_library.cpp (szablony 4, 52, 53), mechanisms.cpp (posed_project)";
@@ -1749,6 +1769,7 @@ public:
         test_library_on_furniture();
         test_flyout();
         test_cargo();
+        test_led_scene_export();
         test_ui();
         test_log_coverage();
     }

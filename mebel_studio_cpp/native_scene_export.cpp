@@ -164,7 +164,9 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         objects["scene:" + obj["id"].get<std::string>()] = obj["name"].get<std::string>();
     std::set<std::pair<json, json>> leds;
     for (auto& h : project.hardware)
-        if (py::get(h, "kind") == "led_strip") leds.insert({py::get(h, "owner_id"), py::get(h, "color", "#fff3bf")});
+        // Uwaga: insert({json, json}) wybiera przeciążenie initializer_list<pair> i próbuje zamienić napis na parę
+        // (json::type_error 302 „type must be array, but is string”) — dlatego para budowana jawnie.
+        if (py::get(h, "kind") == "led_strip") leds.insert(std::pair<json, json>(py::get(h, "owner_id"), py::get(h, "color", "#fff3bf")));
     double brightness = py::to_float(py::get(context->scene, "brightness", 1.0));
     check_finite({brightness}, "jasność");
     std::vector<Owner> owner_table;
@@ -182,7 +184,7 @@ std::pair<std::string, json> build_snapshot(const Project& project, const Option
         std::string identity = record->owner;
         std::pair<int, std::string> key{kind, identity};
         std::string color = record->color;
-        bool is_led = kind == 1 && leds.contains({json(identity), json(color)});
+        bool is_led = kind == 1 && leds.contains(std::pair<json, json>(json(identity), json(color)));
         bool emitted = record->emissive || (is_led && led_on);
         if (is_led && !led_on) color = "#c7c6bb";
         unsigned flags = emitted ? EMISSIVE : 0;
