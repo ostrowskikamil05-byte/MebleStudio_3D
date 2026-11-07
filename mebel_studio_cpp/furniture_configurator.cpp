@@ -34,7 +34,7 @@ using core::uid;
 using furniture_library::TEMPLATES;
 using py::ValueError;
 
-const std::set<std::string> SUPPORTED{"cabinet", "shelf", "drawers", "island"};
+const std::set<std::string> SUPPORTED{"cabinet", "shelf", "drawers", "island", "cargo"};
 
 namespace {
 
@@ -114,8 +114,8 @@ json default_config(const json& template_index_, const Project* project) {
     for (const char* key : {"bottom", "main", "upper"}) {
         bool is_main = std::string(key) == "main";
         c["sections"].push_back({{"key", key}, {"enabled", is_main}, {"height", !is_main ? 200 : 0}, {"columns", 1},
-                                 {"shelves", kind == "drawers" ? 0 : tpl.shelves}, {"front", kind == "drawers" ? "drawers" : !tpl.fronts ? "open" : "doors"},
-                                 {"doors", std::min<long long>(2, std::max<long long>(1, tpl.fronts))}, {"drawers", kind == "drawers" ? tpl.fronts : 3}});
+                                 {"shelves", kind == "drawers" || kind == "cargo" ? 0 : tpl.shelves}, {"front", kind == "drawers" ? "drawers" : kind == "cargo" ? "cargo" : !tpl.fronts ? "open" : "doors"},
+                                 {"doors", std::min<long long>(2, std::max<long long>(1, tpl.fronts))}, {"drawers", kind == "drawers" ? tpl.fronts : kind == "cargo" ? 2 : 3}});
     }
     if (project) {
         c["material"] = project->materials.at(0).id;
@@ -210,7 +210,7 @@ json normalize_config(const json& config, const Project* project) {
             s["column_widths"] = out;
         } s["shelves"] = _integer(s["shelves"], 0, 8, "Liczba półek");
         s["doors"] = _integer(s["doors"], 1, 2, "Liczba drzwi"); s["drawers"] = _integer(s["drawers"], 1, 8, "Liczba szuflad");
-        if (!string_in(s["front"], {"open", "doors", "drawers", "blind"})) throw ValueError("Strefa: otwarta, drzwi, szuflady albo zaślepka.");
+        if (!string_in(s["front"], {"open", "doors", "drawers", "blind", "cargo", "laundry"})) throw ValueError("Strefa: otwarta, drzwi, szuflady, cargo, kosz na pranie albo zaślepka.");
         s["height"] = finite(s["height"], 0, 10000);
         by_key[key_name] = s;
     }
@@ -321,7 +321,7 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
             core::Point3 lo = f.lower, hi = f.upper; double gap = num(c["gap"]); std::string bay_key = key + std::format(".bay.{}", col);
             long long shelves = section["shelves"].get<long long>();
             std::string front_kind = section["front"].get<std::string>();
-            if (front_kind == "drawers" && shelves) throw ValueError("Strefa szuflad nie może jednocześnie zawierać półek. Wybierz inną strefę dla półek.");
+            if ((front_kind == "drawers" || front_kind == "cargo" || front_kind == "laundry") && shelves) throw ValueError("Strefa szuflad i cargo nie może jednocześnie zawierać półek. Wybierz inną strefę dla półek.");
             for (long long index = 1; index <= shelves; ++index) {
                 double level = f.inner_bottom - lo[2] + (f.inner_top - f.inner_bottom - t) * index / (shelves + 1);
                 Part shelf; shelf.name = "Półka — " + key + std::format(" {}.{}", col + 1, index); shelf.u = f.inner_right - f.inner_left - 2 * gap; shelf.v = d - 2 * gap; shelf.t = t;
@@ -342,7 +342,10 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                 placed.motion = {{"mode", "none"}};
                 continue;
             }
-            long long count = front_kind == "doors" ? section["doors"].get<long long>() : section["drawers"].get<long long>();
+            // Cargo = jeden wysuwany front na całą strefę z koszami (poziomami) w środku; kosz na pranie = jeden wysoki kosz.
+            bool cargo = front_kind == "cargo" || front_kind == "laundry";
+            long long levels = front_kind == "laundry" ? 1 : cargo ? section["drawers"].get<long long>() : 0;
+            long long count = cargo ? 1 : front_kind == "doors" ? section["doors"].get<long long>() : section["drawers"].get<long long>();
             for (long long index = 0; index < count; ++index) {
                 bool is_door = front_kind == "doors"; std::string front_key = bay_key + (is_door ? ".door." : ".drawer.") + std::to_string(index);
                 double width = is_door ? (hi[0] - lo[0] - (count + 1) * gap) / count : hi[0] - lo[0] - 2 * gap;
@@ -352,9 +355,10 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                 if (is_door && count == 1 && c["door_hinge"] == "right") hinge_side = "right";
                 json cfg = {{"bay", bay}, {"gap", gap}, {"hinge_side", hinge_side}, {"hinge_count", c["hinge_count"]}, {"hinge_pattern", c["hinge_pattern"]},
                             {"hinge_spring", py::get(c, "hinge_spring", "unknown")}};
-                Part front; front.name = std::string(is_door ? "Drzwi" : "Front szuflady") + " — " + key + std::format(" {}.{}", col + 1, index + 1);
+                Part front; front.name = std::string(is_door ? "Drzwi" : front_kind == "laundry" ? "Kosz na pranie" : cargo ? "Cargo" : "Front szuflady") + " — " + key + std::format(" {}.{}", col + 1, index + 1);
                 front.u = width; front.v = height; front.t = num(c["front_thickness"]); front.material = c["front_material"].get<std::string>();
                 std::string front_id;
+                double basket_pitch = 0, basket_rim = 0;
                 if (is_door) {
                     cfg["bay_doors"] = count;
                     auto attached = assembly::attach(*result, front, group, "door", cfg);
@@ -366,6 +370,14 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                     // Strefa nad inną strefą (bottom_mid/top_mid): front sięga do osi przegrody, a skrzynka musi zmieścić się pod jej spodem.
                     // Bez tego górna szuflada strefy dolnej wystawała ponad przegrodę i kreator zgłaszał „Skrzynka szuflady nie mieści się”.
                     drawer_height = std::min(drawer_height, f.inner_top - (lo[2] + level + gap + raise_by) - num(c["drawer_bottom_thickness"]) - 0.5);
+                    if (cargo) {
+                        // Kosze cargo: wysokość burty zależy od liczby poziomów w wysokości wnętrza strefy.
+                        double usable = f.inner_top - f.inner_bottom - 12 - num(c["drawer_bottom_thickness"]);
+                        double rim = front_kind == "laundry" ? std::min(450.0, usable) : std::min(120.0, usable / levels - 20);
+                        if (rim < 40) throw ValueError("Za mało miejsca na tyle poziomów cargo. Zmniejsz liczbę poziomów albo zwiększ wysokość strefy.");
+                        drawer_height = rim; basket_rim = rim;
+                        basket_pitch = levels > 1 ? (usable - rim) / (levels - 1) : 0;
+                    }
                     if (drawer_height < 20) throw ValueError("Front szuflady jest za niski dla skrzynki. Zmniejsz liczbę szuflad lub zwiększ strefę.");
                     json drawer_values = {{"level", level}, {"drawer_raise", raise_by}, {"drawer_height", drawer_height}, {"drawer_t", c["drawer_side_thickness"]},
                                           {"drawer_bottom", c["drawer_bottom_thickness"]}, {"drawer_clearance", 12.7}, {"drawer_depth", c["runner_length"]},
@@ -380,6 +392,23 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                     if (py::truthy(c["runner_profile"]))
                         result = runner_installation::apply_runner(*result, front_id, c["runner_profile"], c["runner_length"], c["drawer_side_thickness"], c["drawer_bottom_thickness"]);
                 }
+                if (cargo && levels > 1) {
+                    // Pozostałe poziomy to kopie skrzynki pierwszego poziomu przesunięte w górę; wszystkie jadą razem z frontem.
+                    std::string front_name = need(*result, front_id).name;
+                    std::vector<Part> base;
+                    for (auto& child : result->parts) if (py::get(child.assembly, "generated_by") == front_id) base.push_back(child);
+                    for (auto& child : result->parts)
+                        if (py::get(child.assembly, "generated_by") == front_id) child.name = front_name + " / kosz 1 — " + last_piece(child.name, " / ");
+                    json ids = need(*result, front_id).assembly.contains("children") ? need(*result, front_id).assembly["children"] : json::array();
+                    for (long long k = 1; k < levels; ++k) {
+                        for (Part b : base) {
+                            b.id = uid(); b.z += k * basket_pitch;
+                            b.name = front_name + " / kosz " + std::to_string(k + 1) + " — " + last_piece(b.name, " / ");
+                            ids.push_back(b.id); result->parts.push_back(b);
+                        }
+                    }
+                    need(*result, front_id).assembly["children"] = ids;
+                }
                 {
                     Part& placed = need(*result, front_id); _mark(placed, front_key);
                     for (auto& child : result->parts) {
@@ -391,7 +420,7 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                 json effective_style = configurator_accessories::normalize_front_style(py::get(section, "front_style", c["front_style"]), c)["style"];
                 if (c["handle_mode"] == "handle" && effective_style != "finger") {
                     double u = !is_door ? width / 2 : hinge_side == "left" ? width - 35 : 35;
-                    json spacing = c["handle_spacing"]; bool vertical = is_door;
+                    json spacing = c["handle_spacing"]; bool vertical = is_door || cargo;
                     if (py::truthy(spacing) && num(spacing) > (vertical ? height : width) - 20) throw ValueError("Rozstaw uchwytu nie mieści się na froncie. Zmniejsz rozstaw lub wybierz gałkę.");
                     result = fittings::add_handle(*result, front_id, spacing, u, height / 2, vertical, c["handle_color"]);
                 } else if (!string_in(c["handle_mode"], {"handle", "none", "keep"}) && effective_style != "finger") {

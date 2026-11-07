@@ -76,6 +76,8 @@ const std::vector<Template> TEMPLATES{
     {"Łazienka", "Szafka pralnicza — listwy i otwarte plecy", 600, 900, 650, "cabinet", 1, 1},  // 49
     {"Łazienka", "Regał łazienkowy wąski", 300, 1800, 300, "shelf", 5, 0},  // 50
     {"Łazienka", "Zabudowa łazienkowa wisząca", 1200, 500, 450, "cabinet", 1, 2},  // 51
+    {"Łazienka", "Kosz na pranie — cargo", 450, 850, 560, "cargo", 0, 1},  // 52
+    {"Kuchnia", "Cargo 2 poziomy — szafka dolna", 300, 720, 560, "cargo", 0, 1},  // 53
 };
 
 const std::map<long long, json> PRESET_OPTIONS{
@@ -92,6 +94,10 @@ const std::map<long long, json> PRESET_OPTIONS{
     {46, {{"leg_height", 0}, {"hinge_count", 4}, {"sections", json::array({{{"key", "main"}, {"enabled", true}, {"columns", 3}, {"doors", 1}}})}}},
     {47, {{"leg_height", 0}}}, {48, {{"leg_height", 0}}}, {49, {{"top_mode", "rails"}, {"back", false}}},
     {50, {{"leg_height", 0}}}, {51, {{"leg_height", 0}}},
+    // Cargo: wysuwany front z koszami; liczbę poziomów wybiera się w polu „Szuflady / poziomy cargo”.
+    {4, {{"leg_height", 0}, {"back", true}}},
+    {52, {{"leg_height", 0}, {"sections", json::array({{{"key", "main"}, {"enabled", true}, {"front", "laundry"}, {"shelves", 0}, {"drawers", 1}}})}}},
+    {53, {{"leg_height", 100}, {"sections", json::array({{{"key", "main"}, {"enabled", true}, {"front", "cargo"}, {"shelves", 0}, {"drawers", 2}}})}}},
 };
 
 const Template& template_at(long long index) {

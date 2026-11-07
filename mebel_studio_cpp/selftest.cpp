@@ -33,6 +33,7 @@
 #include "furniture_configurator.h"
 #include "furniture_layout.h"
 #include "hover_flyout.h"
+#include "mechanisms.h"
 #include "furniture_library.h"
 #include "hardware_report.h"
 #include "opening_options.h"
@@ -1104,6 +1105,76 @@ public:
         });
     }
 
+
+    void test_cargo() {
+        const char* area = "Cargo (wysuwany mebel z koszami)";
+        const char* where = "furniture_configurator.cpp (front cargo/laundry), furniture_library.cpp (szablony 4, 52, 53), mechanisms.cpp (posed_project)";
+        auto baskets_of = [](const Project& p, const std::string& group) {
+            std::set<std::string> levels;
+            for (const auto& q : p.parts)
+                if (q.group == group && q.name.find(" / kosz ") != std::string::npos) levels.insert(q.name.substr(q.name.find(" / kosz ") + 8, 1));
+            return (int)levels.size();
+        };
+        for (int levels = 1; levels <= 4; ++levels) {
+            run(area, std::format("słupek cargo: {} poziom(y) koszy", levels), where, [=](Ctx& ctx) {
+                auto [p, g] = cabinet(Project(), 4, [levels](json& c) { section(c, "main")["drawers"] = levels; });
+                p->validate();
+                json cfg = furniture_configurator::read_config(*p, g);
+                need(cfg.at("sections")[1].at("front") == json("cargo"), "strefa główna nie ma frontu cargo");
+                int fronts = 0;
+                for (const auto& q : p->parts) if (q.group == g && assembly::inferred_role(q) == "drawer") ++fronts;
+                need(fronts == 1, std::format("cargo powinno mieć jeden wysuwany front, jest {}", fronts));
+                int found = baskets_of(*p, g);
+                if (levels > 1) need(found == levels, std::format("poziomów koszy: {} zamiast {}", found, levels));
+                ctx.note(std::format("{} części, {} poziomów", p->parts.size(), std::max(found, 1)));
+            });
+        }
+        run(area, "kosz na pranie (szablon 52) i cargo 2 poziomy (szablon 53) budują się", where, [=](Ctx& ctx) {
+            for (long long index : {52LL, 53LL}) {
+                auto [p, g] = cabinet(Project(), index);
+                p->validate();
+                need(!furniture_configurator::read_config(*p, g).is_null(), "mebel nie ma konfiguracji kreatora");
+                ctx.note(std::format("szablon {}: {} części", index, p->parts.size()));
+            }
+        });
+        run(area, "wysuw: kosze jadą razem z frontem", where, [=](Ctx&) {
+            auto [p, g] = cabinet(Project(), 4, [](json& c) { section(c, "main")["drawers"] = 3; });
+            std::string front_id;
+            for (const auto& q : p->parts) if (q.group == g && assembly::inferred_role(q) == "drawer") { front_id = q.id; break; }
+            need(!front_id.empty(), "brak frontu cargo");
+            auto posed = mechanisms::posed_project(p, {{front_id, 1.0}});
+            int moved = 0, children = 0;
+            for (const auto& q : p->parts) {
+                if (py::get(q.assembly, "generated_by") != json(front_id)) continue;
+                ++children;
+                for (const auto& r : posed->parts) if (r.id == q.id && r.y > q.y + 50) ++moved;
+            }
+            need(children >= 15, std::format("kosze (części skrzynek) nie zostały utworzone: {}", children));
+            need(moved == children, std::format("z frontem przesunęło się {} z {} części koszy", moved, children));
+        });
+        run(area, "zmiana szerokości i przeliczenie zachowują poziomy koszy", where, [=](Ctx&) {
+            auto [p, g] = cabinet(Project(), 4, [](json& c) { section(c, "main")["drawers"] = 3; });
+            json cfg = furniture_configurator::read_config(*p, g);
+            cfg["width"] = 400;
+            auto r = furniture_configurator::configure(*p, cfg, g);
+            need(baskets_of(*r.first, r.second) == 3, "po zmianie szerokości zmieniła się liczba poziomów");
+        });
+        run(area, "cargo nie może mieć półek w tej samej strefie (czytelny błąd)", where, [=](Ctx&) {
+            bool refused = false;
+            try {
+                cabinet(Project(), 4, [](json& c) { section(c, "main")["shelves"] = 2; });
+            } catch (const std::exception&) { refused = true; }
+            need(refused, "kreator przyjął półki w strefie cargo");
+        });
+        run(area, "za dużo poziomów w niskiej szafce daje komunikat, nie awarię", where, [=](Ctx&) {
+            bool refused = false;
+            try {
+                cabinet(Project(), 53, [](json& c) { c["leg_height"] = 0; c["height"] = 300; section(c, "main")["drawers"] = 6; });
+            } catch (const std::invalid_argument&) { refused = true; }
+            need(refused, "6 poziomów w szafce 300 mm powinno zostać odrzucone komunikatem");
+        });
+    }
+
     void test_flyout() {
         const char* area = "Okienko wyboru wysuwane z lewego menu";
         const char* where = "hover_flyout.cpp (catalogue/actions/show_now), quick_studio_ui.cpp (attach przy pozycjach menu)";
@@ -1677,6 +1748,7 @@ public:
         test_program_files();
         test_library_on_furniture();
         test_flyout();
+        test_cargo();
         test_ui();
         test_log_coverage();
     }

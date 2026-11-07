@@ -80,6 +80,10 @@ ColoredFaces _faces(const std::string& key_) {
                                     double zz = z + 2 + i * (fh + 2); bx(col * colw + 2, -t, zz, colw - 4, t, fh, front);
                                     put(rod({col * colw + colw * .34, -t - 12, zz + fh / 2}, {col * colw + colw * .66, -t - 12, zz + fh / 2}, 4), "#455356");
                                 }
+                            } else if (mode == "cargo" || mode == "laundry") {
+                                // Jeden wysuwany front na całą strefę z pionowym uchwytem.
+                                bx(col * colw + 2, -t, z + 2, colw - 4, t, sh - 4, front);
+                                put(rod({col * colw + colw * .5, -t - 12, z + sh * .6}, {col * colw + colw * .5, -t - 12, z + sh * .86}, 4), "#455356");
                             }
                         }
                         z += sh;

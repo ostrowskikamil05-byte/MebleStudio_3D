@@ -64,7 +64,10 @@ void merge_overrides(json& cfg, const json& values) {
     // Zależności, które kreator inaczej odrzuciłby błędem: strefa szuflad nie ma półek; magnetyczny TIP-ON wymaga zawiasów bez sprężyny.
     if (cfg.contains("sections") && cfg["sections"].is_array())
         for (auto& section : cfg["sections"])
-            if (section.value("front", std::string()) == "drawers" && section.value("shelves", 0) != 0) section["shelves"] = 0;
+            {
+                std::string front_kind = section.value("front", std::string());
+                if ((front_kind == "drawers" || front_kind == "cargo" || front_kind == "laundry") && section.value("shelves", 0) != 0) section["shelves"] = 0;
+            }
     if (values.contains("handle_mode") && !values.contains("hinge_spring") && cfg.value("handle_mode", json()).is_string()) {
         auto it = opening_options::OPTIONS.find(cfg["handle_mode"].get<std::string>());
         if (it != opening_options::OPTIONS.end() && it->contains("hinge_spring")) cfg["hinge_spring"] = (*it)["hinge_spring"];

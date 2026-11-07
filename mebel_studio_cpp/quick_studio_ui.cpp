@@ -262,7 +262,7 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     sections["type"] = type_section;
     for (size_t i = 0; i < furniture_library::TEMPLATES.size(); ++i) {
         auto& kind = furniture_library::TEMPLATES[i].kind;
-        if (kind == "cabinet" || kind == "drawers" || kind == "shelf" || kind == "island") template_indices.push_back((int)i);
+        if (kind == "cabinet" || kind == "drawers" || kind == "shelf" || kind == "island" || kind == "cargo") template_indices.push_back((int)i);
     }
     std::vector<std::string> names;
     for (int i : template_indices) names.push_back(furniture_library::TEMPLATES[i].category + " · " + furniture_library::TEMPLATES[i].name);
@@ -561,8 +561,10 @@ void QuickInspector::build_swatches_now() {
 }
 
 void QuickInspector::choice_changed(const std::string& key) {
-    if (key.ends_with(".front") && jget(combos.at(key).second, find(key).text->get()) == json("drawers"))
-        find(key.substr(0, key.find('.')) + ".shelves").text->set("0");
+    if (key.ends_with(".front")) {
+        json chosen = jget(combos.at(key).second, find(key).text->get());
+        if (chosen == json("drawers") || chosen == json("cargo") || chosen == json("laundry")) find(key.substr(0, key.find('.')) + ".shelves").text->set("0");
+    }
     apply(false);
 }
 
@@ -574,11 +576,11 @@ void QuickInspector::check(tk::Widget* parent, const std::string& key, const std
 
 void QuickInspector::section_fields(tk::Widget* parent, const std::string& key) {
     field_pair(parent, key + ".columns", "Komory pionowe", key + ".shelves", "Półki na komorę", true, true);
-    combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}, {"Zaślepka", "blind"}}, true);
-    choice_tiles(parent, key + ".front", "Wypełnienie", {{"Otwarte", "Otwarte"}, {"Drzwi", "Drzwi"}, {"Szuflady", "Szuflady"}, {"Zaślepka", "Zaślepka"}});
+    combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}, {"Cargo — kosze", "cargo"}, {"Kosz na pranie", "laundry"}, {"Zaślepka", "blind"}}, true);
+    choice_tiles(parent, key + ".front", "Wypełnienie", {{"Otwarte", "Otwarte"}, {"Drzwi", "Drzwi"}, {"Szuflady", "Szuflady"}, {"Cargo — kosze", "Cargo"}, {"Kosz na pranie", "Kosz na pranie"}, {"Zaślepka", "Zaślepka"}});
     combo(parent, key + ".doors", "Drzwi na komorę", json{{"1 skrzydło", 1}, {"2 skrzydła", 2}}, true);
     choice_tiles(parent, key + ".doors", "Drzwi na komorę", {{"1 skrzydło", "1 skrzydło"}, {"2 skrzydła", "2 skrzydła"}});
-    field(parent, key + ".drawers", "Szuflady na komorę", true);
+    field(parent, key + ".drawers", "Szuflady / poziomy cargo na komorę", true);
     combo(parent, key + ".front_style", "Styl tej strefy",
           json{{"Wspólny styl frontów", nullptr}, {"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}});
 }
