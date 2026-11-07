@@ -2887,7 +2887,11 @@ public:
                         if (finding.rule == "shelf_sag") { if (first_sag.empty()) first_sag = text; }
                         else if (first_error.empty()) first_error = text;
                     }
-                    if (!first_sag.empty()) ctx.warn("szablon ma szeroką półkę: " + first_sag);
+                    // Szafy i regały 1200–1600 mm mają przegrodę (preset kreatora) — dla nich ugięcie jest błędem testu; wyspa i szafa przesuwna zostają ostrzeżeniem.
+                    static const std::set<size_t> WITH_PARTITION{8, 14, 18, 23, 37, 45, 51};
+                    bool must_be_stiff = std::string(kind) == "furniture" && WITH_PARTITION.count(i) > 0;
+                    if (must_be_stiff) first_error = first_error.empty() ? first_sag : first_error;
+                    else if (!first_sag.empty()) ctx.warn("szablon ma szeroką półkę: " + first_sag);
                     close_extra_windows();
                     app->project = fresh(); app->refresh();
                     ctx.note(std::format("{} {}", parts, scene_kind ? "obiektów sceny" : "części") + (scene_kind ? std::string() : " · " + production_inspector::summary_line(inspection)));
