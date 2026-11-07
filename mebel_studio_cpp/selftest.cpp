@@ -2740,9 +2740,17 @@ public:
                     app->update();
                     std::string text = log_since(from);
                     size_t parts = scene_kind ? scene_count(app->project) : app->project->parts.size();
+                    // Inspektor produkcyjny sprawdza każdy gotowy element z biblioteki (kolizje, obrzeża, wiercenia, ugięcia).
+                    production_inspector::Report inspection;
+                    if (!scene_kind) inspection = production_inspector::inspect(*app->project);
+                    std::string first_error;
+                    for (const auto& finding : inspection.findings)
+                        if (finding.severity == production_inspector::Severity::Error && first_error.empty())
+                            first_error = production_inspector::rule_title(finding.rule) + " · " + finding.part_name + ": " + finding.message;
                     close_extra_windows();
                     app->project = fresh(); app->refresh();
-                    ctx.note(std::format("{} {}", parts, scene_kind ? "obiektów sceny" : "części"));
+                    ctx.note(std::format("{} {}", parts, scene_kind ? "obiektów sceny" : "części") + (scene_kind ? std::string() : " · " + production_inspector::summary_line(inspection)));
+                    need(first_error.empty(), "Inspektor produkcyjny zgłasza błąd w elemencie z biblioteki: " + first_error);
                     need(parts > before, std::format("po dodaniu z biblioteki liczba {} nie wzrosła ({} → {})", scene_kind ? "obiektów sceny" : "części", before, parts));
                     need(text.find(std::string("[operacja:biblioteka] dodaję: rodzaj ") + kind) != std::string::npos, "dodanie elementu nie zostało zapisane w dzienniku (biblioteka)");
                     need(text.find("[operacja:zmiana]") != std::string::npos, "dodanie elementu nie zostawiło wpisu [zmiana]");
