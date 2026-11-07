@@ -16,6 +16,7 @@
 #include "furniture_layout.h"
 #include "journal.h"
 #include "opening_options.h"
+#include "tile_glyphs.h"
 
 namespace stretch_choice {
 
@@ -110,34 +111,46 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
     for (auto& [k, v] : opening_options::OPTIONS.items()) if (k != "none") openings[v.at("label").get<std::string>()] = k;
     json materials = json::object();
     for (auto& m : app->project->materials) materials[m.name] = m.id;
-    struct Spec { const char* key; const char* label; json choices; };
+    // `shorts`: krótkie podpisy kafelków (etykieta -> podpis); puste = kafelek z pełną etykietą, ale tylko dla ustawień rysowanych jako miniatury.
+    struct Spec { const char* key; const char* label; json choices; bool tiles = false; json shorts = json::object(); };
     std::vector<Spec> specs = {
         {"material", "Korpus — materiał", materials},
         {"front_material", "Fronty — materiał", materials},
-        {"front_style", "Fronty — styl", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}}},
         {"handle_mode", "Uchwyty — rodzaj", openings},
-        {"handle_color", "Uchwyty — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}}},
-        {"leg_height", "Nóżki", json{{"Bez nóżek", 0}, {"60 mm", 60}, {"100 mm", 100}, {"150 mm", 150}}},
-        {"hinge_pattern", "Zawiasy", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys", "hinge_sensys52"}}},
+        {"front_style", "Fronty — styl", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}}, true,
+         json{{"Gładki", "Gładki"}, {"Ramka frezowana", "Ramkowy"}, {"Ryflowany", "Ryflowany"}, {"Chwyt frezowany", "Frezowany"}}},
+        {"handle_color", "Uchwyty — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}}, true},
+        {"leg_height", "Nóżki — wysokość", json{{"Bez nóżek", 0}, {"60 mm", 60}, {"100 mm", 100}, {"150 mm", 150}}, true},
+        {"hinge_pattern", "Zawiasy — wiercenie", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys", "hinge_sensys52"}}, true,
+         json{{"Puszka 35 / rozstaw 45", "Ø35 · 45"}, {"Puszka 35 / rozstaw 52", "Ø35 · 52"}, {"Hettich Sensys", "Sensys"}}},
+        {"door_hinge", "Zawiasy pojedynczych drzwi", json{{"Automatycznie", "auto"}, {"Po lewej", "left"}, {"Po prawej", "right"}}, true,
+         json{{"Automatycznie", "Auto"}, {"Po lewej", "Lewa"}, {"Po prawej", "Prawa"}}},
     };
     if (full) {
-        specs.push_back({"hinge_spring", "Zawiasy — sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}}});
-        specs.push_back({"leg_count", "Nóżki — liczba", json{{"4 sztuki", 4}, {"6 sztuk", 6}}});
-        specs.push_back({"leg_color", "Nóżki — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}}});
-        specs.push_back({"top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy pod blat", "rails"}}});
-        specs.push_back({"led_mount", "LED — miejsce", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}}});
+        specs.push_back({"hinge_spring", "Zawiasy — sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}}, true,
+                         json{{"Nieokreślona", "Nieokreślona"}, {"Ze sprężyną", "Sprężyna"}, {"Bez sprężyny", "Bez"}}});
+        specs.push_back({"leg_count", "Nóżki — liczba", json{{"4 sztuki", 4}, {"6 sztuk", 6}}, true, json{{"4 sztuki", "4 szt."}, {"6 sztuk", "6 szt."}}});
+        specs.push_back({"leg_color", "Nóżki — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}}, true});
+        specs.push_back({"top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy pod blat", "rails"}}, true});
+        specs.push_back({"led_mount", "LED — miejsce", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}}, true, json{{"Pod półkami", "Pod półką"}, {"W boku korpusu", "W boku"}}});
     }
     auto* box = new ttk::LabelFrame(parent, {{"text", title}, {"padding", 8}});
     box->pack({{"fill", "x"}, {"pady", "10 0"}});
-    int index = 0;
-    for (auto& spec : specs) {
-        if (spec.choices.empty()) continue;
+    auto alive = std::make_shared<bool>(true);
+    box->bind("<Destroy>", [alive](tk::Event&) { *alive = false; return std::string(); }, true);
+    auto register_row = [&](const Spec& spec) -> ChoiceRow& {
         json initial = cfg.contains(spec.key) ? cfg.at(spec.key) : json(nullptr);
         std::string initial_label = spec.choices.items().begin().key();
         for (auto& [label, value] : spec.choices.items()) if (value == initial) { initial_label = label; break; }
         json initial_value = spec.choices.at(initial_label);
         settings->choices.push_back({spec.key, spec.label, spec.choices, tk::StringVar(initial_label), initial_value});
-        ChoiceRow& row = settings->choices.back();
+        return settings->choices.back();
+    };
+    // 1) listy rozwijane (materiały, rodzaj uchwytu) — po dwie w wierszu
+    int index = 0;
+    for (auto& spec : specs) {
+        if (spec.tiles || spec.choices.empty()) continue;
+        ChoiceRow& row = register_row(spec);
         int r = index / 2, c = (index % 2) * 2;
         (new ttk::Label(box, {{"text", row.label}, {"font", "{Segoe UI} 9"}}))->grid({{"row", r}, {"column", c}, {"sticky", "w"}, {"padx", "0 6"}, {"pady", 2}});
         (new ttk::Combobox(box, {{"textvariable", row.var}, {"values", keys_of(row.choices)}, {"state", "readonly"}, {"width", 18}}))
@@ -146,15 +159,50 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
     }
     box->columnconfigure(1, {{"weight", 1}});
     box->columnconfigure(3, {{"weight", 1}});
+    int next_row = (index + 1) / 2;
+    // 2) ustawienia z miniaturami — po dwa bloki w wierszu
+    int tile_index = 0;
+    for (auto& spec : specs) {
+        if (!spec.tiles || spec.choices.empty()) continue;
+        ChoiceRow& row = register_row(spec);
+        tk::StringVar var = row.var;
+        auto* cell = new ttk::Frame(box);
+        cell->grid({{"row", next_row + tile_index / 2}, {"column", (tile_index % 2) * 2}, {"columnspan", 2}, {"sticky", "ew"}, {"padx", "0 10"}, {"pady", "6 0"}});
+        (new ttk::Label(cell, {{"text", row.label}, {"font", "{Segoe UI} 9 bold"}}))->pack({{"anchor", "w"}});
+        auto* strip = new tk::Frame(cell, {{"bg", forma_theme::PANEL}});
+        strip->pack({{"fill", "x"}, {"pady", "2 0"}});
+        auto canvases = std::make_shared<std::vector<std::pair<tk::Canvas*, std::pair<std::string, std::string>>>>();
+        std::string key = spec.key;
+        auto redraw = [alive, canvases, key, var] {
+            if (!*alive) return;
+            for (auto& [canvas, names] : *canvases) {
+                try { tile_glyphs::draw(canvas, key, names.first, names.second, var.get() == names.first); } catch (const tk::TclError&) {}
+            }
+        };
+        int column = 0;
+        for (auto& [label, value] : spec.choices.items()) {
+            std::string short_label = spec.shorts.contains(label) ? spec.shorts.at(label).get<std::string>() : label;
+            auto* canvas = new tk::Canvas(strip, {{"height", 62}, {"width", 74}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+            strip->columnconfigure(column, {{"weight", 1}, {"uniform", "t" + key}});
+            canvas->grid({{"row", 0}, {"column", column++}, {"padx", 2}, {"sticky", "ew"}});
+            canvases->push_back({canvas, {label, short_label}});
+            std::string chosen = label;
+            canvas->bind("<Configure>", [redraw](tk::Event&) { redraw(); return std::string(); });
+            canvas->bind("<Button-1>", [var, chosen, alive](tk::Event&) mutable { if (*alive) var.set(chosen); return std::string(); });
+        }
+        var.trace_add("write", redraw);
+        ++tile_index;
+    }
+    next_row += (tile_index + 1) / 2;
     auto* extras = new ttk::Frame(box);
-    extras->grid({{"row", (index + 1) / 2}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "6 0"}});
+    extras->grid({{"row", next_row}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "8 0"}});
     for (auto [key, label] : std::vector<std::pair<std::string, std::string>>{{"plinth", "Cokół"}, {"worktop", "Blat"}, {"led", "LED"}}) {
         settings->checks.push_back({key, label, tk::BooleanVar(cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>()), cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>()});
         (new ttk::Checkbutton(extras, {{"text", label}, {"variable", settings->checks.back().var}}))->pack({{"side", "left"}, {"padx", "0 14"}});
     }
     settings->apply_first = tk::BooleanVar(!full);
     (new ttk::Checkbutton(box, {{"text", apply_text}, {"variable", settings->apply_first}}))
-        ->grid({{"row", (index + 1) / 2 + 1}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "4 0"}});
+        ->grid({{"row", next_row + 1}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "4 0"}});
     return settings;
 }
 
@@ -209,6 +257,32 @@ double free_x(const core::Project& project, const std::string& except) {
     return right + 1500;
 }
 
+// Kierunek (oś pokoju), w którą patrzy lewy bok mebla (czyli „lewe" zawiasy drzwi), liczony ze środka mebla do środka jego lewego boku.
+std::optional<Dir2> left_side_dir(const core::Project& project, const std::string& group) {
+    auto box = furniture_layout::group_bounds(project, group);
+    double cx = (box.first[0] + box.second[0]) / 2, cy = (box.first[1] + box.second[1]) / 2;
+    for (const auto& p : project.parts) {
+        if (p.group != group || p.role != "left") continue;
+        auto w = core::world(p, p.u / 2, p.v / 2, p.t / 2);
+        return axis_dir(w[0] - cx, w[1] - cy);
+    }
+    return std::nullopt;
+}
+
+// Pojedyncze drzwi mebla mają zawiasy od strony `want` (kierunek w pokoju); przebudowuje mebel tylko wtedy, gdy trzeba.
+core::ProjectPtr hinge_toward(core::ProjectPtr project, const std::string& group, const Dir2& want) {
+    json cfg = furniture_configurator::read_config(*project, group);
+    auto left = left_side_dir(*project, group);
+    if (cfg.is_null() || !left) return project;
+    double dot = (*left)[0] * want[0] + (*left)[1] * want[1];
+    if (dot == 0) return project;
+    std::string wanted = dot > 0 ? "left" : "right";
+    std::string current = cfg.value("door_hinge", std::string("auto")) == "right" ? "right" : "left";
+    if (wanted == current) return project;
+    cfg["door_hinge"] = wanted;
+    return furniture_configurator::configure(*project, cfg, group, cfg.at("origin")).first;
+}
+
 // Nowa szafka z konfiguracji `cfg`, ustawiona jak `layout`; zwraca projekt i nazwę grupy.
 std::pair<core::ProjectPtr, std::string> add_module(const core::Project& project, json cfg, const json& layout) {
     for (auto& section : cfg["sections"]) section.erase("column_widths");
@@ -250,8 +324,15 @@ core::ProjectPtr build_arrangement(const core::Project& project, const std::stri
             result = orient(result, name, want);
             json align = {{std::string(1, lateral), max_end ? "end" : "start"}, {"z", "start"}};
             result = furniture_layout::snap_group(*result, name, previous, dir, align, 0);
+            // Drzwi ramienia mają zawiasy po stronie wolnego końca (z dala od szafki głównej), żeby otwarte nie wchodziły w narożnik.
+            if (!ov.values.contains("door_hinge")) result = hinge_toward(result, name, f);
             previous = name;
         }
+    }
+    // Szafka główna z jednym ramieniem: drzwi zawieszone od strony przeciwnej do ramienia (otwierają się w stronę pokoju, nie na ramię).
+    if (!ov.values.contains("door_hinge") && min_side != max_side) {
+        Dir2 away = lateral == 'x' ? Dir2{min_side ? 1.0 : -1.0, 0.0} : Dir2{0.0, min_side ? 1.0 : -1.0};
+        result = hinge_toward(result, group, away);
     }
     return result;
 }

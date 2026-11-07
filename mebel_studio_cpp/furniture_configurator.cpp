@@ -103,7 +103,7 @@ json default_config(const json& template_index_, const Project* project) {
               {"thickness", 18}, {"front_thickness", 18}, {"gap", 2}, {"material", ""}, {"front_material", ""}, {"back", kind != "shelf"}, {"back_thickness", 3},
               {"worktop", top != 0}, {"worktop_thickness", top ? top : 28}, {"worktop_overhang", 20}, {"top_mode", "panel"}, {"rail_width", 80},
               {"leg_height", 100}, {"leg_count", 4}, {"leg_diameter", 40}, {"leg_setback", 60}, {"leg_color", "#242628"}, {"leg_price", 0},
-              {"plinth", false}, {"plinth_setback", 40}, {"hinge_pattern", "hinge45"}, {"hinge_count", 2}, {"hinge_spring", "unknown"},
+              {"plinth", false}, {"plinth_setback", 40}, {"hinge_pattern", "hinge45"}, {"hinge_count", 2}, {"hinge_spring", "unknown"}, {"door_hinge", "auto"},
               {"handle_mode", "handle"}, {"handle_spacing", 128}, {"handle_color", "#242628"}, {"opening_angle", 100},
               {"runner_profile", ""}, {"runner_length", std::min<long long>(400, tpl.d - 30)}, {"drawer_side_thickness", 16}, {"drawer_bottom_thickness", 6},
               {"front_style", "smooth"}, {"front_border", 60}, {"front_depth", 3}, {"front_radius", 6},
@@ -171,6 +171,7 @@ json normalize_config(const json& config, const Project* project) {
     catch (const py::StopIteration&) { throw ValueError("Wybierz obsługiwany wzorzec zawiasu."); }
     if (c["hinge_pattern"] == "hinge_sensys_tb55" || c["hinge_pattern"].get<std::string>().find("hinge") == std::string::npos) throw ValueError("Wybierz obsługiwany zawias nakładany.");
     if (!string_in(c["hinge_spring"], {"unknown", "sprung", "unsprung"})) throw ValueError("Stan zawiasu: unknown, sprung albo unsprung.");
+    if (!string_in(c["door_hinge"], {"auto", "left", "right"})) throw ValueError("Strona zawiasów pojedynczych drzwi: auto, left albo right.");
     if (py::truthy(c["runner_profile"])) {
         if (!c["runner_profile"].is_string() || !runners_catalog::PROFILES.contains(c["runner_profile"].get<std::string>())) throw ValueError("Wybierz profil prowadnicy z katalogu.");
     }
@@ -335,6 +336,8 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                 double width = is_door ? (hi[0] - lo[0] - (count + 1) * gap) / count : hi[0] - lo[0] - 2 * gap;
                 double height = is_door ? hi[2] - lo[2] - 2 * gap : (hi[2] - lo[2] - (count + 1) * gap) / count;
                 std::string hinge_side = index == 0 ? "left" : "right";
+                // Pojedyncze drzwi mogą mieć zawiasy po prawej (np. szafka dostawiona obok innej, której nie wolno zastawić drzwiami).
+                if (is_door && count == 1 && c["door_hinge"] == "right") hinge_side = "right";
                 json cfg = {{"bay", bay}, {"gap", gap}, {"hinge_side", hinge_side}, {"hinge_count", c["hinge_count"]}, {"hinge_pattern", c["hinge_pattern"]},
                             {"hinge_spring", py::get(c, "hinge_spring", "unknown")}};
                 Part front; front.name = std::string(is_door ? "Drzwi" : "Front szuflady") + " — " + key + std::format(" {}.{}", col + 1, index + 1);
