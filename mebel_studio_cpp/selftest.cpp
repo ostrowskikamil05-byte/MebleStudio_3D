@@ -1389,6 +1389,17 @@ public:
             q.parts[i].grain = true;
             need(count_rule(pi::inspect(q), "sheet_fit") == 1, "usłojenie powinno blokować obrót");
         });
+        run(area, "drewno lite szersze niż deska to ostrzeżenie (klejenie desek), a nie błąd; zbyt długie nadal jest błędem", where, [=](Ctx&) {
+            Project q;
+            size_t i = base_part(q, "Blat z litego", 1600, 850, 28, "XY", 0, 0, 0);
+            for (const auto& m : q.materials) if (m.kind == "drewno") q.parts[i].material = m.id;
+            auto report = pi::inspect(q);
+            bool warned = false;
+            for (const auto& f : report.findings) if (f.rule == "sheet_fit") warned = f.severity == pi::Severity::Warning && f.message.find("skleić") != std::string::npos;
+            need(warned && report.errors == 0, "blat z drewna litego szerszy niż deska powinien dać ostrzeżenie o klejeniu, bez błędu");
+            q.parts[i].u = 3000; q.parts[i].v = 300;
+            need(pi::inspect(q).errors >= 1, "element z drewna dłuższy niż deska nadal powinien być błędem");
+        });
         run(area, "cała biblioteka szablonów kreatora przechodzi przez inspektor bez wyjątków", where, [=](Ctx& ctx) {
             int checked = 0, findings = 0;
             for (long long index = 0; index < 54; ++index) {
@@ -2566,7 +2577,12 @@ public:
             need(has_hole, "element z importu nie ma otworu po zbudowaniu kandydata");
             sk->clear();
             need(sk->part.holes.empty(), "wyczyszczenie szkicu powinno usunąć otwory z importu");
-            // uszkodzony plik: odrzucony z powodem, kontur bez zmian
+            // uszkodzony plik: odrzucony z powodem, kontur bez zmian (najpierw przywracamy kontur po clear())
+            {
+                std::ofstream out(path, std::ios::binary);
+                out << dxf_document(dxf_line(0, 0, 500, 0) + dxf_line(500, 0, 500, 300) + dxf_line(500, 300, 0, 300) + dxf_line(0, 300, 0, 0));
+            }
+            need(sk->import_dxf(path.string(), false) && sk->closed && sk->points.size() == 4, "ponowny import poprawnego DXF po clear() nie powiódł się");
             {
                 std::ofstream out(path, std::ios::binary);
                 out << "to nie jest dxf\n";
@@ -2743,10 +2759,16 @@ public:
                     // Inspektor produkcyjny sprawdza każdy gotowy element z biblioteki (kolizje, obrzeża, wiercenia, ugięcia).
                     production_inspector::Report inspection;
                     if (!scene_kind) inspection = production_inspector::inspect(*app->project);
-                    std::string first_error;
-                    for (const auto& finding : inspection.findings)
-                        if (finding.severity == production_inspector::Severity::Error && first_error.empty())
-                            first_error = production_inspector::rule_title(finding.rule) + " · " + finding.part_name + ": " + finding.message;
+                    std::string first_error, first_sag;
+                    for (const auto& finding : inspection.findings) {
+                        if (finding.severity != production_inspector::Severity::Error) continue;
+                        std::string text = production_inspector::rule_title(finding.rule) + " · " + finding.part_name + ": " + finding.message;
+                        // Ugięcie półek liczone jest dla obciążenia książkami (80 kg/m²); szablony szaf/regałów mają szerokie półki,
+                        // więc to ostrzeżenie projektowe do wzięcia pod uwagę (przegroda), a nie błąd generatora.
+                        if (finding.rule == "shelf_sag") { if (first_sag.empty()) first_sag = text; }
+                        else if (first_error.empty()) first_error = text;
+                    }
+                    if (!first_sag.empty()) ctx.warn("szablon ma szeroką półkę: " + first_sag);
                     close_extra_windows();
                     app->project = fresh(); app->refresh();
                     ctx.note(std::format("{} {}", parts, scene_kind ? "obiektów sceny" : "części") + (scene_kind ? std::string() : " · " + production_inspector::summary_line(inspection)));

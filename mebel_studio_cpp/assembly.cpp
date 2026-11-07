@@ -345,7 +345,16 @@ void shelf_supports(Project& project, Part& q, const Frame& f, const json& c) {
     for (auto [side, face] : std::vector<std::pair<Part*, std::string>>{{left, "top"}, {right, "bottom"}}) {
         for (double v : {end, q.v - end}) {
             double z = q.z - num(c["shelf_diameter"]) / 2;
-            drill(*side, q, q.y + v - side->y, z - side->z, num(c["shelf_diameter"]), num(c["shelf_depth"]), face, "podpórka półki");
+            double hole_u = q.y + v - side->y, hole_v = z - side->z, depth = num(c["shelf_depth"]);
+            // Przegroda ma podpórki z obu stron: łączna głębokość otworów naprzeciw siebie nie może przebić płyty (zostaje min. 3 mm materiału).
+            const std::string opposite = face == "top" ? "bottom" : "top";
+            for (const auto& op : side->operations) {
+                if (op.value("type", std::string()) != "drill" || op.value("face", std::string()) != opposite || op.value("purpose", std::string()) != "podpórka półki") continue;
+                if (std::hypot(num(op["u"]) - hole_u, num(op["v"]) - hole_v) < num(op["diameter"]) / 2 + num(c["shelf_diameter"]) / 2)
+                    depth = std::min(depth, side->t - 3 - num(op["depth"]));
+            }
+            if (depth <= 0) throw ValueError(std::format("{}: płyta jest za cienka na podpórki półek z obu stron.", side->name));
+            drill(*side, q, hole_u, hole_v, num(c["shelf_diameter"]), depth, face, "podpórka półki");
             positions.push_back({{"x", side == left ? side->x + side->t : side->x}, {"y", q.y + v}, {"z", z}});
         }
     }
