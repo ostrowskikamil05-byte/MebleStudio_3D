@@ -210,7 +210,7 @@ json normalize_config(const json& config, const Project* project) {
             s["column_widths"] = out;
         } s["shelves"] = _integer(s["shelves"], 0, 8, "Liczba półek");
         s["doors"] = _integer(s["doors"], 1, 2, "Liczba drzwi"); s["drawers"] = _integer(s["drawers"], 1, 8, "Liczba szuflad");
-        if (!string_in(s["front"], {"open", "doors", "drawers"})) throw ValueError("Strefa: otwarta, drzwi albo szuflady.");
+        if (!string_in(s["front"], {"open", "doors", "drawers", "blind"})) throw ValueError("Strefa: otwarta, drzwi, szuflady albo zaślepka.");
         s["height"] = finite(s["height"], 0, 10000);
         by_key[key_name] = s;
     }
@@ -330,6 +330,18 @@ ProjectPtr _build(const Project& project, const json& c, const std::string& grou
                 result = attached.first; _mark(*attached.second, bay_key + std::format(".shelf.{}", index));
             }
             if (front_kind == "open") continue;
+            if (front_kind == "blind") {
+                // Zaślepka: pełny front bez zawiasów i uchwytu (np. narożnik zasłonięty przez dostawioną szafkę).
+                std::string front_key = bay_key + ".door.0";
+                json cfg = {{"bay", bay}, {"gap", gap}, {"hinge_side", "left"}, {"auto_hardware", false}, {"bay_doors", 1}};
+                Part front; front.name = "Zaślepka frontowa — " + key + std::format(" {}.1", col + 1);
+                front.u = hi[0] - lo[0] - 2 * gap; front.v = hi[2] - lo[2] - 2 * gap; front.t = num(c["front_thickness"]); front.material = c["front_material"].get<std::string>();
+                auto attached = assembly::attach(*result, front, group, "door", cfg);
+                result = attached.first;
+                Part& placed = need(*result, attached.second->id); _mark(placed, front_key);
+                placed.motion = {{"mode", "none"}};
+                continue;
+            }
             long long count = front_kind == "doors" ? section["doors"].get<long long>() : section["drawers"].get<long long>();
             for (long long index = 0; index < count; ++index) {
                 bool is_door = front_kind == "doors"; std::string front_key = bay_key + (is_door ? ".door." : ".drawer.") + std::to_string(index);

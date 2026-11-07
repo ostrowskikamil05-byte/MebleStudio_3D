@@ -10,7 +10,7 @@
 
 namespace tile_glyphs {
 
-void draw(tk::Canvas* c, const std::string& key, const std::string& choice, const std::string& label, bool on) {
+void draw(tk::Canvas* c, const std::string& key, const std::string& choice, const std::string& label, bool on, const std::string& color) {
     if (c == nullptr) return;
     struct Tile { const std::string& key; const std::string& choice; const std::string& label; } tile{key, choice, label};
     double w = std::max(40, c->winfo_width());
@@ -35,6 +35,10 @@ void draw(tk::Canvas* c, const std::string& key, const std::string& choice, cons
         rect(L, T, R, B, "#f4efe6");
         if (ch == "Otwarte") {
             line(L + 3, M, R - 3, M, edge, 2);
+        } else if (ch == "Zaślepka") {
+            rect(L + 2, T + 2, R - 2, B - 2, wood);
+            line(L + 6, T + 6, R - 6, B - 6, dark, 1);
+            line(R - 6, T + 6, L + 6, B - 6, dark, 1);
         } else if (ch == "Drzwi") {
             rect(L + 2, T + 2, cx - 1, B - 2, wood);
             rect(cx + 1, T + 2, R - 2, B - 2, wood);
@@ -100,6 +104,9 @@ void draw(tk::Canvas* c, const std::string& key, const std::string& choice, cons
             c->create_rectangle(L + 6, T + 3, L + 9, B - 3, {{"fill", "#f0c040"}, {"outline", ""}});
             for (double y = T + 6; y < B - 4; y += 8) line(L + 11, y, L + 20, y + 2, "#f6e3a0", 1);
         }
+    } else if (k == "material" || k == "front_material") {
+        rect(L, T, R, B, color.empty() ? wood : color.c_str());
+        for (double y = T + 5; y < B - 2; y += 7) line(L + 2, y, R - 2, y + 1, edge, 1);
     } else if (k == "door_hinge") {
         rect(L, T, R, B, "#f4efe6");
         rect(L + 2, T + 2, R - 2, B - 2, wood);

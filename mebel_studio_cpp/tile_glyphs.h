@@ -8,6 +8,7 @@ namespace tk { class Canvas; }
 namespace tile_glyphs {
 
 // Rysuje kafelek (ramka, miniatura wg `key` i `choice`, podpis `label`) w `canvas`; `on` = zaznaczony.
-void draw(tk::Canvas* canvas, const std::string& key, const std::string& choice, const std::string& label, bool on);
+// `color` (opcjonalnie): kolor próbki dla materiałów.
+void draw(tk::Canvas* canvas, const std::string& key, const std::string& choice, const std::string& label, bool on, const std::string& color = "");
 
 }  // namespace tile_glyphs

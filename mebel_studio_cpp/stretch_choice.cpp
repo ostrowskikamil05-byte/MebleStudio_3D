@@ -5,6 +5,7 @@
 #include <cmath>
 #include <format>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -79,6 +80,7 @@ struct Settings {
     std::vector<ChoiceRow> choices;
     std::vector<CheckRow> checks;
     tk::BooleanVar apply_first;
+    std::function<void()> on_change;  // po każdej zmianie pola (podgląd na żywo w oknie Konfiguruj)
 
     Overrides collect() const {
         Overrides out;
@@ -95,6 +97,15 @@ struct Settings {
         }
         return out;
     }
+
+    // Po zastosowaniu zmian bieżące wartości pól stają się wartościami wyjściowymi.
+    void rebase() {
+        for (auto& row : choices) {
+            std::string label = row.var.get();
+            if (row.choices.contains(label)) row.initial = row.choices.at(label);
+        }
+        for (auto& row : checks) row.initial = row.var.get();
+    }
 };
 
 std::vector<std::string> keys_of(const json& choices) {
@@ -103,6 +114,20 @@ std::vector<std::string> keys_of(const json& choices) {
     return out;
 }
 
+// Skraca tekst do `limit` znaków (UTF-8), dodając wielokropek.
+std::string shorten(const std::string& text, size_t limit) {
+    size_t count = 0, i = 0;
+    while (i < text.size()) {
+        if (count == limit) return text.substr(0, i) + "…";
+        unsigned char ch = (unsigned char)text[i];
+        i += ch < 0x80 ? 1 : ch < 0xE0 ? 2 : ch < 0xF0 ? 3 : 4;
+        ++count;
+    }
+    return text;
+}
+
+// Ustawienia mebla w zwijanych sekcjach (Korpus, Fronty, Uchwyty, Okucia, Nóżki, Dodatki), każda z ikoną, tytułem i podsumowaniem;
+// wybory jako kafelki z miniaturami. `full` = pełny zestaw (okno Konfiguruj), inaczej zestaw skrócony (okno po rozciągnięciu).
 std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const json& cfg, bool full = false,
                                          const std::string& title = "Ustawienia nowych szafek",
                                          const std::string& apply_text = "Zastosuj zmiany też do rozciągniętej szafki") {
@@ -110,34 +135,48 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
     json openings = {{"Uchwyt / gałka", "handle"}, {"Bez uchwytu", "none"}};
     for (auto& [k, v] : opening_options::OPTIONS.items()) if (k != "none") openings[v.at("label").get<std::string>()] = k;
     json materials = json::object();
-    for (auto& m : app->project->materials) materials[m.name] = m.id;
-    // `shorts`: krótkie podpisy kafelków (etykieta -> podpis); puste = kafelek z pełną etykietą, ale tylko dla ustawień rysowanych jako miniatury.
-    struct Spec { const char* key; const char* label; json choices; bool tiles = false; json shorts = json::object(); };
-    std::vector<Spec> specs = {
-        {"material", "Korpus — materiał", materials},
-        {"front_material", "Fronty — materiał", materials},
-        {"handle_mode", "Uchwyty — rodzaj", openings},
-        {"front_style", "Fronty — styl", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}}, true,
-         json{{"Gładki", "Gładki"}, {"Ramka frezowana", "Ramkowy"}, {"Ryflowany", "Ryflowany"}, {"Chwyt frezowany", "Frezowany"}}},
-        {"handle_color", "Uchwyty — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}}, true},
-        {"leg_height", "Nóżki — wysokość", json{{"Bez nóżek", 0}, {"60 mm", 60}, {"100 mm", 100}, {"150 mm", 150}}, true},
-        {"hinge_pattern", "Zawiasy — wiercenie", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys", "hinge_sensys52"}}, true,
-         json{{"Puszka 35 / rozstaw 45", "Ø35 · 45"}, {"Puszka 35 / rozstaw 52", "Ø35 · 52"}, {"Hettich Sensys", "Sensys"}}},
-        {"door_hinge", "Zawiasy pojedynczych drzwi", json{{"Automatycznie", "auto"}, {"Po lewej", "left"}, {"Po prawej", "right"}}, true,
-         json{{"Automatycznie", "Auto"}, {"Po lewej", "Lewa"}, {"Po prawej", "Prawa"}}},
-    };
-    if (full) {
-        specs.push_back({"hinge_spring", "Zawiasy — sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}}, true,
-                         json{{"Nieokreślona", "Nieokreślona"}, {"Ze sprężyną", "Sprężyna"}, {"Bez sprężyny", "Bez"}}});
-        specs.push_back({"leg_count", "Nóżki — liczba", json{{"4 sztuki", 4}, {"6 sztuk", 6}}, true, json{{"4 sztuki", "4 szt."}, {"6 sztuk", "6 szt."}}});
-        specs.push_back({"leg_color", "Nóżki — kolor", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}}, true});
-        specs.push_back({"top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy pod blat", "rails"}}, true});
-        specs.push_back({"led_mount", "LED — miejsce", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}}, true, json{{"Pod półkami", "Pod półką"}, {"W boku korpusu", "W boku"}}});
+    std::map<std::string, std::string> colors;  // etykieta materiału -> kolor próbki
+    for (auto& m : app->project->materials) { materials[m.name] = m.id; colors[m.name] = m.color; }
+    struct Spec { const char* key; const char* label; json choices; json shorts = json::object(); };
+    struct Group { const char* title; const char* glyph; bool open; std::vector<Spec> specs; std::vector<std::pair<std::string, std::string>> checks; };
+    std::vector<Group> groups;
+    {
+        Group korpus{"Korpus", "▣", false, {}, {}};
+        korpus.specs.push_back({"material", "Materiał korpusu", materials});
+        if (full) korpus.specs.push_back({"top_mode", "Góra korpusu", json{{"Pełna płyta", "panel"}, {"Listwy pod blat", "rails"}}});
+        groups.push_back(korpus);
+        Group fronty{"Fronty", "▭", true, {}, {}};
+        fronty.specs.push_back({"front_material", "Materiał frontów", materials});
+        fronty.specs.push_back({"front_style", "Styl frontu", json{{"Gładki", "smooth"}, {"Ramka frezowana", "frame"}, {"Ryflowany", "fluted"}, {"Chwyt frezowany", "finger"}},
+                                json{{"Gładki", "Gładki"}, {"Ramka frezowana", "Ramkowy"}, {"Ryflowany", "Ryflowany"}, {"Chwyt frezowany", "Frezowany"}}});
+        fronty.specs.push_back({"door_hinge", "Strona zawiasów (pojedyncze drzwi)", json{{"Automatycznie", "auto"}, {"Po lewej", "left"}, {"Po prawej", "right"}},
+                                json{{"Automatycznie", "Auto"}, {"Po lewej", "Lewa"}, {"Po prawej", "Prawa"}}});
+        groups.push_back(fronty);
+        Group uchwyty{"Uchwyty", "⌐", false, {}, {}};
+        uchwyty.specs.push_back({"handle_mode", "Rodzaj uchwytu", openings});
+        uchwyty.specs.push_back({"handle_color", "Kolor uchwytu", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Złoty", "#bb9656"}, {"Biały", "#efefea"}}});
+        groups.push_back(uchwyty);
+        Group okucia{"Okucia", "⚙", false, {}, {}};
+        okucia.specs.push_back({"hinge_pattern", "Zawiasy — wiercenie", json{{"Puszka 35 / rozstaw 45", "hinge45"}, {"Puszka 35 / rozstaw 52", "hinge52"}, {"Hettich Sensys", "hinge_sensys52"}},
+                                json{{"Puszka 35 / rozstaw 45", "Ø35 · 45"}, {"Puszka 35 / rozstaw 52", "Ø35 · 52"}, {"Hettich Sensys", "Sensys"}}});
+        if (full) okucia.specs.push_back({"hinge_spring", "Zawiasy — sprężyna", json{{"Nieokreślona", "unknown"}, {"Ze sprężyną", "sprung"}, {"Bez sprężyny", "unsprung"}},
+                                          json{{"Nieokreślona", "Nieokreślona"}, {"Ze sprężyną", "Sprężyna"}, {"Bez sprężyny", "Bez"}}});
+        groups.push_back(okucia);
+        Group nozki{"Nóżki i cokół", "⊥", false, {}, {{"plinth", "Cokół"}}};
+        nozki.specs.push_back({"leg_height", "Wysokość nóżek", json{{"Bez nóżek", 0}, {"60 mm", 60}, {"100 mm", 100}, {"150 mm", 150}}});
+        if (full) {
+            nozki.specs.push_back({"leg_count", "Liczba nóżek", json{{"4 sztuki", 4}, {"6 sztuk", 6}}, json{{"4 sztuki", "4 szt."}, {"6 sztuk", "6 szt."}}});
+            nozki.specs.push_back({"leg_color", "Kolor nóżek", json{{"Czarny", "#242628"}, {"Stal", "#aab0b6"}, {"Biały", "#efefea"}}});
+        }
+        groups.push_back(nozki);
+        Group dodatki{"Dodatki", "✦", false, {}, {{"worktop", "Blat"}, {"led", "LED"}}};
+        if (full) dodatki.specs.push_back({"led_mount", "LED — miejsce", json{{"Pod półkami", "under_shelf"}, {"W boku korpusu", "side"}}, json{{"Pod półkami", "Pod półką"}, {"W boku korpusu", "W boku"}}});
+        groups.push_back(dodatki);
     }
     auto* box = new ttk::LabelFrame(parent, {{"text", title}, {"padding", 8}});
     box->pack({{"fill", "x"}, {"pady", "10 0"}});
-    auto alive = std::make_shared<bool>(true);
-    box->bind("<Destroy>", [alive](tk::Event&) { *alive = false; return std::string(); }, true);
+    std::weak_ptr<Settings> weak = settings;
+    auto notify = [weak] { if (auto s = weak.lock()) if (s->on_change) s->on_change(); };
     auto register_row = [&](const Spec& spec) -> ChoiceRow& {
         json initial = cfg.contains(spec.key) ? cfg.at(spec.key) : json(nullptr);
         std::string initial_label = spec.choices.items().begin().key();
@@ -146,63 +185,98 @@ std::shared_ptr<Settings> build_settings(App* app, tk::Widget* parent, const jso
         settings->choices.push_back({spec.key, spec.label, spec.choices, tk::StringVar(initial_label), initial_value});
         return settings->choices.back();
     };
-    // 1) listy rozwijane (materiały, rodzaj uchwytu) — po dwie w wierszu
-    int index = 0;
-    for (auto& spec : specs) {
-        if (spec.tiles || spec.choices.empty()) continue;
-        ChoiceRow& row = register_row(spec);
-        int r = index / 2, c = (index % 2) * 2;
-        (new ttk::Label(box, {{"text", row.label}, {"font", "{Segoe UI} 9"}}))->grid({{"row", r}, {"column", c}, {"sticky", "w"}, {"padx", "0 6"}, {"pady", 2}});
-        (new ttk::Combobox(box, {{"textvariable", row.var}, {"values", keys_of(row.choices)}, {"state", "readonly"}, {"width", 18}}))
-            ->grid({{"row", r}, {"column", c + 1}, {"sticky", "ew"}, {"padx", "0 14"}, {"pady", 2}});
-        ++index;
-    }
-    box->columnconfigure(1, {{"weight", 1}});
-    box->columnconfigure(3, {{"weight", 1}});
-    int next_row = (index + 1) / 2;
-    // 2) ustawienia z miniaturami — po dwa bloki w wierszu
-    int tile_index = 0;
-    for (auto& spec : specs) {
-        if (!spec.tiles || spec.choices.empty()) continue;
-        ChoiceRow& row = register_row(spec);
-        tk::StringVar var = row.var;
-        auto* cell = new ttk::Frame(box);
-        cell->grid({{"row", next_row + tile_index / 2}, {"column", (tile_index % 2) * 2}, {"columnspan", 2}, {"sticky", "ew"}, {"padx", "0 10"}, {"pady", "6 0"}});
-        (new ttk::Label(cell, {{"text", row.label}, {"font", "{Segoe UI} 9 bold"}}))->pack({{"anchor", "w"}});
-        auto* strip = new tk::Frame(cell, {{"bg", forma_theme::PANEL}});
-        strip->pack({{"fill", "x"}, {"pady", "2 0"}});
-        auto canvases = std::make_shared<std::vector<std::pair<tk::Canvas*, std::pair<std::string, std::string>>>>();
-        std::string key = spec.key;
-        auto redraw = [alive, canvases, key, var] {
-            if (!*alive) return;
-            for (auto& [canvas, names] : *canvases) {
-                try { tile_glyphs::draw(canvas, key, names.first, names.second, var.get() == names.first); } catch (const tk::TclError&) {}
-            }
+    for (auto& g : groups) {
+        if (g.specs.empty() && g.checks.empty()) continue;
+        auto* section = new ttk::Frame(box);
+        section->pack({{"fill", "x"}, {"pady", "2 0"}});
+        auto* header = new ttk::Frame(section, {{"padding", "2 3"}});
+        header->pack({{"fill", "x"}});
+        auto* icon = new tk::Canvas(header, {{"width", 30}, {"height", 30}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+        icon->pack({{"side", "left"}, {"padx", "2 8"}});
+        icon->create_oval(2, 2, 28, 28, {{"fill", forma_theme::ACCENT_SOFT}, {"outline", forma_theme::ACCENT}, {"width", 1}});
+        icon->create_text(15, 15, {{"text", g.glyph}, {"fill", forma_theme::ACCENT}, {"font", "{Segoe UI Symbol} 12"}});
+        auto* title_label = new ttk::Label(header, {{"text", g.title}, {"font", "{Segoe UI} 10 bold"}, {"cursor", "hand2"}});
+        title_label->pack({{"side", "left"}});
+        tk::StringVar arrow(g.open ? "▾" : "▸"), summary("");
+        auto* arrow_label = new ttk::Label(header, {{"textvariable", arrow}, {"cursor", "hand2"}});
+        arrow_label->pack({{"side", "right"}, {"padx", "6 2"}});
+        auto* summary_label = new ttk::Label(header, {{"textvariable", summary}, {"foreground", forma_theme::MUTED}, {"font", "{Segoe UI} 9"}, {"cursor", "hand2"}});
+        summary_label->pack({{"side", "right"}});
+        auto* body = new ttk::Frame(section, {{"padding", "38 2 0 6"}});
+        body->columnconfigure(0, {{"weight", 1}, {"uniform", "kol"}});
+        body->columnconfigure(1, {{"weight", 1}, {"uniform", "kol"}});
+        auto is_open = std::make_shared<bool>(g.open);
+        auto show_state = [is_open, body, arrow]() mutable {
+            arrow.set(*is_open ? "▾" : "▸");
+            if (*is_open) body->pack({{"fill", "x"}});
+            else body->pack_forget();
         };
-        int column = 0;
-        for (auto& [label, value] : spec.choices.items()) {
-            std::string short_label = spec.shorts.contains(label) ? spec.shorts.at(label).get<std::string>() : label;
-            auto* canvas = new tk::Canvas(strip, {{"height", 62}, {"width", 74}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
-            strip->columnconfigure(column, {{"weight", 1}, {"uniform", "t" + key}});
-            canvas->grid({{"row", 0}, {"column", column++}, {"padx", 2}, {"sticky", "ew"}});
-            canvases->push_back({canvas, {label, short_label}});
-            std::string chosen = label;
-            canvas->bind("<Configure>", [redraw](tk::Event&) { redraw(); return std::string(); });
-            canvas->bind("<Button-1>", [var, chosen, alive](tk::Event&) mutable { if (*alive) var.set(chosen); return std::string(); });
+        auto toggle = [is_open, show_state](tk::Event&) mutable { *is_open = !*is_open; show_state(); return std::string(); };
+        for (tk::Widget* w : std::vector<tk::Widget*>{header, icon, title_label, arrow_label, summary_label}) w->bind("<Button-1>", toggle);
+        show_state();
+        // zmienne tej sekcji — do podsumowania w nagłówku
+        auto vars = std::make_shared<std::vector<tk::StringVar>>();
+        auto update_summary = [vars, summary]() mutable {
+            std::string text;
+            for (auto& v : *vars) text += (text.empty() ? "" : " · ") + shorten(v.get(), 14);
+            summary.set(text);
+        };
+        int cell_index = 0;
+        for (auto& spec : g.specs) {
+            if (spec.choices.empty()) continue;
+            ChoiceRow& row = register_row(spec);
+            tk::StringVar var = row.var;
+            vars->push_back(var);
+            var.trace_add("write", notify);
+            var.trace_add("write", update_summary);
+            auto* cell = new ttk::Frame(body);
+            cell->grid({{"row", cell_index / 2}, {"column", cell_index % 2}, {"sticky", "ew"}, {"padx", "0 10"}, {"pady", "0 6"}});
+            ++cell_index;
+            (new ttk::Label(cell, {{"text", row.label}, {"font", "{Segoe UI} 9 bold"}}))->pack({{"anchor", "w"}});
+            auto* strip = new tk::Frame(cell, {{"bg", forma_theme::PANEL}});
+            strip->pack({{"fill", "x"}, {"pady", "2 0"}});
+            struct Tile { tk::Canvas* canvas; std::string label, short_label; };
+            auto tiles = std::make_shared<std::vector<Tile>>();
+            std::string key = spec.key;
+            bool swatch = key == "material" || key == "front_material";
+            auto redraw = [tiles, key, var, colors] {
+                for (auto& tile : *tiles) {
+                    try {
+                        auto found = colors.find(tile.label);
+                        tile_glyphs::draw(tile.canvas, key, tile.label, tile.short_label, var.get() == tile.label, found != colors.end() ? found->second : std::string());
+                    } catch (const tk::TclError&) {
+                    }
+                }
+            };
+            int column = 0;
+            for (auto& [label, value] : spec.choices.items()) {
+                std::string short_label = spec.shorts.contains(label) ? spec.shorts.at(label).get<std::string>() : shorten(label, swatch ? 10 : 12);
+                auto* canvas = new tk::Canvas(strip, {{"height", 62}, {"width", 74}, {"bg", forma_theme::PANEL}, {"highlightthickness", 0}, {"cursor", "hand2"}});
+                strip->columnconfigure(column % 4, {{"weight", 1}, {"uniform", "t" + key}});
+                canvas->grid({{"row", column / 4}, {"column", column % 4}, {"padx", 2}, {"pady", "0 2"}, {"sticky", "ew"}});
+                tiles->push_back({canvas, label, short_label});
+                ++column;
+                std::string chosen = label;
+                canvas->bind("<Configure>", [redraw](tk::Event&) { redraw(); return std::string(); });
+                canvas->bind("<Button-1>", [var, chosen](tk::Event&) mutable { var.set(chosen); return std::string(); });
+            }
+            var.trace_add("write", redraw);
         }
-        var.trace_add("write", redraw);
-        ++tile_index;
-    }
-    next_row += (tile_index + 1) / 2;
-    auto* extras = new ttk::Frame(box);
-    extras->grid({{"row", next_row}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "8 0"}});
-    for (auto [key, label] : std::vector<std::pair<std::string, std::string>>{{"plinth", "Cokół"}, {"worktop", "Blat"}, {"led", "LED"}}) {
-        settings->checks.push_back({key, label, tk::BooleanVar(cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>()), cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>()});
-        (new ttk::Checkbutton(extras, {{"text", label}, {"variable", settings->checks.back().var}}))->pack({{"side", "left"}, {"padx", "0 14"}});
+        if (!g.checks.empty()) {
+            auto* extras = new ttk::Frame(body);
+            extras->grid({{"row", (cell_index + 1) / 2}, {"column", 0}, {"columnspan", 2}, {"sticky", "w"}, {"pady", "2 0"}});
+            for (auto& [key, label] : g.checks) {
+                bool value = cfg.contains(key) && cfg.at(key).is_boolean() && cfg.at(key).get<bool>();
+                settings->checks.push_back({key, label, tk::BooleanVar(value), value});
+                tk::BooleanVar var = settings->checks.back().var;
+                var.trace_add("write", notify);
+                (new ttk::Checkbutton(extras, {{"text", label}, {"variable", var}}))->pack({{"side", "left"}, {"padx", "0 14"}});
+            }
+        }
+        update_summary();
     }
     settings->apply_first = tk::BooleanVar(!full);
-    (new ttk::Checkbutton(box, {{"text", apply_text}, {"variable", settings->apply_first}}))
-        ->grid({{"row", next_row + 1}, {"column", 0}, {"columnspan", 4}, {"sticky", "w"}, {"pady", "4 0"}});
+    (new ttk::Checkbutton(box, {{"text", apply_text}, {"variable", settings->apply_first}}))->pack({{"anchor", "w"}, {"pady", "8 0"}});
     return settings;
 }
 
@@ -290,6 +364,52 @@ std::pair<core::ProjectPtr, std::string> add_module(const core::Project& project
     return {furniture_layout::placed(*created.first, created.second, layout, false), created.second};
 }
 
+// Szafka główna w układzie L/U: część frontu zasłonięta przez dostawione ramię dostaje zaślepkę zamiast drzwi (drzwi nie mogą przechodzić przez narożnik).
+// Gdy zostaje wolny pas szerszy niż 150 mm, korpus dzieli się na odcinki: zaślepka · szafka z drzwiami · zaślepka. Zwraca nazwę odcinka z drzwiami (albo pusty napis).
+core::ProjectPtr cover_corner(core::ProjectPtr result, const std::string& group, const json& main_cfg, char lateral, double covered_min, double covered_max, std::string& free_name) {
+    free_name.clear();
+    const int li = lateral == 'x' ? 0 : 1;
+    const double width = num(main_cfg["width"]);
+    covered_min = std::clamp(covered_min, 0.0, width);
+    covered_max = std::clamp(covered_max, 0.0, width - covered_min);
+    if (covered_min + covered_max <= 0) return result;
+    struct Segment { double width; bool blind; };
+    std::vector<Segment> segments;
+    double free_width = width - covered_min - covered_max;
+    if (free_width < 150) {
+        segments.push_back({width, true});
+    } else {
+        if (covered_min > 0) segments.push_back({covered_min, true});
+        segments.push_back({free_width, false});
+        if (covered_max > 0) segments.push_back({covered_max, true});
+    }
+    auto config_for = [&](const Segment& segment) {
+        json c = main_cfg;
+        c["width"] = std::round(segment.width * 10) / 10;
+        for (auto& s : c["sections"]) {
+            s.erase("column_widths");
+            if (segment.blind) { s["front"] = "blind"; s["shelves"] = 0; s["columns"] = 1; }
+        }
+        return c;
+    };
+    const double low = furniture_layout::group_bounds(*result, group).first[li];
+    result = furniture_configurator::configure(*result, config_for(segments[0]), group, main_cfg.at("origin")).first;
+    double shift = low - furniture_layout::group_bounds(*result, group).first[li];
+    if (std::abs(shift) > 0.01) result = furniture_layout::move_group(*result, group, li == 0 ? shift : 0, li == 1 ? shift : 0, 0, false);
+    if (!segments[0].blind) free_name = group;
+    std::string previous = group;
+    const std::string direction = lateral == 'x' ? "x+" : "y+";
+    const std::string other = lateral == 'x' ? "y" : "x";
+    for (size_t i = 1; i < segments.size(); ++i) {
+        json layout = furniture_layout::group_layout(*result, group);
+        auto [with_module, name] = add_module(*result, config_for(segments[i]), layout);
+        result = furniture_layout::snap_group(*with_module, name, previous, direction, json{{other, "start"}, {"z", "start"}}, 0);
+        if (!segments[i].blind) free_name = name;
+        previous = name;
+    }
+    return result;
+}
+
 // Ramiona układu L / U: z rozciągniętej szafki robimy z powrotem zwykłą (o dawnej głębokości), a rozciągnięcie zamieniamy na szafki ustawione bokiem.
 core::ProjectPtr build_arrangement(const core::Project& project, const std::string& group, double old_depth, const json& base_origin, bool min_side, bool max_side, const Overrides& ov) {
     core::ProjectPtr result = std::make_shared<core::Project>(project);
@@ -307,6 +427,8 @@ core::ProjectPtr build_arrangement(const core::Project& project, const std::stri
     json layout = furniture_layout::group_layout(*result, group);
     long long count = std::max<long long>(1, std::llround(delta / 600.0));
     double width = delta / (double)count;
+    double covered_min = 0, covered_max = 0;  // jak szeroko ramiona zasłaniają front szafki głównej
+    const int lateral_index = lateral == 'x' ? 0 : 1;
     for (bool max_end : {false, true}) {
         if (max_end ? !max_side : !min_side) continue;
         Dir2 want = lateral == 'x' ? Dir2{max_end ? -1.0 : 1.0, 0.0} : Dir2{0.0, max_end ? -1.0 : 1.0};
@@ -326,13 +448,20 @@ core::ProjectPtr build_arrangement(const core::Project& project, const std::stri
             result = furniture_layout::snap_group(*result, name, previous, dir, align, 0);
             // Drzwi ramienia mają zawiasy po stronie wolnego końca (z dala od szafki głównej), żeby otwarte nie wchodziły w narożnik.
             if (!ov.values.contains("door_hinge")) result = hinge_toward(result, name, f);
+            if (i == 0) {
+                auto arm = furniture_layout::group_bounds(*result, name);
+                (max_end ? covered_max : covered_min) = arm.second[lateral_index] - arm.first[lateral_index];
+            }
             previous = name;
         }
     }
-    // Szafka główna z jednym ramieniem: drzwi zawieszone od strony przeciwnej do ramienia (otwierają się w stronę pokoju, nie na ramię).
-    if (!ov.values.contains("door_hinge") && min_side != max_side) {
+    // Front szafki głównej zasłonięty przez ramię nie może mieć drzwi: zaślepka (albo podział na zaślepkę i szafkę z drzwiami).
+    std::string door_group;
+    result = cover_corner(result, group, first, lateral, covered_min, covered_max, door_group);
+    // Szafka z drzwiami przy jednym ramieniu: zawiasy od strony przeciwnej do ramienia (otwiera się w stronę pokoju, nie na ramię).
+    if (!door_group.empty() && !ov.values.contains("door_hinge") && min_side != max_side) {
         Dir2 away = lateral == 'x' ? Dir2{min_side ? 1.0 : -1.0, 0.0} : Dir2{0.0, min_side ? 1.0 : -1.0};
-        result = hinge_toward(result, group, away);
+        result = hinge_toward(result, door_group, away);
     }
     return result;
 }
@@ -569,8 +698,8 @@ void open_configuration(App* app, const std::string& group) {
         app->status.set("„" + group + "” nie pochodzi z kreatora mebli — okucia i korpus ustawisz w panelu Właściwości");
         return;
     }
-    auto row = furniture_layout::row_groups(*app->project, group);
-    journal::event(app, "konfiguracja", std::format("otwarto okno dla {} (rząd: {} szafek)", group, row.size()));
+    auto row_now = furniture_layout::row_groups(*app->project, group);
+    journal::event(app, "konfiguracja", std::format("otwarto okno dla {} (rząd: {} szafek)", group, row_now.size()));
     auto* dialog = new tk::Toplevel(app);
     dialog->title("Konfiguracja mebla — " + group);
     dialog->transient(app);
@@ -578,20 +707,25 @@ void open_configuration(App* app, const std::string& group) {
     body->pack({{"fill", "both"}, {"expand", true}});
     (new ttk::Label(body, {{"text", std::format("{}  ·  {:g} × {:g} × {:g} mm", group, num(cfg["width"]), num(cfg["depth"]), num(cfg["height"]))}, {"font", "{Segoe UI} 11 bold"}}))
         ->pack({{"anchor", "w"}, {"pady", "0 4"}});
-    (new ttk::Label(body, {{"text", "Zmień uchwyty, nóżki, zawiasy, materiały, fronty i dodatki. Zmienione zostaną tylko te pola, które ruszysz."}, {"wraplength", 520}}))
+    (new ttk::Label(body, {{"text", "Zmiany stosują się od razu po kliknięciu · Ctrl+Z cofa. Kliknij nagłówek sekcji, aby ją rozwinąć albo zwinąć."}, {"wraplength", 560}}))
         ->pack({{"anchor", "w"}});
-    std::string apply_text = row.size() > 1 ? std::format("Zastosuj do całego rzędu ({} szafek)", row.size()) : std::string("Zastosuj do całego rzędu");
+    std::string apply_text = row_now.size() > 1 ? std::format("Zmieniaj cały rząd szafek ({})", row_now.size()) : std::string("Zmieniaj cały rząd szafek");
     auto settings = build_settings(app, body, cfg, true, "Konfiguracja", apply_text);
-    auto close = [dialog, app] { app->after(1, [dialog] { try { dialog->destroy(); } catch (const tk::TclError&) {} }); };
+    auto close = [dialog, app, keep = settings] { app->after(1, [dialog] { try { dialog->destroy(); } catch (const tk::TclError&) {} }); };
     auto buttons = new ttk::Frame(body);
     buttons->pack({{"fill", "x"}, {"pady", "12 0"}});
-    (new ttk::Button(buttons, {{"text", "Zamknij"}, {"command", std::function<void()>(close)}}))->pack({{"side", "right"}, {"padx", "6 0"}});
-    auto apply = [app, group, settings, row, close] {
+    (new ttk::Button(buttons, {{"text", "Gotowe"}, {"style", "Accent.TButton"}, {"command", std::function<void()>(close)}}))->pack({{"side", "right"}});
+    // Podgląd na żywo: każda zmiana pola od razu przebudowuje mebel (albo cały rząd), z osobnym krokiem cofania.
+    std::weak_ptr<Settings> weak = settings;
+    auto apply_now = [app, group, weak] {
+        auto settings = weak.lock();
+        if (!settings) return;
         Overrides ov = settings->collect();
-        if (ov.values.empty()) { close(); app->status.set("Konfiguracja: bez zmian"); return; }
+        if (ov.values.empty()) return;
         try {
-            std::vector<std::string> targets = ov.apply_first ? row : std::vector<std::string>{group};
-            journal::event(app, "konfiguracja", std::format("zastosuj: {} · meble: {}", ov.values.dump(), targets.size()));
+            std::vector<std::string> targets = ov.apply_first ? furniture_layout::row_groups(*app->project, group) : std::vector<std::string>{group};
+            if (targets.empty()) targets = {group};
+            journal::event(app, "konfiguracja", std::format("{}: zmiana {} · meble: {}", group, ov.values.dump(), targets.size()));
             core::ProjectPtr result = app->project;
             for (const auto& name : targets) {
                 json config = furniture_configurator::read_config(*result, name);
@@ -599,20 +733,25 @@ void open_configuration(App* app, const std::string& group) {
                 merge_overrides(config, ov.values);
                 result = furniture_configurator::configure(*result, config, name, config.at("origin")).first;
             }
-            journal::dump_groups(app, *result, "po konfiguracji");
-            close();
             app->snapshot();
             app->project = result;
             for (auto& part : app->project->parts) if (part.group == group) { app->selected = part.id; break; }
             app->refresh();
+            settings->rebase();
             app->status.set(std::format("Skonfigurowano {} (szt. {}) · Ctrl+Z cofa zmianę", group, targets.size()));
         } catch (const std::exception& error) {
             journal::event(app, "konfiguracja", std::string("BŁĄD: ") + error.what());
             app->status.set(std::string("Konfiguracja: ") + error.what());
             tk::messagebox::showerror("Konfiguracja mebla", error.what(), app);
+            settings->rebase();  // pola zostają, ale kolejna zmiana nie ponawia błędnej
         }
     };
-    (new ttk::Button(buttons, {{"text", "Zastosuj"}, {"style", "Accent.TButton"}, {"command", std::function<void()>(apply)}}))->pack({{"side", "right"}});
+    auto pending = std::make_shared<bool>(false);
+    settings->on_change = [app, pending, apply_now] {
+        if (*pending) return;
+        *pending = true;
+        app->after(1, [pending, apply_now] { *pending = false; apply_now(); });
+    };
 }
 
 }  // namespace stretch_choice

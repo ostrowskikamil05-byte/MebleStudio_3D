@@ -571,8 +571,8 @@ void QuickInspector::check(tk::Widget* parent, const std::string& key, const std
 
 void QuickInspector::section_fields(tk::Widget* parent, const std::string& key) {
     field_pair(parent, key + ".columns", "Komory pionowe", key + ".shelves", "Półki na komorę", true, true);
-    combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}}, true);
-    choice_tiles(parent, key + ".front", "Wypełnienie", {{"Otwarte", "Otwarte"}, {"Drzwi", "Drzwi"}, {"Szuflady", "Szuflady"}});
+    combo(parent, key + ".front", "Wypełnienie", json{{"Otwarte", "open"}, {"Drzwi", "doors"}, {"Szuflady", "drawers"}, {"Zaślepka", "blind"}}, true);
+    choice_tiles(parent, key + ".front", "Wypełnienie", {{"Otwarte", "Otwarte"}, {"Drzwi", "Drzwi"}, {"Szuflady", "Szuflady"}, {"Zaślepka", "Zaślepka"}});
     combo(parent, key + ".doors", "Drzwi na komorę", json{{"1 skrzydło", 1}, {"2 skrzydła", 2}}, true);
     choice_tiles(parent, key + ".doors", "Drzwi na komorę", {{"1 skrzydło", "1 skrzydło"}, {"2 skrzydła", "2 skrzydła"}});
     field(parent, key + ".drawers", "Szuflady na komorę", true);
