@@ -295,12 +295,15 @@ Sketch::Sketch(App* app_, const core::Part* part_)
         profile_param_label = tk::StringVar("Grubość ramienia [mm]");
         auto* profile_combo = new ttk::Combobox(side, {{"textvariable", profile_name}, {"values", profile_names}, {"state", "readonly"}});
         profile_combo->pack({{"fill", "x"}, {"pady", 2}});
+        profile_preview = new tk::Canvas(side, {{"width", 150}, {"height", 90}, {"bg", forma_theme::CARD}, {"highlightthickness", 1}, {"highlightbackground", forma_theme::BORDER}});
+        profile_preview->pack({{"anchor", "w"}, {"pady", "2 4"}});
         profile_combo->bind("<<ComboboxSelected>>", [this](tk::Event&) {
             for (const auto& info : sketch_shapes::profile_catalog())
                 if (info.name == profile_name.get()) {
                     profile_param_label.set(info.param_label.empty() ? "(bez dodatkowego parametru)" : info.param_label);
                     profile_param.set(g(info.default_param));
                 }
+            draw_profile_preview();
             return std::string();
         });
         auto* profile_row = new ttk::Frame(side);
@@ -310,7 +313,10 @@ Sketch::Sketch(App* app_, const core::Part* part_)
             (new ttk::Entry(profile_row, {{"textvariable", var}, {"width", 7}}))->pack({{"side", "left"}, {"padx", 3}});
         }
         (new ttk::Label(side, {{"textvariable", profile_param_label}, {"wraplength", 270}}))->pack({{"anchor", "w"}});
-        (new ttk::Entry(side, {{"textvariable", profile_param}}))->pack({{"fill", "x"}});
+        auto* param_entry = new ttk::Entry(side, {{"textvariable", profile_param}});
+        param_entry->pack({{"fill", "x"}});
+        param_entry->bind("<KeyRelease>", [this](tk::Event&) { draw_profile_preview(); return std::string(); });
+        draw_profile_preview();
         (new ttk::Button(side, {{"text", "Wstaw profil"}, {"command", Cmd([this] { insert_profile(); })}}))->pack({{"fill", "x"}, {"pady", 3}});
     }
     (new ttk::Label(side, {{"text", "2. Narysuj lub dopasuj kontur"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 6"}});
@@ -1585,6 +1591,21 @@ void Sketch::release(const tk::Event&) {
         status.set(std::string("Przesunięcie odrzucone: ") + e.what());
         update_list();
         draw();
+    }
+}
+
+// Miniaturka profilu rysowana z tych samych funkcji, które wstawiają kontur (przy błędnych liczbach zostaje pusta ramka).
+void Sketch::draw_profile_preview() {
+    if (!profile_preview) return;
+    profile_preview->delete_("profile_preview");
+    try {
+        std::vector<Point> shape = sketch_shapes::profile(profile_name.get(), number(profile_width), number(profile_height), number(profile_param));
+        std::vector<Point> thumb = sketch_shapes::thumbnail_points(shape, 150, 90, 8);
+        if (thumb.size() < 3) return;
+        std::vector<double> coords;
+        for (const auto& p : thumb) { coords.push_back(p[0]); coords.push_back(p[1]); }
+        profile_preview->create_polygon(coords, {{"fill", "#e6ddd0"}, {"outline", "#6b5a45"}, {"width", 1.5}, {"tags", "profile_preview"}});
+    } catch (const std::exception&) {
     }
 }
 

@@ -31,6 +31,10 @@ const std::vector<ProfileInfo>& profile_catalog();
 // Profil z katalogu o szerokości `width` i wysokości `height` (mm), lewy dolny róg w (0,0).
 std::vector<Point> profile(const std::string& name, double width, double height, double param);
 
+// Miniaturka konturu: współrzędne płótna (y rośnie w dół) dopasowane do pola width × height z marginesem `margin` px,
+// z zachowaniem proporcji i wyśrodkowaniem. Pusta lista dla pustego / zdegenerowanego konturu.
+std::vector<Point> thumbnail_points(const std::vector<Point>& shape, double width, double height, double margin = 6);
+
 // Zaokrągla narożnik `index` łukiem o promieniu `radius` (styczny do obu sąsiednich odcinków).
 std::vector<Point> fillet_corner(const std::vector<Point>& points, size_t index, double radius, bool closed = true, int segments_per_quarter = 8);
 // Ścina narożnik `index` na odległość `distance` od wierzchołka po obu bokach.

@@ -67,6 +67,7 @@
 #include "stretch_choice.h"
 #include "ui_preferences.h"
 #include "viewport_modes.h"
+#include "catalogue_previews.h"
 #include "visual_catalogue.h"
 #include "workspace_worktops.h"
 
@@ -1072,6 +1073,42 @@ public:
                 close_extra_windows();
                 need(failed == 0, "dodanie elementu z katalogu nie powiodło się — " + first_error);
                 app->project = fresh();
+            });
+        }
+        // Każdy element biblioteki MUSI mieć miniaturkę: niepusta geometria, skończone i niezdegenerowane wymiary, narysowana na karcie.
+        for (const auto& [kind, title] : visual_catalogue::KINDS) {
+            run(area, "miniaturki: każdy element rodzaju „" + title + "” ma narysowaną miniaturkę", "catalogue_previews.cpp (preview_faces, draw_preview), library_panel.cpp", [this, kind](Ctx& ctx) {
+                ProjectPtr scratch = (kind != "furniture" && kind != "shaped" && kind != "appliance") ? cabinet(Project()).first : fresh();
+                json items = visual_catalogue::catalogue_items(kind, *scratch);
+                need(items.is_array() && !items.empty(), "katalog nie zwrócił elementów");
+                auto* canvas = new tk::Canvas(app, {{"width", 200}, {"height", 125}});
+                std::map<std::string, std::string> seen;
+                int duplicates = 0;
+                std::string first_duplicate;
+                for (const auto& item : items) {
+                    std::string name = item.value("name", item.value("title", std::string("?")));
+                    auto faces = catalogue_previews::preview_faces(item);
+                    if (faces.empty()) { canvas->destroy(); need(false, "brak miniaturki (pusta geometria): " + name); }
+                    double lo[3] = {1e18, 1e18, 1e18}, hi[3] = {-1e18, -1e18, -1e18};
+                    std::string signature;
+                    for (const auto& [face, color] : faces) {
+                        signature += color;
+                        for (const auto& v : face)
+                            for (int i = 0; i < 3; ++i) {
+                                if (!std::isfinite(v[i])) { canvas->destroy(); need(false, "miniaturka ma niepoprawne współrzędne: " + name); }
+                                lo[i] = std::min(lo[i], v[i]); hi[i] = std::max(hi[i], v[i]);
+                                signature += std::format("{:.1f},", v[i]);
+                            }
+                    }
+                    if (!(hi[0] - lo[0] > 1 || hi[1] - lo[1] > 1 || hi[2] - lo[2] > 1)) { canvas->destroy(); need(false, "miniaturka ma zerowe wymiary: " + name); }
+                    catalogue_previews::draw_preview(canvas, item, 200, 125);
+                    if (canvas->find_withtag(item.at("id").get<std::string>()).empty()) { canvas->destroy(); need(false, "miniaturka nie została narysowana na karcie: " + name); }
+                    auto [it, inserted] = seen.emplace(signature, name);
+                    if (!inserted) { ++duplicates; if (first_duplicate.empty()) first_duplicate = name + " = " + it->second; }
+                }
+                canvas->destroy();
+                ctx.note(std::format("{} miniaturek", items.size()));
+                if (duplicates) ctx.warn(std::format("{} miniaturek wygląda identycznie jak inna (np. {}) — warto dorobić własną", duplicates, first_duplicate));
             });
         }
         run(area, "szukanie i filtrowanie w katalogu", where, [](Ctx& ctx) {
@@ -2551,6 +2588,30 @@ public:
                 ctx.note(info.name + " OK");
                 close_sketch(sk);
             }
+        });
+
+        run(area, "miniaturki profili: każdy profil z katalogu ma narysowaną miniaturkę w panelu i poprawną geometrię", where, [=, this](Ctx& ctx) {
+            for (const auto& info : sketch_shapes::profile_catalog()) {
+                auto shape = sketch_shapes::profile(info.name, 600, 400, info.default_param);
+                auto thumb = sketch_shapes::thumbnail_points(shape, 150, 90, 8);
+                need(thumb.size() == shape.size(), "miniaturka profilu „" + info.name + "” jest pusta");
+                double lo_x = 1e18, hi_x = -1e18, lo_y = 1e18, hi_y = -1e18;
+                for (const auto& p : thumb) { lo_x = std::min(lo_x, p[0]); hi_x = std::max(hi_x, p[0]); lo_y = std::min(lo_y, p[1]); hi_y = std::max(hi_y, p[1]); }
+                need(lo_x >= 7.9 && hi_x <= 142.1 && lo_y >= 7.9 && hi_y <= 82.1, "miniaturka profilu „" + info.name + "” wychodzi poza ramkę");
+                need(hi_x - lo_x > 20 && hi_y - lo_y > 20, "miniaturka profilu „" + info.name + "” jest za mała");
+                auto* sk = open_sketch();
+                need(sk->profile_preview != nullptr, "panel profili nie ma miniaturki");
+                sk->profile_name.set(info.name);
+                sk->profile_width.set("600"); sk->profile_height.set("400"); sk->profile_param.set(std::format("{:g}", info.default_param));
+                sk->draw_profile_preview();
+                need(!sk->profile_preview->find_withtag("profile_preview").empty(), "profil „" + info.name + "” nie ma narysowanej miniaturki w panelu");
+                sk->profile_param.set("to nie liczba");
+                sk->draw_profile_preview();
+                need(sk->profile_preview->find_withtag("profile_preview").empty(), "błędny parametr powinien czyścić miniaturkę, a nie zostawiać starą");
+                close_sketch(sk);
+            }
+            need(sketch_shapes::thumbnail_points({}, 150, 90).empty() && sketch_shapes::thumbnail_points({{0, 0}, {0, 0}, {0, 0}}, 150, 90).empty(), "pusty lub zdegenerowany kontur nie powinien dawać miniaturki");
+            ctx.note(std::format("{} profili z miniaturkami", sketch_shapes::profile_catalog().size()));
         });
 
         run(area, "edytor: zaokrąglenie, fazowanie i usuwanie punktu zamkniętego konturu", where, [=, this](Ctx& ctx) {

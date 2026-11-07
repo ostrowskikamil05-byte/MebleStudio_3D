@@ -371,4 +371,22 @@ bool self_intersects(const std::vector<Point>& pts) {
     return false;
 }
 
+std::vector<Point> thumbnail_points(const std::vector<Point>& shape, double width, double height, double margin) {
+    if (shape.size() < 2 || width <= 2 * margin || height <= 2 * margin) return {};
+    double lo_x = shape[0][0], hi_x = lo_x, lo_y = shape[0][1], hi_y = lo_y;
+    for (const auto& p : shape) {
+        if (!std::isfinite(p[0]) || !std::isfinite(p[1])) return {};
+        lo_x = std::min(lo_x, p[0]); hi_x = std::max(hi_x, p[0]);
+        lo_y = std::min(lo_y, p[1]); hi_y = std::max(hi_y, p[1]);
+    }
+    double span_x = hi_x - lo_x, span_y = hi_y - lo_y;
+    if (span_x < 1e-9 || span_y < 1e-9) return {};
+    double scale = std::min((width - 2 * margin) / span_x, (height - 2 * margin) / span_y);
+    double offset_x = (width - span_x * scale) / 2, offset_y = (height - span_y * scale) / 2;
+    std::vector<Point> out;
+    out.reserve(shape.size());
+    for (const auto& p : shape) out.push_back({offset_x + (p[0] - lo_x) * scale, height - offset_y - (p[1] - lo_y) * scale});
+    return out;
+}
+
 }  // namespace sketch_shapes

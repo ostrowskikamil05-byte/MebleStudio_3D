@@ -62,6 +62,8 @@ public:
     sketch_inference::Result inference;           // ostatnia wskazówka pod kursorem
     std::optional<Point> arrow_lock;              // kierunek zablokowany strzałką (wektor jednostkowy)
     std::vector<Point> pending;                   // punkty rozpoczętego okręgu / wieloboku / łuku
+    tk::Canvas* profile_preview = nullptr;  // miniaturka wybranego profilu w panelu „Szybkie profile”
+    void draw_profile_preview();
     tk::StringVar value_text, value_prompt, value_live, sides, profile_name, profile_width, profile_height, profile_param, profile_param_label;
     std::vector<Point> centers;                   // środki narysowanych okręgów (wskazówka „środek okręgu”)
     std::vector<Segment> guides;                  // linie pomocnicze (z miarki), widoczne jako przerywane i łapane przez wskazówki
