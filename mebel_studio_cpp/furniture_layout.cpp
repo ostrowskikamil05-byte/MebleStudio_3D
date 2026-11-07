@@ -321,6 +321,33 @@ std::pair<ProjectPtr, json> nearest_snap(const Project& project, const std::stri
     return {move_group(project, group, best->delta[0], best->delta[1], best->delta[2], validate), best->info};
 }
 
+json row_extent(const Project& project, const std::string& group) {
+    // Rząd to szafki stykające się bokami wzdłuż X (ta sama wysokość i głębokość się pokrywają): zwraca liczbę, początek, koniec i długość całkowitą.
+    std::vector<std::string> names = groups(project);
+    std::map<std::string, Box> boxes;
+    for (auto& name : names) boxes[name] = group_bounds(project, name);
+    if (!boxes.contains(group)) return json(nullptr);
+    const double touch = 3.0;
+    std::set<std::string> row{group};
+    std::vector<std::string> queue{group};
+    while (!queue.empty()) {
+        std::string current = queue.back();
+        queue.pop_back();
+        const Box& a = boxes[current];
+        for (auto& [name, b] : boxes) {
+            if (row.contains(name)) continue;
+            bool side = std::abs(a.second[0] - b.first[0]) <= touch || std::abs(b.second[0] - a.first[0]) <= touch;
+            if (!side) continue;
+            if (_overlap(a, b, 1) <= 1.0 || _overlap(a, b, 2) <= 1.0) continue;
+            row.insert(name);
+            queue.push_back(name);
+        }
+    }
+    double lo = 1e18, hi = -1e18;
+    for (auto& name : row) { lo = std::min(lo, boxes[name].first[0]); hi = std::max(hi, boxes[name].second[0]); }
+    return {{"count", (long long)row.size()}, {"from", lo}, {"to", hi}, {"length", hi - lo}};
+}
+
 std::pair<ProjectPtr, bool> resolve_overlap(const Project& project, const std::string& group) {
     // Wypchnięcie z sąsiednich mebli: jeśli przesuwany mebel wszedł w inny, ślizga się po jego ściance
     // (najmniejsze przesunięcie w osi X albo Y), zamiast przenikać. Dopiero potem działa magnes.

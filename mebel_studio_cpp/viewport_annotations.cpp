@@ -13,6 +13,7 @@
 #include "depth_raster.h"
 #include "features.h"
 #include "furniture_configurator.h"
+#include "furniture_layout.h"
 #include "pyutil.h"
 
 namespace viewport_annotations {
@@ -152,6 +153,24 @@ std::vector<DimensionSpec> dimension_specs(App* app, const core::Project& displa
     static const char* const WHOLE[] = {"X", "Y", "Z"};
     static const char* const FURNITURE[] = {"S", "G", "H"};
     for (auto& spec : specs) spec.label = mode == "Cały zestaw" ? WHOLE[spec.axis] : FURNITURE[spec.axis];
+    if (mode != "Cały zestaw" && selected != nullptr) {
+        // Szafki stykające się bokami tworzą rząd: dodatkowy wymiar pokazuje długość całego rzędu (z bokami) w osiach pokoju.
+        try {
+            json row = furniture_layout::row_extent(display, selected->group);
+            if (row.is_object() && row.at("count").get<long long>() > 1) {
+                auto own = furniture_layout::group_bounds(display, selected->group);
+                Point3 a{row.at("from").get<double>(), own.first[1], own.second[2]}, b{row.at("to").get<double>(), own.first[1], own.second[2]};
+                DimensionSpec spec;
+                spec.axis = 0;
+                spec.a = app->camera.project(a, size.first, size.second);
+                spec.b = app->camera.project(b, size.first, size.second);
+                spec.value = row.at("length").get<double>();
+                spec.label = "Rząd " + std::to_string(row.at("count").get<long long>()) + " szafek";
+                if (hypot2(spec.b[0] - spec.a[0], spec.b[1] - spec.a[1]) >= 24) specs.push_back(spec);
+            }
+        } catch (const std::exception&) {
+        }
+    }
     return specs;
 }
 

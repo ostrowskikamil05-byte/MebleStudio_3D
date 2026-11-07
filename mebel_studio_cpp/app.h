@@ -744,7 +744,16 @@ public:
                 result = direct_edit::resize_furniture_face(*drag.base, *handle.group, handle.face, distance);
             } else result = resize_part(*drag.base, *drag.id, handle.face, distance);
             drag.candidate = result; project = result; load_form(); draw();
-            status.set(std::format("Rozciąganie {}: {:+g} mm · puść przycisk, aby zatwierdzić", handle.face, distance));
+            std::string row_note;
+            if (handle.group && !handle.group->empty() && handle.face[0] == 'x') {
+                try {
+                    json row = furniture_layout::row_extent(*result, *handle.group);
+                    if (row.is_object() && row.at("count").get<long long>() > 1)
+                        row_note = std::format(" · rząd {} szafek: {:g} mm razem", row.at("count").get<long long>(), std::round(row.at("length").get<double>() * 10) / 10);
+                } catch (const std::exception&) {
+                }
+            }
+            status.set(std::format("Rozciąganie {}: {:+g} mm{} · puść przycisk, aby zatwierdzić", handle.face, distance, row_note));
         } catch (const ValueError& error) {
             drag.candidate = nullptr; project = drag.base; draw(); status.set(error.what());
         }

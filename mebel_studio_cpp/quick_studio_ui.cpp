@@ -267,8 +267,6 @@ QuickInspector::QuickInspector(tk::Widget* parent, App* app_) : ttk::Frame(paren
     field(type_section->body, "name", "Nazwa", false, true);
     field_pair(type_section->body, "width", "Szerokość", "height", "Wysokość");
     field_pair(type_section->body, "depth", "Głębokość", "thickness", "Grubość korpusu");
-    field(type_section->body, "modules", "Moduły w rzędzie [mm]", false, true);
-    (new ttk::Label(type_section->body, {{"text", "Np. 600 + 800 + 600: każdy moduł ma własną szerokość, suma = szerokość mebla. Rozciągnięcie mebla w bok dodaje kolejne moduły."}, {"wraplength", 280}, {"font", "{Segoe UI} 8"}, {"foreground", forma_theme::MUTED}}))->pack({{"anchor", "w"}, {"pady", "0 3"}});
     (new ttk::Label(type_section->body, {{"text", "Wysokość obejmuje nóżki i blat."}, {"font", "{Segoe UI} 9"}, {"foreground", "#6b7266"}}))->pack({{"anchor", "w"}});
     // A visible shortcut strip changes geometry in one click, like the reference tool.
     auto* quick = new ttk::Frame(top);
@@ -920,6 +918,13 @@ void QuickInspector::refresh() {
     json cfg = has_group ? read_config(*app->project, *group) : json(nullptr);
     if (py::truthy(cfg)) {
         set_config(cfg);
+        try {
+            // Rząd szafek stykających się bokami: całkowita długość od lewej do prawej krawędzi (z bokami).
+            json row = furniture_layout::row_extent(*app->project, *group);
+            if (row.is_object() && row.at("count").get<long long>() > 1)
+                card_sub.set(card_sub.get() + std::format(" · rząd {} szafek: {:g} mm razem", row.at("count").get<long long>(), std::round(row.at("length").get<double>() * 10) / 10));
+        } catch (const std::exception&) {
+        }
         json status = configuration_status(*app->project, *group);
         bool editable = py::truthy(jget(status, "editable", false));
         note.set(editable ? "Zmiana listy: od razu. Liczby: Enter lub wyjście z pola." : py::str(jget(status, "reason", "Mebel zmieniono ręcznie.")));
