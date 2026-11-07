@@ -678,8 +678,33 @@ public:
         viewport_hud::paint(this, w, h, background["spacing"]);
         handles = {}; edge_handles = {};
         bool any_open = false; for (auto& [k, v] : open_amounts) if (v) any_open = true;
-        if (p && !any_open && (edit_mode.get() == "resize" || edit_mode.get() == "furniture") && !py::truthy(py::get(p->assembly, "generated_by"))) {
+        // Rozciąganie mebla działa na całej grupie, więc zaznaczona część skrzynki szuflady / kosza (generated_by) nie może blokować uchwytów:
+        // bierzemy jej właściciela (front), a w razie braku — dowolną część tej samej grupy.
+        Part* furniture_part = p;
+        if (edit_mode.get() == "furniture" && p && py::truthy(py::get(p->assembly, "generated_by"))) {
+            furniture_part = nullptr;
+            std::string owner = py::get(p->assembly, "generated_by").is_string() ? py::get(p->assembly, "generated_by").get<std::string>() : "";
+            for (auto& q : display->parts) if (q.id == owner) { furniture_part = &q; break; }
+            if (!furniture_part) for (auto& q : display->parts) if (q.group == p->group && !py::truthy(py::get(q.assembly, "generated_by"))) { furniture_part = &q; break; }
+        }
+        {
+            // Dziennik: dlaczego w trybie rozciągania nie ma uchwytów (raz na zmianę przyczyny) — wcześniej brak uchwytów był niemy.
+            static std::string last_reason;
+            std::string reason;
             if (edit_mode.get() == "furniture") {
+                if (!p) reason = "brak zaznaczonej części";
+                else if (any_open) reason = "jest otwarta animacja drzwi/szuflad";
+                else if (!furniture_part) reason = "zaznaczona część skrzynki bez właściciela";
+                else if (furniture_part->group.empty()) reason = "zaznaczona część nie należy do żadnego mebla";
+            }
+            if (reason != last_reason) {
+                last_reason = reason;
+                if (!reason.empty()) journal::event(this, "rozciąganie", "brak uchwytów rozciągania: " + reason + (p ? " (" + p->name + ")" : std::string()));
+            }
+        }
+        if (furniture_part && !any_open && (edit_mode.get() == "resize" || edit_mode.get() == "furniture") && (edit_mode.get() == "furniture" || !py::truthy(py::get(p->assembly, "generated_by")))) {
+            if (edit_mode.get() == "furniture") {
+                Part* p = furniture_part;
                 try {
                     auto styled = shaped_furniture::styled_bounds(*project, p->group);
                     auto f = styled ? *styled : assembly::frame(*project, p->group); auto lo = f.lower, hi = f.upper;
@@ -695,7 +720,15 @@ public:
                             c->create_text(x + 10, y - 12, {{"text", std::string{(char)std::toupper(axis), end}}, {"fill", "#4e6b3f"}, {"anchor", "w"}});
                         }
                     }
-                } catch (const ValueError& e) { status.set(e.what()); }
+                    static std::string last_group;
+                    if (last_group != p->group) {
+                        last_group = p->group;
+                        journal::event(this, "rozciąganie", std::format("uchwyty rozciągania: {} dla „{}”", handles.size(), p->group));
+                    }
+                } catch (const ValueError& e) {
+                    status.set(e.what());
+                    journal::event(this, "rozciąganie", std::string("uchwyty rozciągania niedostępne: ") + e.what() + " (" + p->group + ")");
+                }
             } else {
                 std::array<double, 3> center{p->u / 2, p->v / 2, p->t / 2};
                 for (char axis : {'u', 'v', 't'}) {
@@ -750,6 +783,9 @@ public:
             for (auto& hd : handles) if (!nearest || std::hypot(e.x - hd.x, e.y - hd.y) < std::hypot(e.x - nearest->x, e.y - nearest->y)) nearest = &hd;
             if (nearest && std::hypot(e.x - nearest->x, e.y - nearest->y) < 12)
                 drag_edit = DragEdit{*nearest, std::make_shared<Project>(*project), nullptr, selected, 0};
+            else if (edit_mode.get() == "furniture")
+                journal::event(this, "rozciąganie", nearest ? std::format("kliknięcie poza uchwytami (najbliższy {} w odległości {:.0f} px)", nearest->face, std::hypot(e.x - nearest->x, e.y - nearest->y))
+                                                           : std::string("kliknięcie w trybie rozciągania, ale nie ma żadnych uchwytów"));
         }
     }
     void direct_drag(tk::Event& e) {

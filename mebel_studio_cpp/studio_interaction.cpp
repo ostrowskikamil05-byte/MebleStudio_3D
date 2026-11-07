@@ -324,7 +324,11 @@ void install(App* app) {
     });
     app->canvas->bind("<ButtonPress-1>", [app, st](tk::Event& event) -> std::string {
         if (viewport_hud::press(app, event)) return "break";
-        if (!app->flush_parameter_drafts()) return "break";
+        if (!app->flush_parameter_drafts()) {
+            // Niezatwierdzona zmiana w panelu nie może po cichu blokować widoku — podaj powód w dzienniku i pasku stanu.
+            journal::event(app, "zaznaczenie", "kliknięcie w widoku wstrzymane: panel ma niezatwierdzoną zmianę, której nie da się zastosować");
+            return "break";
+        }
         if (app->hardware_drag && app->hardware_drag->active()) {
             st->hardware_click = true;
             return app->hardware_drag->target_click(event).value_or("");
