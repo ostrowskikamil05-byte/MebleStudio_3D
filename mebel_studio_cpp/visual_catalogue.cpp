@@ -235,7 +235,7 @@ json catalogue_items(const std::string& kind_in, const core::Project* project) {
             for (long long count : {4, 6}) {
                 json payload = json{{"leg_height", height}, {"leg_count", count}, {"leg_diameter", 40}, {"leg_setback", 60}, {"leg_color", "#242628"}};
                 items.push_back(make_item(std::format("{}-{}", height, count), kind, std::format("Nogi Ø40 · {} mm · {} szt.", height, count), "Własne nogi cylindryczne",
-                                          json{{"height", height}, {"diameter", 40}, {"count", count}}, payload, json{{"height", height}, {"diameter", 40}, {"color", "#242628"}},
+                                          json{{"height", height}, {"diameter", 40}, {"count", count}}, payload, json{{"height", height}, {"diameter", 40}, {"color", "#242628"}, {"count", count}},
                                           json::array({"zakupowe", "własny model"}), "",
                                           "Własny model nóg, bez deklaracji nośności producenta. Zmiana zachowuje wysokość korpusu."));
             }
@@ -264,7 +264,12 @@ json catalogue_items(const std::string& kind_in, const core::Project* project) {
             json payload = json{{"profile_id", ident}, {"length", length}, {"price", 0}};
             json dims = json{{"lengths", lengths}, {"clearance", py::get(profile, "external_clearance")}, {"inner_width_offset", py::get(profile, "inner_width_offset")},
                              {"max_side_thickness", py::get(profile, "max_side_thickness")}, {"load_kg", py::get(profile, "load_kg")}, {"mount", profile.at("mount")}};
-            json preview = json{{"length", length}, {"clearance", clearance}, {"height", 46}, {"mount", profile.at("mount")}};
+            // Miniaturka różni profile: udźwig (grubość szyny), wysuw pełny/częściowy oraz tłumik / push-to-open (z nazwy profilu).
+            std::string label_lower = lower_text(profile.at("label").get<std::string>());
+            std::string feature = label_lower.find("push") != std::string::npos ? "push" : (label_lower.find("blumotion") != std::string::npos || label_lower.find("silent") != std::string::npos || label_lower.find("soft") != std::string::npos) ? "soft" : "";
+            json load = py::get(profile, "load_kg");
+            json preview = json{{"length", length}, {"clearance", clearance}, {"height", 46}, {"mount", profile.at("mount")},
+                                {"load_kg", load.is_number() ? load : json(30)}, {"extension", py::get(profile, "extension", "full")}, {"feature", feature}};
             std::string note = profile.at("status").get<std::string>() + "; bez kompletnych wzorców CNC.";
             items.push_back(make_item(ident, kind, profile.at("label"), profile.at("manufacturer"), dims, payload, preview,
                                       json::array({profile.at("family"), profile.at("mount") == "undermount" ? "podwieszana" : "boczna", profile.at("extension")}),
@@ -324,7 +329,7 @@ json catalogue_items(const std::string& kind_in, const core::Project* project) {
             if (existing.count(title)) continue;
             bool wood = wood_name(name);
             items.push_back(make_item("palette-" + std::to_string(index), kind, title, wood ? "Dekory drewna" : "Kolory i dekory", json::object(),
-                                      json{{"name", title}, {"color", color}, {"kind", "mdf"}}, json{{"color", color}, {"wood", wood}}, json::array({color, "dekor"}), "",
+                                      json{{"name", title}, {"color", color}, {"kind", "mdf"}}, json{{"color", color}, {"wood", wood}, {"decor", true}}, json::array({color, "dekor"}), "",
                                       "Przybliżona barwa ekranu; własny dekor MDF, bez certyfikacji koloru producenta."));
         }
     }

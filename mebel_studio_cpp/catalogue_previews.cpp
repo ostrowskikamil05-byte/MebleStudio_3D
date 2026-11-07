@@ -176,12 +176,26 @@ ColoredFaces _faces(const std::string& key_) {
             for (auto& [face, color, emissive, glass] : room_objects::_geometry(py::dumps(spec, true, -1, true))) out.emplace_back(face, color);
         } else if (kind == "leg") {
             double foot = std::min(6.0, num(p.at("height")) / 4); std::string color = py::get(p, "color", "#353f41");
-            put(cylinder(30, 30, 0, num(p.at("diameter")) * 1.15 / 2, foot, 14), color); put(cylinder(30, 30, foot, num(p.at("diameter")) / 2, num(p.at("height")) - foot, 14), color);
+            // Liczba nóg z karty: układ 2 × (n/2) rzędów, żeby 4 i 6 sztuk wyglądały inaczej.
+            long long count = std::clamp<long long>(py::get(p, "count", 1).is_number() ? py::get(p, "count", 1).get<long long>() : 1, 1, 12);
+            long long columns = count <= 2 ? count : (count + 1) / 2, rows = count <= 2 ? 1 : 2;
+            for (long long i = 0; i < count; ++i) {
+                double x = 30 + (i % columns) * 110.0, y = 30 + (i / columns) * 110.0;
+                (void)rows;
+                put(cylinder(x, y, 0, num(p.at("diameter")) * 1.15 / 2, foot, 14), color); put(cylinder(x, y, foot, num(p.at("diameter")) / 2, num(p.at("height")) - foot, 14), color);
+            }
         } else if (kind == "runner") {
             double length = num(py::get(p, "length", 400)); double clearance = num(py::get(p, "clearance", 12.7)); double height = num(py::get(p, "height", 46));
             const char* colors[] = {"#aab5ba", "#d6dcde", "#73848b"};
             for (int i = 0; i < 3; ++i) bx(i * length * .1, i * clearance * .27, i * height * .08, length * (1 - i * .12), clearance * .3, height * (1 - i * .14), colors[i]);
             if (py::get(p, "mount") == "undermount") bx(length * .04, clearance, 0, length * .88, 36, 8, "#aab5ba");
+            // udźwig = grubsza szyna; wysuw częściowy = krótsza szyna wewnętrzna; tłumik / push-to-open = element na końcu
+            double load = py::get(p, "load_kg", 30).is_number() ? py::get(p, "load_kg", 30).get<double>() : 30;
+            bx(0, -load * .25, 0, length * .9, load * .25, 5, "#8e9ca3");
+            if (py::get(p, "extension", "full") == "partial") bx(length * .55, clearance * 1.4, 0, length * .3, 6, height * .6, "#c8d0d3");
+            std::string feature = py::get(p, "feature", "").is_string() ? py::get(p, "feature", "").get<std::string>() : "";
+            if (feature == "soft") put(cylinder(length * .9, clearance * .3, 0, 7, 30, 10), "#4b5a61");
+            else if (feature == "push") bx(length * .9, 0, 0, 24, clearance * .6, height * .7, "#d97b3a");
         } else if (kind == "hinge") {
             double diameter = num(p.at("diameter")); double pitch = num(p.at("pitch")); double offset = num(p.at("offset")); bx(0, -pitch / 2 - 8, 0, diameter + 15, pitch + 16, 3, "#a8b3b7");
             put(cylinder(5 + diameter / 2, 0, 3, diameter / 2, num(py::get(p, "depth", 12.5)), 18), "#9ba9b1"); bx(diameter + 8, -8, 5, 55, 16, 8, "#b8c3c7"); bx(diameter + 60, -20, 0, 22, 40, 4, "#809198");
@@ -191,7 +205,15 @@ ColoredFaces _faces(const std::string& key_) {
             if (mode == "finger_pocket" || mode == "finger_slot") {
                 bx(0, 0, 0, 170, 48, 18, "#c5a475"); bx(25, -.5, 7, 120, 6, 8, "#5b4636");
             } else if (mode == "edge_pull") { bx(0, 0, 0, 150, 10, 20, "#414e54"); bx(0, -25, 18, 150, 35, 3, "#414e54"); }
-            else if (py::truthy(mode) && (mode.get<std::string>().starts_with("tip") || mode.get<std::string>().starts_with("salice"))) { put(cylinder(12, 12, 0, 5, num(py::get(p, "depth", 50)), 12), "#b3bec3"); put(cylinder(12, 12, num(py::get(p, "depth", 50)), 3, 10, 10), "#49555c"); }
+            else if (py::truthy(mode) && (mode.get<std::string>().starts_with("tip") || mode.get<std::string>().starts_with("salice"))) {
+                // warianty różnią się kształtem: długi mechanizm, odbojnik (krótki, szeroki), push z gumą (sprężyna)
+                std::string m = mode.get<std::string>();
+                double depth = num(py::get(p, "depth", 50)) * (m.find("long") != std::string::npos ? 1.6 : m.find("bumper") != std::string::npos ? .45 : 1.0);
+                double radius = m.find("bumper") != std::string::npos ? 9 : 5;
+                put(cylinder(12, 12, 0, radius, depth, 12), "#b3bec3"); put(cylinder(12, 12, depth, 3, 10, 10), "#49555c");
+                if (m.find("salice") == 0) put(cylinder(12, 12, depth + 10, 7, 6, 12), "#d97b3a");
+                if (m.find("short") != std::string::npos) put(cylinder(12, 12, 0, 8, 6, 12), "#8e9ca3");
+            }
             else if (mode == "none") bx(0, 0, 0, 150, 8, 90, "#d1bb9d");
             else if (!py::truthy(spacing)) { put(cylinder(12, 12, 0, 6, 18, 10), "#505c61"); put(cylinder(12, 12, 18, 12, 10, 14), "#87979f"); }
             else {
@@ -200,10 +222,25 @@ ColoredFaces _faces(const std::string& key_) {
                 put(rod({0, 0, 25}, {s, 0, 25}, 5), "#a4b3ba");
             }
         } else if (kind == "led") {
-            double width = num(options.at("width")); bx(0, 0, 0, 300, width, 4, "#75848c");
-            bx(0, 1, 4, 300, std::max(1.0, width - 2), 1, "#eadfc0");
+            double width = num(options.at("width")); bool groove = py::truthy(py::get(options, "groove", false));
+            if (groove) {
+                // profil wpuszczony w rowek: dwie listwy po bokach i zagłębienie z taśmą
+                bx(0, -8, 0, 300, 8, 8, "#c5a475"); bx(0, width, 0, 300, 8, 8, "#c5a475"); bx(0, 0, 0, 300, width, 2, "#75848c");
+                bx(0, 1, 2, 300, std::max(1.0, width - 2), 1, "#eadfc0");
+            } else {
+                bx(0, 0, 0, 300, width, 4, "#75848c");
+                bx(0, 1, 4, 300, std::max(1.0, width - 2), 1, "#eadfc0");
+            }
             for (int x = 6; x < 300; x += 18) bx(x, width * .3, 5, 6, width * .4, .7, "#fff4bd");
-        } else if (kind == "material") bx(0, 0, 0, 180, 120, 12, p.at("color").get<std::string>());
+        } else if (kind == "material") {
+            std::string color = p.at("color").get<std::string>();
+            bx(0, 0, 0, 180, 120, 12, color);
+            // dekor z palety ma jaśniejszy wzór na wierzchu, żeby różnił się od materiału projektu o tym samym kolorze
+            if (py::truthy(py::get(p, "decor", false))) {
+                std::string light = shade(color, 1.12);
+                for (int i = 0; i < 4; ++i) bx(12, 14 + i * 26, 12, 156, 8, .6, light);
+            }
+        }
         return out;
     });
 }
