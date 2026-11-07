@@ -203,7 +203,9 @@ ColoredFaces _faces(const std::string& key_) {
         } else if (kind == "handle") {
             json mode = py::get(options, "option"); json spacing = py::get(options, "spacing", 128);
             if (mode == "finger_pocket" || mode == "finger_slot") {
-                bx(0, 0, 0, 170, 48, 18, "#c5a475"); bx(25, -.5, 7, 120, 6, 8, "#5b4636");
+                bx(0, 0, 0, 170, 48, 18, "#c5a475");
+                if (mode == "finger_slot") bx(10, -.5, 9, 150, 4, 4, "#5b4636");  // wąski, długi otwór podłużny
+                else bx(25, -.5, 5, 120, 6, 10, "#5b4636");                         // szersza, głębsza kieszeń
             } else if (mode == "edge_pull") { bx(0, 0, 0, 150, 10, 20, "#414e54"); bx(0, -25, 18, 150, 35, 3, "#414e54"); }
             else if (py::truthy(mode) && (mode.get<std::string>().starts_with("tip") || mode.get<std::string>().starts_with("salice"))) {
                 // warianty różnią się kształtem: długi mechanizm, odbojnik (krótki, szeroki), push z gumą (sprężyna)

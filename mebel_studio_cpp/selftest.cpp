@@ -1103,8 +1103,15 @@ public:
                     if (!(hi[0] - lo[0] > 1 || hi[1] - lo[1] > 1 || hi[2] - lo[2] > 1)) { canvas->destroy(); need(false, "miniaturka ma zerowe wymiary: " + name); }
                     catalogue_previews::draw_preview(canvas, item, 200, 125);
                     if (canvas->find_withtag(item.at("id").get<std::string>()).empty()) { canvas->destroy(); need(false, "miniaturka nie została narysowana na karcie: " + name); }
+                    // elementy różniące się tylko producentem / nazwą (te same wymiary i parametry) mogą mieć wspólną miniaturkę
                     auto [it, inserted] = seen.emplace(signature, name);
-                    if (!inserted) { ++duplicates; if (first_duplicate.empty()) first_duplicate = name + " = " + it->second; }
+                    if (!inserted) {
+                        bool same_data = false;
+                        for (const auto& other : items)
+                            if (other.value("name", other.value("title", std::string("?"))) == it->second)
+                                same_data = other.value("dimensions", json::object()) == item.value("dimensions", json::object()) && other.value("preview", json::object()) == item.value("preview", json::object());
+                        if (!same_data) { ++duplicates; if (first_duplicate.empty()) first_duplicate = name + " = " + it->second; }
+                    }
                 }
                 canvas->destroy();
                 ctx.note(std::format("{} miniaturek", items.size()));
