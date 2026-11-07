@@ -332,6 +332,7 @@ json Part::get_attr(const std::string& key) const {
     if (key == "rz") return rz;
     if (key == "material") return material;
     if (key == "grain") return grain;
+    if (key == "grain_v") return grain_v;
     if (key == "edges") return edges;
     if (key == "contour") return rows_json(contour);
     if (key == "holes") return rows_json(holes);
@@ -372,6 +373,7 @@ void Part::set_attr(const std::string& key, const json& value) {
     else if (key == "rz") rz = py::to_float(value);
     else if (key == "material") material = text(nullptr);
     else if (key == "grain") grain = value.is_boolean() ? value.get<bool>() : py::truthy(value);
+    else if (key == "grain_v") grain_v = value.is_boolean() ? value.get<bool>() : py::truthy(value);
     else if (key == "edges") {
         if (!value.is_array()) throw ValueError("Nieprawidłowe obrzeża.");
         edges.clear();
@@ -408,7 +410,7 @@ json asdict(const Material& m) {
 
 json asdict(const Part& p) {
     json out = json::object();
-    for (std::string key : {"id", "name", "group", "u", "v", "t", "plane", "x", "y", "z", "rx", "ry", "rz", "material", "grain", "edges", "contour", "holes",
+    for (std::string key : {"id", "name", "group", "u", "v", "t", "plane", "x", "y", "z", "rx", "ry", "rz", "material", "grain", "grain_v", "edges", "contour", "holes",
                             "visible", "role", "assembly", "operations", "fillets", "chamfers", "machining", "motion", "profile", "contour_edge", "decor",
                             "style_source", "configurator_source", "layout"})
         out[key] = p.get_attr(key);
@@ -785,8 +787,9 @@ std::pair<json, std::vector<std::string>> cut_plan(Project& project) {
     });
     for (const Part* p : parts) {
         auto [u, v] = p->blank(project.edge_t); double k = project.kerf; const Material& m = project.mat(p->material);
-        std::vector<std::tuple<double, double, bool>> options{{u, v, false}};
-        if (!p->grain) options.push_back({v, u, true});
+        std::vector<std::tuple<double, double, bool>> options;
+        if (!p->must_turn()) options.push_back({u, v, false});
+        if (p->may_turn() || p->must_turn()) options.push_back({v, u, true});
         std::optional<std::tuple<double, size_t, size_t, double, double, bool>> chosen;
         for (size_t si = 0; si < sheets.size(); ++si) {
             auto& s = sheets[si];
@@ -865,7 +868,7 @@ void manufacturing_export(Project& project, const std::string& path) {
         auto blank = p.blank(project.edge_t);
         data["parts"].push_back({{"id", p.id}, {"name", p.name}, {"group", p.group}, {"material", p.material},
             {"thickness", p.t}, {"finished_size", {p.u, p.v}}, {"cut_size", {blank.first, blank.second}},
-            {"contour", points_json(p.points())}, {"edges", p.edges}, {"grain_along_u", p.grain},
+            {"contour", points_json(p.points())}, {"edges", p.edges}, {"grain_along_u", p.grain && !p.grain_v}, {"grain_along_v", p.grain && p.grain_v},
             {"outline_definition", p.profile}, {"full_contour_edge", p.contour_edge},
             {"contour_edge_length_m", p.edge_m()}, {"decoration", p.decor},
             {"outline_geometry", py::truthy(p.profile) ? "exact_in_STEP_drawing_tessellation" : "polygon"},
@@ -901,7 +904,7 @@ void csv_export(const Project& project, const std::string& path) {
         auto blank = p.blank(project.edge_t);
         std::vector<std::string> row{p.id, p.group, p.name, project.mat(p.material).name, py::repr(p.u), py::repr(p.v), py::repr(p.t), py::repr(blank.first), py::repr(blank.second)};
         for (bool e : p.edges) row.push_back(e ? "TAK" : "");
-        for (auto& cell : {std::string(p.grain ? "TAK" : ""), py::dumps(rows_json(p.contour)), py::dumps(rows_json(p.holes)), p.role, py::dumps(p.operations, false), py::dumps(p.fillets), py::dumps(p.chamfers), py::dumps(p.machining), py::dumps(p.profile), std::string(p.contour_edge ? "TAK" : ""), py::repr(p.edge_m())})
+        for (auto& cell : {std::string(p.grain ? (p.grain_v ? "TAK (V)" : "TAK") : ""), py::dumps(rows_json(p.contour)), py::dumps(rows_json(p.holes)), p.role, py::dumps(p.operations, false), py::dumps(p.fillets), py::dumps(p.chamfers), py::dumps(p.machining), py::dumps(p.profile), std::string(p.contour_edge ? "TAK" : ""), py::repr(p.edge_m())})
             row.push_back(cell);
         writerow(row);
     }

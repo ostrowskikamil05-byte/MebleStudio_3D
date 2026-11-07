@@ -1223,9 +1223,40 @@ public:
             Project q = random_project(60, 9);
             auto result = sheet_nesting::optimize(q);
             std::map<std::string, bool> grain;
-            for (const auto& p : q.parts) grain[p.id] = p.grain;
+            for (const auto& p : q.parts) grain[p.id] = p.grain && !p.grain_v;
             for (const auto& sheet : result.first)
                 for (const auto& piece : sheet["pieces"]) need(!(grain[piece["id"].get<std::string>()] && piece["rotated"].get<bool>()), "formatka z włóknami została obrócona");
+        });
+        run(area, "włókna wzdłuż V: wysoka formatka mieści się obrócona, włókna zostają zablokowane, w obu trybach rozkroju i po zapisie", where, [=](Ctx& ctx) {
+            Project q = random_project(4, 6);
+            Part side; side.name = "Bok wysoki"; side.u = 560; side.v = 2100; side.t = 18; side.material = q.materials[0].id; side.grain = true;
+            q.parts.push_back(side);
+            auto& added = q.parts.back();
+            auto [sheet_u, sheet_v] = std::make_pair(q.mat(added.material).sheet_u, q.mat(added.material).sheet_v);
+            need(560 <= sheet_u && 2100 > sheet_v - 2 * q.margin, "założenie testu: bok 560×2100 nie mieści się przy włóknach wzdłuż U");
+            {
+                auto before = sheet_nesting::optimize(q);
+                need(std::find(before.second.begin(), before.second.end(), added.id) != before.second.end(), "bok z włóknami wzdłuż U powinien być nieumieszczony");
+            }
+            added.grain_v = true;
+            need(added.grain, "włókna nie mogą się odblokować przy ustawieniu kierunku V");
+            auto optimal = sheet_nesting::optimize(q);
+            need(std::find(optimal.second.begin(), optimal.second.end(), added.id) == optimal.second.end(), "tryb optymalny nie umieścił boku z włóknami wzdłuż V");
+            auto classic = core::cut_plan(q);
+            need(std::find(classic.second.begin(), classic.second.end(), added.id) == classic.second.end(), "tryb klasyczny nie umieścił boku z włóknami wzdłuż V");
+            for (const auto& plan : {optimal.first, classic.first})
+                for (const auto& sheet : plan)
+                    for (const auto& piece : sheet["pieces"])
+                        if (piece["id"].get<std::string>() == added.id)
+                            need(piece["rotated"].get<bool>() && piece["u"].get<double>() > piece["v"].get<double>(), "bok z włóknami wzdłuż V powinien leżeć obrócony (długi bok wzdłuż płyty)");
+            need(production_inspector::inspect(q).errors == 0 || [&] { for (const auto& f : production_inspector::inspect(q).findings) if (f.rule == "sheet_fit") return false; return true; }(),
+                 "Inspektor zgłasza formatkę poza płytą mimo włókien wzdłuż V");
+            // zapis i odczyt zachowują kierunek włókien
+            ProjectPtr copy = Project::from_data(q.data());
+            bool kept = false;
+            for (const auto& part : copy->parts) if (part.id == added.id) kept = part.grain && part.grain_v;
+            need(kept, "kierunek włókien V nie przetrwał zapisu/odczytu projektu");
+            ctx.note("bok 560×2100 leży obrócony w obu trybach rozkroju");
         });
         run(area, "za duża formatka trafia na listę nieumieszczonych", where, [=](Ctx&) {
             Project q = random_project(5, 4);
@@ -2833,6 +2864,10 @@ public:
             d = journal::describe_difference(*two, *p);
             need(has_text(d, "usunięte meble"), "usunięcie mebla nie zostało opisane: " + d);
             need(journal::describe_difference(*p, *p).empty(), "brak zmian powinien dać pusty opis");
+            Project turned_grain = *p;
+            turned_grain.parts[0].grain = true; turned_grain.parts[0].grain_v = !p->parts[0].grain_v;
+            d = journal::describe_difference(*p, turned_grain);
+            need(has_text(d, "włókna"), "zmiana kierunku włókien nie została opisana: " + d);
         });
 
         run(area, "opis różnic projektu: obiekty sceny (AGD) dodane, zmienione i usunięte", "journal.cpp (make_snap — scene_objects)", [](Ctx& ctx) {

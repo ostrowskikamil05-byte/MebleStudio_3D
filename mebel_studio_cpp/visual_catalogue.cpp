@@ -381,21 +381,21 @@ bool update_object(App* app, const std::string& object_id, const json& changes) 
     return commit(app, room_objects::update_object(*app->project, object_id, changes));  // bez zmiany zaznaczenia: panel pozycji zostaje otwarty
 }
 
-// Wysoki mebel (np. słupek 2100 mm) nie mieści formatki boku na płycie, gdy usłojenie blokuje obrót.
-// Wyłączamy usłojenie tylko tym częściom, którym obrót faktycznie pomaga, i zostawiamy ślad w dzienniku.
+// Wysoki mebel (np. słupek 2100 mm) nie mieści formatki boku na płycie, gdy włókna biegną wzdłuż U.
+// Zostawiamy blokadę usłojenia, ale przestawiamy ją na kierunek V (pionowo na boku/froncie) i zostawiamy ślad w dzienniku.
 static void relax_grain_for_sheet(App* app, core::Project& project, const std::string& group) {
     for (auto& part : project.parts) {
-        if (part.group != group || !part.grain) continue;
+        if (part.group != group || !part.grain || part.grain_v) continue;
         const core::Material* material = nullptr;
         for (const auto& m : project.materials) if (m.id == part.material) { material = &m; break; }
         if (!material) continue;
         auto [a, b] = part.blank(project.edge_t);
         double sw = material->sheet_u - 2 * project.margin, sh = material->sheet_v - 2 * project.margin;
-        bool fits = a <= sw + 1e-6 && b <= sh + 1e-6;
-        bool fits_rotated = b <= sw + 1e-6 && a <= sh + 1e-6;
-        if (fits || !fits_rotated) continue;
-        part.grain = false;
-        journal::event(app, "biblioteka", std::format("{}: formatka {:g}×{:g} mm nie mieści się na płycie {:g}×{:g} mm z blokadą usłojenia — usłojenie wyłączone, formatka może być obrócona",
+        core::Part turned = part;
+        turned.grain_v = true;
+        if (part.fits_sheet(a, b, sw, sh) || !turned.fits_sheet(a, b, sw, sh)) continue;
+        part.grain_v = true;
+        journal::event(app, "biblioteka", std::format("{}: formatka {:g}×{:g} mm nie mieści się na płycie {:g}×{:g} mm z włóknami wzdłuż U — włókna ustawione wzdłuż V (pionowo), formatka leży obrócona",
                                                        part.name, a, b, material->sheet_u, material->sheet_v));
     }
 }

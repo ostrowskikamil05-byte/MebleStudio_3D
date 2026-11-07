@@ -121,6 +121,7 @@ struct PartSig {
     size_t operations = 0, machining = 0, content_hash = 0;  // content_hash: treść wierceń i obróbek (przesunięty otwór = zmiana)
     int edges = 0;
     bool visible = true;
+    int grain = 0;  // 0 = bez blokady, 1 = wzdłuż U, 2 = wzdłuż V
 };
 
 struct Snap {
@@ -159,6 +160,7 @@ Snap make_snap(const core::Project& project) {
         }
         sig.content_hash = std::hash<std::string>{}(p.operations.dump()) ^ (std::hash<std::string>{}(p.machining.dump()) << 1);
         for (size_t i = 0; i < p.edges.size(); ++i) if (p.edges[i]) sig.edges |= 1 << i;
+        sig.grain = p.grain ? (p.grain_v ? 2 : 1) : 0;
         snap.drills += sig.operations;
         snap.parts[base + "#" + std::to_string(n)] = sig;
     }
@@ -203,7 +205,7 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
     for (auto& [k, v] : a.parts) groups_a.insert(v.group);
     for (auto& [k, v] : b.parts) groups_b.insert(v.group);
     size_t added = 0, removed = 0, changed = 0;
-    struct GroupChange { bool dims = false, moved = false, material = false, edges = false, drills = false, parts = false, visible = false; int added = 0, removed = 0; };
+    struct GroupChange { bool dims = false, moved = false, material = false, grain = false, edges = false, drills = false, parts = false, visible = false; int added = 0, removed = 0; };
     std::map<std::string, GroupChange> per_group;
     for (auto& [key, now] : b.parts) {
         auto it = a.parts.find(key);
@@ -215,6 +217,7 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
         if (!near(was.x, now.x) || !near(was.y, now.y) || !near(was.z, now.z) || !near(was.rx, now.rx) || !near(was.ry, now.ry) || !near(was.rz, now.rz) || !near(was.lx, now.lx) || !near(was.ly, now.ly) || !near(was.lz, now.lz) || !near(was.lyaw, now.lyaw)) { gc.moved = true; any = true; }
         if (was.material != now.material) { gc.material = true; any = true; }
         if (was.edges != now.edges) { gc.edges = true; any = true; }
+        if (was.grain != now.grain) { gc.grain = true; any = true; }
         if (was.operations != now.operations || was.machining != now.machining || was.content_hash != now.content_hash) { gc.drills = true; any = true; }
         if (was.visible != now.visible) { gc.visible = true; any = true; }
         if (any) ++changed;
@@ -271,7 +274,7 @@ std::string diff_snaps(const Snap& a, const Snap& b) {
     for (auto& [g, gc] : per_group) {
         std::string what;
         auto add = [&](bool on, const char* text) { if (on) what += (what.empty() ? "" : ", ") + std::string(text); };
-        add(gc.dims, "wymiary"); add(gc.moved, "położenie/obrót"); add(gc.material, "materiał"); add(gc.edges, "obrzeża"); add(gc.drills, "wiercenia/obróbki"); add(gc.visible, "widoczność");
+        add(gc.dims, "wymiary"); add(gc.moved, "położenie/obrót"); add(gc.material, "materiał"); add(gc.grain, "włókna"); add(gc.edges, "obrzeża"); add(gc.drills, "wiercenia/obróbki"); add(gc.visible, "widoczność");
         if (gc.added) what += (what.empty() ? "" : ", ") + std::format("+{} części", gc.added);
         if (gc.removed) what += (what.empty() ? "" : ", ") + std::format("−{} części", gc.removed);
         if (what.empty()) continue;

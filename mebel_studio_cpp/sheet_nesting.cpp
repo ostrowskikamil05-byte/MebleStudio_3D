@@ -26,6 +26,7 @@ struct Item {
     const Part* part = nullptr;
     double a = 0, b = 0;  // wymiar do cięcia (U, V) po odjęciu obrzeży
     bool rotatable = false;
+    bool swapped = false;  // włókna wzdłuż V: formatka zawsze leży obrócona (a, b są już zamienione)
 };
 struct Rect { double x = 0, y = 0, w = 0, h = 0; };  // w, h zawierają zapas na rzaz (jak w core::cut_plan)
 struct Placed { size_t item = 0; double x = 0, y = 0, u = 0, v = 0; bool rot = false; };
@@ -113,7 +114,7 @@ std::vector<Sheet> pack(const Group& g, Order order, Fit fit, Split split) {
     for (size_t ii : idx) {
         const Item& it = g.items[ii];
         struct Opt { double a, b; bool rot; };
-        Opt opts[2] = {{it.a, it.b, false}, {it.b, it.a, true}};
+        Opt opts[2] = {{it.a, it.b, it.swapped}, {it.b, it.a, !it.swapped}};
         int option_count = it.rotatable && std::abs(it.a - it.b) > 1e-9 ? 2 : 1;
         std::pair<double, double> best{std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
         long si = -1, ri = -1; int oi = 0;
@@ -190,7 +191,7 @@ std::string cache_key(const Project& project) {
     for (const auto& m : project.materials) key += std::format("{}:{}x{};", m.id, m.sheet_u, m.sheet_v);
     key += "|";
     for (const auto& p : project.parts)
-        key += std::format("{}:{}:{}:{}:{}:{}{}{}{}:{};", p.id, p.u, p.v, p.t, p.material, (int)p.edges[0], (int)p.edges[1], (int)p.edges[2], (int)p.edges[3], (int)p.grain);
+        key += std::format("{}:{}:{}:{}:{}:{}{}{}{}:{};", p.id, p.u, p.v, p.t, p.material, (int)p.edges[0], (int)p.edges[1], (int)p.edges[2], (int)p.edges[3], (int)p.grain * 2 + (int)p.grain_v);
     return key;
 }
 
@@ -250,9 +251,9 @@ std::pair<json, std::vector<std::string>> optimize(Project& project) {
             found = groups.end() - 1;
         }
         auto [a, b] = p.blank(project.edge_t);
-        bool fits = (a <= found->sw + EPS && b <= found->sh + EPS) || (!p.grain && b <= found->sw + EPS && a <= found->sh + EPS);
-        if (!fits) { unplaced.push_back(p.id); continue; }
-        found->items.push_back({&p, a, b, !p.grain});
+        if (!p.fits_sheet(a, b, found->sw, found->sh, EPS)) { unplaced.push_back(p.id); continue; }
+        if (p.must_turn()) found->items.push_back({&p, b, a, false, true});
+        else found->items.push_back({&p, a, b, p.may_turn(), false});
     }
 
     json sheets = json::array();
@@ -423,7 +424,7 @@ void sheets_export(Project& project, const std::string& path) {
             std::string edges;
             for (int e = 0; e < 4; ++e) edges += (e ? " / " : "") + std::string(p.edges[(size_t)e] ? "tak" : "—");
             table += std::format("<tr><td>{}</td><td>{}</td><td>{}</td><td>{} × {}</td><td>{} × {} × {}</td><td>{}</td><td>{}</td><td>{}, {}</td><td>{}</td></tr>", n + 1, esc(p.name), esc(p.group), g(u), g(v), g(p.u), g(p.v), g(p.t),
-                                 edges, p.grain ? "wzdłuż U" : "dowolnie", g(std::round(x * 10) / 10), g(std::round(y * 10) / 10), esc(p.id));
+                                 edges, p.grain ? (p.grain_v ? "wzdłuż V" : "wzdłuż U") : "dowolnie", g(std::round(x * 10) / 10), g(std::round(y * 10) / 10), esc(p.id));
         }
         out += "</svg>" + table + "</table></section>";
     }

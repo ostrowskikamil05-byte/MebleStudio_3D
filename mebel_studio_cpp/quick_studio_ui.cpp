@@ -1459,6 +1459,7 @@ void build(App* app) {
     app->matcombo->pack({{"fill", "x"}, {"pady", 3}});
     app->visible.set(true);
     (new ttk::Checkbutton(form, {{"text", "Włókna wzdłuż U"}, {"variable", app->grain}}))->pack({{"anchor", "w"}});
+    (new ttk::Checkbutton(form, {{"text", "…ale wzdłuż V (np. pionowo na wysokim boku)"}, {"variable", app->grain_v}}))->pack({{"anchor", "w"}});
     (new ttk::Checkbutton(form, {{"text", "Widoczny"}, {"variable", app->visible}}))->pack({{"anchor", "w"}});
     app->edgevars.clear();
     app->edgevars.reserve(4);

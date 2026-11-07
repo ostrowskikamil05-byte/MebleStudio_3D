@@ -420,7 +420,7 @@ json export_project_print(const Project& project, const std::string& path, const
             std::string body = "<div class=\"meta\">" + esc(part.group) + " · ID " + esc(part.id) + "<p class=\"dimensions\">Gotowe: " +
                                esc(_num(part.u) + " × " + _num(part.v) + " × " + _num(part.t)) + " mm · 1 szt.</p></div>";
             body += "<div class=\"part-drawing\">" + production_docs::part_svg(snapshot, part) + "</div>" + _parts_table(snapshot, {part}, numbers);
-            body += std::string("<p>Włókna: ") + (part.grain ? "wzdłuż U" : "obrót w rozkroju dozwolony") + " · Obrzeże: " + _num(part.edge_m()) + " m.</p>" + _operations(part);
+            body += std::string("<p>Włókna: ") + (part.grain ? (part.grain_v ? "wzdłuż V" : "wzdłuż U") : "obrót w rozkroju dozwolony") + " · Obrzeże: " + _num(part.edge_m()) + " m.</p>" + _operations(part);
             body += "<p class=\"note\">Rzut U/V. Wiercenia top/bottom: U,V; na krawędziach U: V,T; na krawędziach V: U,T. Numery otworów odnoszą się do tabeli. Rysunek nie przedstawia profilu faz i zaokrągleń 3D.</p>";
             section("#" + std::to_string(numbers.at(part.id)) + " — " + part.name, body, "data-kind=\"part\" data-part-id=\"" + esc(part.id) + "\"");
         }

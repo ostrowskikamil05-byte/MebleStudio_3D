@@ -214,7 +214,7 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
             Point2 direction;
             if (camera) {
                 Point3 a = camera->project(core::world(part, 0, 0, 0), size.first, size.second);
-                Point3 b = camera->project(core::world(part, part.grain ? part.u : 0, part.grain ? 0 : part.v, 0), size.first, size.second);
+                Point3 b = camera->project(core::world(part, part.grain && !part.grain_v ? part.u : 0, part.grain && !part.grain_v ? 0 : part.v, 0), size.first, size.second);
                 direction = {b[0] - a[0], b[1] - a[1]};
             } else {
                 // max(zip(points, points[1:] + points[:1]), key=dist): pierwszy najdłuższy bok
@@ -613,7 +613,7 @@ json paint_faces(tk::Canvas* canvas, const core::Drawn& faces, core::ProjectPtr 
         Point2 direction;
         if (options.camera && have_size) {
             Point3 a = options.camera->project(core::world(*part, 0, 0, 0), options.size.first, options.size.second);
-            Point3 b = options.camera->project(core::world(*part, part->grain ? part->u : 0, part->grain ? 0 : part->v, 0),
+            Point3 b = options.camera->project(core::world(*part, part->grain && !part->grain_v ? part->u : 0, part->grain && !part->grain_v ? 0 : part->v, 0),
                                                options.size.first, options.size.second);
             direction = {b[0] - a[0], b[1] - a[1]};
         } else {

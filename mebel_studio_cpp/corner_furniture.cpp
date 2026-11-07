@@ -322,7 +322,7 @@ std::pair<ProjectPtr, std::string> create_corner(const Project& project, const j
         auto found = old.find(key);
         if (found != old.end()) {
             const Part& previous = *found->second;
-            p.id = previous.id; p.name = previous.name; p.grain = previous.grain; p.visible = previous.visible; p.edges = previous.edges; p.contour_edge = previous.contour_edge;
+            p.id = previous.id; p.name = previous.name; p.grain = previous.grain; p.grain_v = previous.grain_v; p.visible = previous.visible; p.edges = previous.edges; p.contour_edge = previous.contour_edge;
             std::string material_key = role == "door" ? "front_material" : "material";
             if (py::get(old_config, material_key, old_config.at("material")) == c[material_key]) p.material = previous.material;
             p.holes = previous.holes; p.fillets = previous.fillets; p.chamfers = previous.chamfers;
@@ -510,7 +510,7 @@ std::pair<ProjectPtr, std::string> convert_to_corner(const Project& project, con
         if (!previous) previous = lookup(old_by_name, oldkey && names.contains(*oldkey) ? names[*oldkey] : std::string());
         if (!previous && key.starts_with("shelf.")) previous = lookup(old_by_name, "Półka " + std::to_string(std::stoi(key.substr(6)) + 1));
         if (previous) {
-            changed_ids[p->id] = previous->id; p->id = previous->id; p->visible = previous->visible; p->grain = previous->grain;
+            changed_ids[p->id] = previous->id; p->id = previous->id; p->visible = previous->visible; p->grain = previous->grain; p->grain_v = previous->grain_v;
             // HDF backing becomes a structural side; its old material is not
             // reused at the new panel thickness.
             if (key != "back_x") p->material = previous->material;

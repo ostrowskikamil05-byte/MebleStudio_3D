@@ -405,7 +405,7 @@ void check_sheet_fit(const Project& project, Collector& out) {
         if (!m) continue;
         auto [a, b] = p.blank(project.edge_t);
         double sw = m->sheet_u - 2 * project.margin, sh = m->sheet_v - 2 * project.margin;
-        bool fits = (a <= sw + EPS && b <= sh + EPS) || (!p.grain && b <= sw + EPS && a <= sh + EPS);
+        bool fits = p.fits_sheet(a, b, sw, sh, EPS);
         if (fits) continue;
         if (m->kind == "drewno" && std::max(a, b) <= std::max(sw, sh) + EPS) {
             // Drewno lite występuje jako deski: szerszy element skleja się z kilku desek (blat, siedzisko) — to decyzja technologiczna, nie błąd.
@@ -419,7 +419,7 @@ void check_sheet_fit(const Project& project, Collector& out) {
         }
         Finding f = make("sheet_fit", Severity::Error, p,
                          std::format("Formatka {:g} × {:g} mm nie mieści się na płycie {:g} × {:g} mm (margines {:g} mm){}.", a, b, m->sheet_u, m->sheet_v, project.margin,
-                                     p.grain ? " — usłojenie blokuje obrót" : ""),
+                                     p.grain ? (p.grain_v ? " — usłojenie wzdłuż V wymaga obrotu formatki" : " — usłojenie blokuje obrót") : ""),
                          "Podziel element na dwie części, wybierz większy format płyty albo wyłącz usłojenie.");
         out.add(std::move(f));
     }

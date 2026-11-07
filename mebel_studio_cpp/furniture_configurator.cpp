@@ -599,7 +599,7 @@ std::pair<ProjectPtr, std::string> configure(const Project& project, const json&
         json key = py::get(p.configurator_source, "key"); const Part* old = key.is_string() ? old_lookup(key.get<std::string>()) : nullptr;
         if (old) {
             if (key != "carcass.top" || !(old->name == "Wieniec" || old->name == "Listwa górna przednia")) p.name = old->name;
-            p.visible = old->visible; p.grain = old->grain; p.edges = old->edges; p.contour_edge = old->contour_edge;
+            p.visible = old->visible; p.grain = old->grain; p.grain_v = old->grain_v; p.edges = old->edges; p.contour_edge = old->contour_edge;
             const char* material_key = p.role == "door" || p.role == "drawer" ? "front_material" : "material";
             if (py::get(old_config, material_key) == c[material_key]) p.material = old->material;
             p.holes = old->holes; p.fillets = old->fillets; p.chamfers = old->chamfers;

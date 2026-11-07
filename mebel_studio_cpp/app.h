@@ -171,7 +171,7 @@ public:
     std::map<std::string, ttk::Treeview*> tables;
     ttk::Combobox* matcombo = nullptr;
     std::map<std::string, tk::StringVar> vars;
-    tk::StringVar matvar; tk::BooleanVar grain; tk::BooleanVar visible;
+    tk::StringVar matvar; tk::BooleanVar grain; tk::BooleanVar grain_v; tk::BooleanVar visible;
     std::vector<tk::BooleanVar> edgevars;
     ttk::Label* costnote = nullptr; ttk::Label* cutlabel = nullptr;
     ttk::Combobox* sheetcombo = nullptr; tk::StringVar sheetvar;
@@ -439,7 +439,7 @@ public:
         if (p) selected_scene.reset();
         for (auto& [key, var] : vars) var.set(p ? py::str(p->get_attr(key)) : "");
         matvar.set(p ? project->mat(p->material).name : "");
-        grain.set(p ? p->grain : false); visible.set(p ? p->visible : true);
+        grain.set(p ? p->grain : false); grain_v.set(p ? p->grain_v : false); visible.set(p ? p->visible : true);
         for (size_t i = 0; i < edgevars.size(); ++i) edgevars[i].set(p ? (bool)p->edges[i] : false);
         if (quick_inspector && !drag_edit) quick_inspector->refresh();
         if (corner_panel && !drag_edit) corner_panel->refresh();
@@ -521,7 +521,7 @@ public:
                 ProjectPtr temp = dimension_model::resize_dimensions(*project, p->id, to_number(vars["u"].get()), to_number(vars["v"].get()), to_number(vars["t"].get()));
                 Part* q = nullptr; for (auto& part : temp->parts) if (part.id == p->id) { q = &part; break; }
                 if (!q) throw StopIteration();
-                q->name = vars["name"].get(); q->material = py::index(temp->materials, matcombo->current()).id; q->visible = visible.get(); q->grain = grain.get();
+                q->name = vars["name"].get(); q->material = py::index(temp->materials, matcombo->current()).id; q->visible = visible.get(); q->grain = grain.get(); q->grain_v = grain_v.get();
                 q->edges.clear(); for (auto& v : edgevars) q->edges.push_back(v.get()); temp->validate();
                 snapshot(); project = temp; refresh(); return;
             }
@@ -532,7 +532,7 @@ public:
                 candidate.layout = peer ? peer->layout : p->layout;
             }
             candidate.material = py::index(project->materials, matcombo->current()).id;
-            candidate.edges.clear(); for (auto& v : edgevars) candidate.edges.push_back(v.get()); candidate.grain = grain.get(); candidate.visible = visible.get();
+            candidate.edges.clear(); for (auto& v : edgevars) candidate.edges.push_back(v.get()); candidate.grain = grain.get(); candidate.grain_v = grain_v.get(); candidate.visible = visible.get();
             if (!candidate.contour.empty() && (candidate.u != p->u || candidate.v != p->v)) {
                 candidate.contour.clear();
                 for (auto& pt : p->contour) candidate.contour.push_back({pt[0] * candidate.u / p->u, pt[1] * candidate.v / p->v});

@@ -72,6 +72,7 @@ struct Part {
     double rz = 0;
     std::string material = "";
     bool grain = true;
+    bool grain_v = false;  // włókna zablokowane wzdłuż V (np. pionowo na wysokim boku), gdy grain == true
     std::vector<bool> edges = {false, false, false, false};
     std::vector<std::vector<double>> contour = {};
     std::vector<std::vector<double>> holes = {};
@@ -97,6 +98,14 @@ struct Part {
     double area() const;
     double edge_m() const;
     std::pair<double, double> blank(double edge_t) const;
+    // Czy formatka a × b (U × V po odjęciu obrzeży) mieści się na polu sw × sh przy dozwolonym obrocie:
+    // włókna wzdłuż U → bez obrotu, wzdłuż V → tylko obrócona, bez włókien → oba układy.
+    bool fits_sheet(double a, double b, double sw, double sh, double eps = 1e-8) const {
+        bool straight = a <= sw + eps && b <= sh + eps, turned = b <= sw + eps && a <= sh + eps;
+        return !grain ? (straight || turned) : (grain_v ? turned : straight);
+    }
+    bool may_turn() const { return !grain; }
+    bool must_turn() const { return grain && grain_v; }
     void validate();
 
     json get_attr(const std::string& key) const;

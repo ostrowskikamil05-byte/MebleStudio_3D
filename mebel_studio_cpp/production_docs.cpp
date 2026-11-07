@@ -145,7 +145,7 @@ void labels_export(Project& project, const std::string& path) {
         out += std::format("<section class=\"label\">{}<small>{} · #{}</small><h3>{}</h3><div>{}</div><div>{}</div><div>Gotowe: {} × {} × {} mm</div>"
                            "<div>Cięcie: {} × {} mm · włókna: {}</div><div>Rozkrój: <b>{}</b></div><div>Obrzeża U0/U1/V0/V1: {}</div><div class=\"id\">{}</div></section>",
                            part_svg(project, part), esc(project.name), index, esc(part.name), esc(part.group), esc(project.mat(part.material).name), g(part.u), g(part.v), g(part.t),
-                           g(a), g(b), part.grain ? "U" : "dowolnie", esc(cutting_place), edges, esc(part.id));
+                           g(a), g(b), part.grain ? (part.grain_v ? "V" : "U") : "dowolnie", esc(cutting_place), edges, esc(part.id));
         ++index;
     }
     out += "</div></html>";
