@@ -62,6 +62,7 @@ namespace hardware_placement_ui { class HardwarePlacementPanel; }
 #include "gpu_viewport.h"
 #include "viewport_annotations.h"
 #include "shaped_furniture.h"
+#include "stretch_choice.h"
 #include "cad_geometry.h"
 #include "furniture_layout_ui.h"
 #include "room_scene_drag.h"
@@ -767,7 +768,11 @@ public:
             drag_edit->last = 0; direct_drag(e);
             DragEdit drag = *drag_edit; project = drag.base; drag_edit.reset();
             if (drag.candidate != nullptr) { snapshot(); project = drag.candidate; }
-            refresh(); status.set("Zapisano rozciągnięcie mebla / elementu · Ctrl+Z cofa zmianę"); return;
+            refresh(); status.set("Zapisano rozciągnięcie mebla / elementu · Ctrl+Z cofa zmianę");
+            // Po rozciągnięciu mebla w głąb albo w górę pytamy, czym ma się stać (narożnik L, pawlacz, szafa, regał).
+            if (drag.candidate != nullptr && drag.handle.group && !drag.handle.group->empty() && drag.base)
+                stretch_choice::offer(this, *drag.base, *drag.handle.group, drag.handle.face);
+            return;
         }
         if (edit_mode.get() == "fillet" && !edge_handles.empty()) {
             auto distance = [&](const EdgeHandle& item) {
