@@ -76,13 +76,18 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
     if (height >= 380) {
         struct Tool { std::string label, glyph, mode; };
         std::vector<Tool> tools = {{"Zaznacz", "↖", "camera"}, {"Przesuń", "✥", "layout"}, {"Obróć", "↻", "rotate"}, {"Wymiary", "↔", "dimensions"}, {"Okucia", "⚙", "tray"}};
+        // Rozciąganie pod Okuciami: cały mebel (uchwyty na ściankach) albo pojedyncza część. Dopiero w wyższym widoku, żeby nie zachodziło na przełącznik widoków.
+        if (height >= 560) {
+            tools.push_back({"Rozciągnij", "⤢", "furniture"});
+            tools.push_back({"Część", "▭", "resize"});
+        }
         double cell_w = size(60), cell_h = size(58), x = size(14), y = size(18);
         double total = cell_h * tools.size() + size(10);
         card(c, x, y, x + cell_w + size(8), y + total, size(14));
         std::string mode = app->edit_mode.get();
         for (size_t i = 0; i < tools.size(); ++i) {
             double cy = y + size(5) + cell_h * i, cx = x + size(4);
-            bool active = tools[i].mode == mode || (tools[i].mode == "dimensions" && app->dimensions.get());
+            bool active = (tools[i].mode == mode && tools[i].mode != "rotate" && tools[i].mode != "tray") || (tools[i].mode == "dimensions" && app->dimensions.get());
             if (active) c->create_polygon(rounded(cx, cy + 1, cx + cell_w, cy + cell_h - 1, size(10)), {{"fill", forma_theme::ACCENT_SOFT}, {"outline", forma_theme::ACCENT}, {"width", 1}, {"tags", "hud"}});
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.38, {{"text", tools[i].glyph}, {"fill", active ? forma_theme::ACCENT : forma_theme::TEXT}, {"font", icon_font}, {"tags", "hud"}});
             c->create_text(cx + cell_w / 2, cy + cell_h * 0.80, {{"text", tools[i].label}, {"fill", active ? forma_theme::ACCENT : forma_theme::MUTED}, {"font", small_font}, {"tags", "hud"}});
@@ -91,7 +96,12 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
                 if (target == "tray") { if (app->toggle_hardware_tray) app->toggle_hardware_tray(); }
                 else if (target == "rotate") { if (app->rotate_furniture) app->rotate_furniture(90); }
                 else if (target == "dimensions") { app->dimensions.set(!app->dimensions.get()); app->draw(); }
-                else { app->edit_mode.set(target); app->draw(); }
+                else {
+                    app->edit_mode.set(target);
+                    app->draw();
+                    if (target == "furniture") app->status.set(app->selected ? "Rozciąganie mebla: przeciągnij zielone uchwyty na jego ściankach (Krok 32 mm w CAD)" : "Rozciąganie mebla: zaznacz mebel, potem przeciągnij uchwyty na jego ściankach");
+                    else if (target == "resize") app->status.set(app->selected ? "Rozciąganie części: przeciągnij kolorowe uchwyty (U / V / T) zaznaczonego elementu" : "Rozciąganie części: zaznacz element, potem przeciągnij uchwyty");
+                }
             }});
         }
     }

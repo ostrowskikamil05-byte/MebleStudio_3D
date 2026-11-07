@@ -46,6 +46,8 @@ core::ProjectPtr snap_group(const core::Project& project, const std::string& gro
 // Snap a near face and optionally its nearby edges; never move far away.
 // Returns (candidate, information) or an unchanged copy with None (null).
 std::pair<core::ProjectPtr, json> nearest_snap(const core::Project& project, const std::string& group, const json& tolerance = 80, bool align = true, bool validate = true);
+// Wypycha mebel z przenikania innych mebli (ślizg po ściance); drugi element = czy coś przesunięto.
+std::pair<core::ProjectPtr, bool> resolve_overlap(const core::Project& project, const std::string& group);
 
 // Current geometric contacts; separation or movement releases them freely.
 // group == None  ->  std::nullopt
