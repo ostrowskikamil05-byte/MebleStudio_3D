@@ -1364,6 +1364,26 @@ public:
             need(plan.second.empty(), "po okleinie formatki nie mieszczą się na płycie");
             ctx.note(std::format("poprawiono {} krawędzi", fixed));
         });
+        run(area, "zakładka Inspektor: Sprawdź projekt i Napraw automatycznie zostawiają wpisy [inspektor] i nadają się do cofnięcia", where, [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project(), 0);
+            app->project = p; app->selected.reset(); app->refresh(); app->update();
+            need(app->inspector_check && app->inspector_autofix, "zakładka Inspektor nie zarejestrowała akcji (inspector_check / inspector_autofix)");
+            auto from = log_mark();
+            app->inspector_check();
+            need(has_text(log_since(from), "[operacja:inspektor] Inspektor:"), "sprawdzenie projektu nie zostawiło podsumowania w dzienniku [inspektor]");
+            from = log_mark();
+            int fixed = app->inspector_autofix();
+            std::string text = log_since(from);
+            need(fixed >= 8, std::format("automatyczna naprawa poprawiła tylko {} krawędzi", fixed));
+            need(has_text(text, "[operacja:inspektor] naprawa automatyczna:"), "naprawa automatyczna nie zostawiła wpisu [inspektor]");
+            need(has_text(text, "[operacja:zmiana]"), "naprawa automatyczna nie zostawiła wpisu [zmiana]");
+            ctx.note(std::format("naprawiono {} krawędzi", fixed));
+            // druga naprawa nie ma już czego poprawiać — ma to zostać zapisane, a nie przemilczane
+            from = log_mark();
+            need(app->inspector_autofix() == 0, "druga naprawa automatyczna coś jeszcze poprawiła");
+            need(has_text(log_since(from), "brak uwag z automatyczną poprawką"), "pusta naprawa nie została opisana w dzienniku");
+            app->project = fresh(); app->selected.reset(); app->refresh();
+        });
         run(area, "kolizje części: wnikanie jest zgłaszane, styk nie", where, [=](Ctx&) {
             Project q;
             base_part(q, "Płyta A", 600, 400, 18, "XY", 0, 0, 0);

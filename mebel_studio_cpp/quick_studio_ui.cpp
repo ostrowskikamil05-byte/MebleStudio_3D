@@ -1794,24 +1794,38 @@ void build_production(App* app) {
                                                      {"tags", tag}});
                 }
             } catch (const std::exception& error) {
+                journal::event(app, "inspektor", std::string("sprawdzenie odrzucone: ") + error.what());
                 state->summary->configure({{"text", std::string("Inspektor nie mógł sprawdzić projektu: ") + error.what()}});
             }
         };
         auto tools = new ttk::Frame(page);
         tools->pack({{"anchor", "w"}, {"pady", "0 8"}});
         make_button(tools, "Sprawdź projekt", run, true)->pack({{"side", "left"}, {"padx", "0 6"}});
-        make_button(tools, "Napraw automatycznie", [app, state, run] {
-            if (!app->flush_parameter_drafts()) return;
+        // „Napraw automatycznie” działa też z testów (app->inspector_autofix) — zwraca liczbę poprawek.
+        auto autofix = [app, state, run]() -> int {
+            if (!app->flush_parameter_drafts()) return 0;
             try {
                 int fixed = 0;
                 auto result = pi::apply_fixes(*app->project, state->report, &fixed);
-                if (!fixed) { app->status.set("Inspektor: żadna uwaga nie ma automatycznej poprawki."); return; }
+                if (!fixed) {
+                    journal::event(app, "inspektor", "naprawa automatyczna: brak uwag z automatyczną poprawką");
+                    app->status.set("Inspektor: żadna uwaga nie ma automatycznej poprawki.");
+                    return 0;
+                }
                 app->snapshot(); app->project = result; app->refresh(); app->draw();
                 run();
                 journal::event(app, "inspektor", std::format("naprawa automatyczna: {} poprawek", fixed));
                 app->status.set(std::format("Inspektor: wprowadzono {} poprawek (obrzeża, głębokość otworów) — Ctrl+Z je cofa.", fixed));
-            } catch (const std::exception& error) { tk::messagebox::showerror("Inspektor produkcyjny", error.what(), app); }
-        })->pack({{"side", "left"}, {"padx", "0 6"}});
+                return fixed;
+            } catch (const std::exception& error) {
+                journal::event(app, "inspektor", std::string("naprawa automatyczna odrzucona: ") + error.what());
+                tk::messagebox::showerror("Inspektor produkcyjny", error.what(), app);
+                return 0;
+            }
+        };
+        app->inspector_check = run;
+        app->inspector_autofix = autofix;
+        make_button(tools, "Napraw automatycznie", [autofix] { autofix(); })->pack({{"side", "left"}, {"padx", "0 6"}});
         make_button(tools, "Raport · druk", [app, state] {
             std::string path = tk::filedialog::asksaveasfilename({{"parent", app}, {"defaultextension", ".html"}, {"initialfile", app->project->name + " — inspektor.html"}, {"filetypes", tk::FileTypes{{"Raport", "*.html"}}}});
             if (path.empty()) return;
