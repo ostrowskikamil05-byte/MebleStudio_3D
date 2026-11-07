@@ -28,6 +28,7 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
+option(MEBEL_DEV_TOOLS "Narzędzia deweloperskie: logi, dziennik operacji, pełny test (OFF = wersja dla użytkowników końcowych)" ON)
 option(MEBEL_GUI_SUBSYSTEM "Podsystem Windows GUI zamiast konsoli (konsola pokazuje komunikaty błędów)" OFF)
 option(MEBEL_LAUNCHER "Punkt wejścia z launcher.cpp (--self-test); OFF = prosty main() z app.cpp" ON)
 option(MEBEL_BUNDLE_RUNTIME "Po zbudowaniu kopiuj obok programu wymagane DLL i skrypty Tcl/Tk" ON)
@@ -96,6 +97,10 @@ set_source_files_properties(tkcore.cpp PROPERTIES
 target_include_directories(MebelStudio3D_cpp SYSTEM PRIVATE ${OpenCASCADE_INCLUDE_DIR})
 target_link_libraries(MebelStudio3D_cpp PRIVATE nlohmann_json::nlohmann_json ${MEBEL_OCCT_LIBS}
                       ${MEBEL_TK_LIBRARY} ${MEBEL_TCL_LIBRARY})
+if(MEBEL_DEV_TOOLS)
+    target_compile_definitions(MebelStudio3D_cpp PRIVATE MEBEL_DEV_TOOLS)
+endif()
+message(STATUS "Narzędzia deweloperskie (MEBEL_DEV_TOOLS): ${MEBEL_DEV_TOOLS}")
 target_compile_definitions(MebelStudio3D_cpp PRIVATE UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES MEBEL_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 if(MEBEL_LAUNCHER)
     target_compile_definitions(MebelStudio3D_cpp PRIVATE MEBEL_LAUNCHER)

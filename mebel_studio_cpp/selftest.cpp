@@ -25,6 +25,7 @@
 
 #include "app.h"
 #include "cad_geometry.h"
+#include "dev_tools.h"
 #include "corner_furniture.h"
 #include "direct_edit.h"
 #include "drag_hardware.h"
@@ -187,8 +188,7 @@ std::string git_output(const fs::path& root, const std::string& arguments) {
     return out;
 }
 
-Audit audit_sources() {
-    Audit audit;
+fs::path find_source_dir() {
     std::vector<fs::path> candidates;
 #ifdef MEBEL_SOURCE_DIR
     candidates.push_back(fs::path(MEBEL_SOURCE_DIR));
@@ -200,8 +200,15 @@ Audit audit_sources() {
     }
     for (const auto& c : candidates) {
         std::error_code ec;
-        if (fs::exists(c / "launcher.cpp", ec) && fs::exists(c / "CMakeLists.txt", ec)) { audit.src = c; audit.found = true; break; }
+        if (fs::exists(c / "launcher.cpp", ec) && fs::exists(c / "CMakeLists.txt", ec)) return c;
     }
+    return {};
+}
+
+Audit audit_sources() {
+    Audit audit;
+    audit.src = find_source_dir();
+    audit.found = !audit.src.empty();
     if (!audit.found) {
         audit.problems.push_back("Nie znaleziono katalogu ze źródłami C++ (launcher.cpp + CMakeLists.txt). Ustaw zmienną MEBEL_SOURCE_DIR albo uruchom test z katalogu build wewnątrz repozytorium.");
         return audit;
@@ -380,6 +387,7 @@ public:
     std::ofstream log;
     std::vector<Case> cases;
     std::set<std::string> baseline_windows;
+    fs::path data_root;   // korzeń repozytorium z plikami przykładowymi (*.mebel, PRZYKLADY/, MANIFEST_SHA256.json, DLL)
     std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
 
     void say(const std::string& text) {
@@ -1224,6 +1232,260 @@ public:
         });
     }
 
+
+    // ================================================================ pliki
+
+    void test_files() {
+        const char* area = "Pliki przykładowe (.mebel) — wczytanie, widok, eksport";
+        const char* where = "core.cpp (Project::load/validate), app.h (load_path/refresh/draw), core.cpp (render_faces, csv/dxf/report), project_print.cpp, cad_geometry.cpp";
+        if (data_root.empty()) { skip(area, "pliki przykładowe", "nie znaleziono korzenia repozytorium (ustaw MEBEL_SOURCE_DIR)"); return; }
+        std::vector<fs::path> files;
+        for (const auto& dir : {data_root, data_root / "PRZYKLADY"}) {
+            std::error_code ec;
+            if (!fs::is_directory(dir, ec)) continue;
+            for (const auto& entry : fs::directory_iterator(dir, ec))
+                if (entry.is_regular_file() && entry.path().extension() == ".mebel") files.push_back(entry.path());
+        }
+        std::sort(files.begin(), files.end());
+        if (files.empty()) { skip(area, "pliki przykładowe", "brak plików .mebel w " + py::path_str(data_root)); return; }
+        say(std::format("pliki przykładowe do sprawdzenia: {}", files.size()));
+        for (const auto& file : files) {
+            bool in_root = file.parent_path() == data_root;
+            std::string shown = (in_root ? "" : "PRZYKLADY/") + py::path_str(file.filename());
+            run(area, shown, where, [this, file, in_root](Ctx& ctx) {
+                ProjectPtr p = Project::load(py::path_str(file));
+                p->validate();
+                need(Project::from_data(p->data())->data() == p->data(), "data() → from_data() zmienia projekt wczytany z pliku");
+                ctx.note(std::format("{} części, {} okuć, {} grup", p->parts.size(), p->hardware.size(), furniture_layout::groups(*p).size()));
+                // ta sama ścieżka co „Otwórz”: wczytanie do programu, odświeżenie i narysowanie widoku
+                app->dirty = false;
+                need(app->load_path(py::path_str(file)), "program odmówił wczytania pliku");
+                app->update();
+                app->draw();
+                app->update();
+                if (!p->parts.empty()) {
+                    core::Camera cam = app->camera;
+                    cam.fit(*p, 900, 600);
+                    auto faces = core::render_faces(*p, cam, 900, 600, std::nullopt, 0, false);
+                    need(!faces.empty(), "render_faces zwrócił pusty wynik dla niepustego projektu");
+                    ctx.note(std::format("{} ścian w widoku", faces.size()));
+                }
+                TempDir tmp("MebelStudio3D-test-");
+                core::csv_export(*p, py::path_str(tmp.path / "a.csv"));
+                core::dxf_export(*p, py::path_str(tmp.path / "a.dxf"));
+                core::report_export(*p, py::path_str(tmp.path / "a.html"));
+                project_print::export_project_print(*p, py::path_str(tmp.path / "b.html"));
+                if (in_root && p->parts.size() <= 400) {
+                    cad_geometry::step_export(*p, py::path_str(tmp.path / "a.step"));
+                    need(fs::file_size(tmp.path / "a.step") > 100, "plik STEP jest pusty");
+                }
+                for (const char* name : {"a.csv", "a.dxf", "a.html", "b.html"}) need(fs::is_regular_file(tmp.path / name) && fs::file_size(tmp.path / name) > 20, std::string("eksport ") + name + " jest pusty");
+            });
+        }
+        app->project = fresh();
+        app->selected.reset();
+        app->dirty = false;
+        app->refresh();
+    }
+
+    void test_program_files() {
+        const char* area = "Pliki programu (manifest, biblioteki DLL)";
+        const char* where = "MANIFEST_SHA256.json, MebelModel.dll, MebelNative3D.dll, native_model.cpp, native_viewport.cpp";
+        if (data_root.empty()) { skip(area, "pliki programu", "nie znaleziono korzenia repozytorium"); return; }
+        run(area, "manifest SHA-256: rozmiary i sumy plików", where, [this](Ctx& ctx) {
+            fs::path manifest = data_root / "MANIFEST_SHA256.json";
+            need(fs::is_regular_file(manifest), "brak MANIFEST_SHA256.json w " + py::path_str(data_root));
+            json m = json::parse(read_file(manifest));
+            long long ok = 0, missing = 0, changed = 0;
+            std::vector<std::string> bad;
+            for (auto& [name, info] : m.items()) {
+                fs::path file = data_root / py::to_path(name);
+                std::error_code ec;
+                if (!fs::is_regular_file(file, ec)) { ++missing; if (bad.size() < 8) bad.push_back(name + " (brak pliku)"); continue; }
+                std::string bytes = read_file(file);
+                if ((long long)bytes.size() != info.value("bytes", -1LL) || py::sha256_hex(bytes) != info.value("sha256", std::string())) {
+                    ++changed; if (bad.size() < 8) bad.push_back(name + " (inna zawartość)");
+                } else ++ok;
+            }
+            ctx.note(std::format("{} zgodnych, {} zmienionych, {} brakujących", ok, changed, missing));
+            if (changed + missing > 0) {
+                std::string list;
+                for (auto& b : bad) list += (list.empty() ? "" : ", ") + b;
+                ctx.warn("pliki niezgodne z manifestem: " + list + " — zaktualizuj manifest albo przywróć pliki");
+                ctx.hint = "Manifest jest nieaktualny albo plik zmieniono: wygeneruj MANIFEST_SHA256.json ponownie po zatwierdzeniu zmian w plikach przykładowych.";
+            }
+        });
+        for (const char* dll : {"MebelModel.dll", "MebelNative3D.dll"}) {
+            run(area, std::string("biblioteka ") + dll, where, [this, dll](Ctx& ctx) {
+                std::vector<fs::path> places{py::executable_dir() / dll, data_root / dll, data_root / "mebel_studio_cpp" / "native-dll" / dll};
+                for (const auto& place : places) {
+                    std::error_code ec;
+                    if (!fs::is_regular_file(place, ec)) continue;
+                    auto size = fs::file_size(place, ec);
+                    ctx.note(py::path_str(place) + std::format(" · {} B", size));
+                    if (size < 4096) ctx.warn("plik poniżej 4 KB to wskaźnik Git LFS, a nie biblioteka — pobierz właściwy plik (git lfs pull)");
+                    return;
+                }
+                ctx.warn("nie znaleziono pliku (szukano obok programu, w korzeniu repozytorium i w native-dll/)");
+            });
+        }
+        run(area, "pliki w katalogu programu: skrypty Tcl/Tk i biblioteki uruchomieniowe", "bundle_runtime.cmake, tkcore.cpp", [](Ctx& ctx) {
+            fs::path dir = py::executable_dir();
+            std::error_code ec;
+            long long dlls = 0;
+            for (const auto& e : fs::directory_iterator(dir, ec)) if (e.path().extension() == ".dll") ++dlls;
+            bool tcl = fs::exists(dir / "lib" / "tcl8.6", ec) || fs::exists(dir / "tcl8.6", ec) || fs::exists(dir / "lib" / "tcl8.6" / "init.tcl", ec);
+            ctx.note(std::format("{} bibliotek DLL obok programu, skrypty Tcl: {}", dlls, tcl ? "są" : "nie znaleziono w standardowym miejscu"));
+            if (!tcl) ctx.warn("nie znaleziono lib/tcl8.6 obok programu — przy kopiowaniu programu na inny komputer Tk może nie wystartować");
+        });
+    }
+
+    // ================================================================ szkice
+
+    void test_sketches() {
+        const char* area = "Szkice (edytor konturów)";
+        const char* where = "sketch.cpp (Sketch::set_sketch_points/close_contour/candidate/save/transform_sketch), sketch_live.cpp, assembly.cpp, cad_geometry.cpp";
+        struct Shape { const char* name; std::vector<core::Point> points; };
+        std::vector<core::Point> circle;
+        for (int i = 0; i < 32; ++i) circle.push_back({200 + 150 * std::cos(i * 2 * 3.14159265358979 / 32), 200 + 150 * std::sin(i * 2 * 3.14159265358979 / 32)});
+        std::vector<Shape> shapes{{"prostokąt 400×300", {{0, 0}, {400, 0}, {400, 300}, {0, 300}}},
+                                  {"kształt L", {{0, 0}, {600, 0}, {600, 200}, {250, 200}, {250, 500}, {0, 500}}},
+                                  {"trapez", {{0, 0}, {500, 0}, {400, 250}, {100, 250}}},
+                                  {"trójkąt", {{0, 0}, {400, 0}, {200, 300}}},
+                                  {"koło (32 punkty)", circle}};
+        for (auto& shape : shapes) {
+            run(area, std::string("kontur: ") + shape.name + " → element 3D", where, [this, shape](Ctx& ctx) {
+                app->project = fresh(); app->selected.reset(); app->refresh(); app->update();
+                auto* sk = new sketch::Sketch(app, nullptr);
+                app->update();
+                sk->set_sketch_points(shape.points);
+                sk->close_contour();
+                app->update();
+                need(sk->closed, "kontur nie został zamknięty");
+                auto [candidate, id] = sk->candidate();
+                candidate->validate();
+                need(!candidate->parts.empty(), "szkic nie wytworzył żadnej części");
+                ctx.note(std::format("część {} · {} punktów", id, sk->points.size()));
+                need(sk->save(false), "zapis szkicu jako elementu 3D nie powiódł się");
+                need(!app->project->parts.empty(), "po zapisie szkicu projekt nie ma części");
+                app->undo();
+                app->update();
+                try { if (sk->winfo_exists()) sk->destroy(); } catch (const std::exception&) {}
+                app->project = fresh(); app->refresh();
+            });
+        }
+        run(area, "edycja kontur: odbicia, obrót, cofnięcie i wyczyszczenie", where, [this](Ctx& ctx) {
+            app->project = fresh(); app->refresh(); app->update();
+            auto* sk = new sketch::Sketch(app, nullptr);
+            app->update();
+            sk->set_sketch_points({{0, 0}, {500, 0}, {500, 200}, {0, 200}});
+            sk->close_contour();
+            auto first = sk->points;
+            for (const char* action : {"mirror_u", "mirror_v", "rotate"}) { sk->transform_sketch(action); app->update(); need(sk->points.size() == first.size(), std::string("przekształcenie ") + action + " zmieniło liczbę punktów"); }
+            sk->undo(); sk->undo(); sk->undo(); app->update();
+            ctx.note(std::format("po 3 cofnięciach {} punktów", sk->points.size()));
+            sk->clear(); app->update();
+            need(sk->points.empty(), "po wyczyszczeniu zostały punkty");
+            try { sk->destroy(); } catch (const std::exception&) {}
+        });
+        run(area, "szkic istniejącego elementu (edycja części z mebla)", where, [this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->refresh(); app->update();
+            const Part* part = nullptr;
+            for (const auto& q : p->parts) if (q.role == "left" || q.role == "right") { part = &q; break; }
+            if (part == nullptr) part = &p->parts[0];
+            auto* sk = new sketch::Sketch(app, part);
+            app->update();
+            ctx.note(std::format("część „{}”: {} punktów konturu", part->name, sk->points.size()));
+            need(!sk->points.empty(), "szkic istniejącej części nie ma konturu");
+            auto [candidate, id] = sk->candidate();
+            candidate->validate();
+            try { sk->destroy(); } catch (const std::exception&) {}
+            app->project = fresh(); app->refresh();
+        });
+    }
+
+    // ================================================================ render
+
+    void test_render_matrix() {
+        const char* area = "Renderowanie (silniki, jakość, widoki)";
+        const char* where = "app.h (draw_original), viewport_render.cpp, viewport_scene.cpp, gpu_viewport.cpp, gpu_scene.cpp, native_viewport.cpp, depth_raster.cpp";
+        auto scene_project = [] {
+            Project base;
+            auto [p, a] = cabinet(base, 0, [](json& c) { c["name"] = "Render A"; });
+            auto [p2, b] = cabinet(*p, 3, [](json& c) { c["name"] = "Render B"; c["origin"] = json::array({700, 0, 0}); });
+            return room_objects::add_object(*p2, "lamp", json{{"x", 300}, {"z", 1800}});
+        };
+        run(area, "okno 3D ma rozmiar umożliwiający rysowanie", where, [this](Ctx& ctx) {
+            app->update();
+            int w = app->canvas->winfo_width(), h = app->canvas->winfo_height();
+            ctx.note(std::format("płótno {}×{}", w, h));
+            if (w < 10 || h < 10) ctx.warn("płótno widoku 3D jest mniejsze niż 10 px — draw() pomija rysowanie, więc test renderu jest tylko częściowy");
+        });
+        for (const auto& engine : ui_preferences::ENGINES) {
+            run(area, "silnik „" + engine + "” × jakość draft/balanced/high", where, [=, this](Ctx& ctx) {
+                app->project = scene_project(); app->selected.reset(); app->refresh(); app->fit(); app->update();
+                std::string seen;
+                for (const char* quality : {"draft", "balanced", "high"}) {
+                    app->viewport_engine = engine; app->viewport_quality = quality;
+                    app->draw(); app->update();
+                    seen += std::string(quality) + "=" + app->canvas->_active_renderer + " ";
+                    if (app->canvas->winfo_width() >= 10 && app->canvas->find_withtag("all").empty()) ctx.warn(std::string("rysowanie (") + quality + ") nie wytworzyło żadnych elementów na płótnie");
+                }
+                ctx.note("aktywny silnik: " + seen);
+                if (engine != "cpu" && engine != "auto" && app->canvas->_active_renderer == "cpu")
+                    ctx.warn("silnik „" + engine + "” niedostępny — program wrócił do CPU" + (app->canvas->_gpu_error ? ": " + *app->canvas->_gpu_error : std::string()));
+                app->viewport_engine = "cpu"; app->viewport_quality = "balanced"; app->draw(); app->update();
+            });
+        }
+        run(area, "widoki: perspektywa, przód, góra, bok, tył", where, [this, scene_project](Ctx& ctx) {
+            app->project = scene_project(); app->refresh(); app->update();
+            for (auto [yaw, pitch] : std::vector<std::pair<double, double>>{{-35, 25}, {0, 0}, {0, 89}, {90, 0}, {180, 0}, {-90, 0}}) {
+                app->view(yaw, pitch); app->draw(); app->update();
+            }
+            ctx.note("6 ustawień kamery");
+        });
+        run(area, "tryby: X-ray, rozstrzelenie, wymiary, otwory, zaznaczenie", where, [this, scene_project](Ctx&) {
+            app->project = scene_project(); app->refresh(); app->fit(); app->update();
+            app->selected = app->project->parts[0].id; app->draw(); app->update();
+            app->explode.set(true); app->draw(); app->update(); app->explode.set(false);
+            app->xray.set(true); app->draw(); app->update(); app->xray.set(false);
+            app->dimensions.set(true); app->draw(); app->update(); app->dimensions.set(false);
+            app->show_drills.set(true); app->draw(); app->update(); app->show_drills.set(false);
+            app->selected.reset(); app->draw(); app->update();
+        });
+        run(area, "ruch interaktywny (obrót kamery) i pełna jakość po zatrzymaniu", where, [this, scene_project](Ctx&) {
+            app->project = scene_project(); app->refresh(); app->fit(); app->update();
+            app->_view_interactive = true;
+            for (int i = 0; i < 6; ++i) { app->camera.yaw += 8; app->draw(); app->update(); }
+            app->_view_interactive = false;
+            app->draw(); app->update();
+        });
+        run(area, "scena: jasność, LED i lampy w widoku", where, [this, scene_project](Ctx&) {
+            ProjectPtr p = scene_project();
+            for (double brightness : {.2, .6, 1.0}) {
+                app->project = room_objects::set_scene(*p, json{{"brightness", brightness}, {"led_enabled", true}, {"architecture", json{{"enabled", true}}}});
+                app->refresh(); app->draw(); app->update();
+            }
+            app->project = fresh(); app->refresh();
+        });
+    }
+
+    void test_log_coverage() {
+        run("Logi", "dziennik zawiera wpisy z testowanych obszarów", "journal.cpp, developer_logs.cpp, sketch.cpp, app.h (file_event/draw_done/undo), form_dialog.cpp", [this](Ctx& ctx) {
+            need(fs::exists(app->developer_log_path), "brak pliku logu: " + py::path_str(app->developer_log_path));
+            std::string text = read_file(app->developer_log_path);
+            std::string missing;
+            long long found = 0;
+            for (const char* category : {"szkic", "plik", "okno", "konfiguracja", "cofanie", "biblioteka", "render", "rozciąganie"}) {
+                if (text.find(std::string("[operacja:") + category + "]") != std::string::npos) ++found;
+                else missing += std::string(missing.empty() ? "" : ", ") + category;
+            }
+            ctx.note(std::format("kategorie z wpisami: {}", found));
+            if (!missing.empty()) ctx.warn("brak wpisów dziennika dla kategorii: " + missing + " (czy log się obrócił, czy brakuje wywołań journal::event?)");
+        });
+    }
+
     void run_all() {
         remember_windows();
         test_library();
@@ -1237,8 +1499,13 @@ public:
         test_persistence();
         test_scene();
         test_view();
+        test_render_matrix();
+        test_sketches();
         test_catalogue();
+        test_files();
+        test_program_files();
         test_ui();
+        test_log_coverage();
     }
 };
 
@@ -1333,6 +1600,10 @@ void write_report(const fs::path& dir, const std::string& stamp_text, Runner& ru
 }  // namespace
 
 int run_cli(const std::string& report_dir_argument, bool pause_at_end) {
+    if (!dev_tools::enabled()) {
+        std::fputs("Pełny test jest dostępny tylko w wersji deweloperskiej (CMake -DMEBEL_DEV_TOOLS=ON; zmienna MEBEL_DEV nie może mieć wartości 0).\n", stderr);
+        return 3;
+    }
     std::string stamp_text = stamp("%Y%m%d_%H%M%S");
     fs::path dir;
     {
@@ -1360,9 +1631,10 @@ int run_cli(const std::string& report_dir_argument, bool pause_at_end) {
         ui_preferences::save_preferences(py::merged(ui_preferences::DEFAULTS, json{{"engine", "cpu"}}));
         runner.say("ustawienia programu przekierowane do katalogu tymczasowego (nie zostaną zapisane)");
         app = new App();
-        app->withdraw();
+        app->geometry("1400x900+20+20");  // okno widoczne, żeby widok 3D miał realny rozmiar i test renderu rysował naprawdę
         app->update();
         runner.app = app;
+        runner.data_root = find_source_dir().parent_path();
         runner.say("okno programu utworzone");
         runner.run_all();
     } catch (const std::exception& error) {

@@ -223,14 +223,16 @@ void install(App* app) {
     quick_studio_ui::_button(app->ribbon_pages.at("Scena"), "LED wł. / wył.", [toggle] { toggle("led_enabled"); });
     quick_studio_ui::_button(app->ribbon_pages.at("Scena"), "Lampy wł. / wył.", [toggle] { toggle("lights_enabled"); });
     Cmd logs = [app] { app->open_developer_logs(); };
-    quick_studio_ui::_button(app->ribbon_pages.at("Produkcja"), "Logi", logs);
+    if (dev_tools::enabled()) quick_studio_ui::_button(app->ribbon_pages.at("Produkcja"), "Logi", logs);
     auto* menu = dynamic_cast<tk::Menu*>(app->nametowidget(app->cget("menu")));
     if (menu == nullptr) throw tk::TclError("bad menu entry: " + app->cget("menu"));
     auto* tools = new tk::Menu(menu, {{"tearoff", false}});
     menu->add_cascade({{"label", "Scena i diagnostyka"}, {"menu", tools}});
     for (auto& [label, fn] : std::vector<std::pair<std::string, Cmd>>{{"Wyposażenie pomieszczenia", show_scene}, {"Narożnik…", app->corner_dialog},
-                                                                         {"Wspólny blat…", app->shared_worktop_dialog}, {"Otwórz / pokaż logi", logs}})
+                                                                         {"Wspólny blat…", app->shared_worktop_dialog}, {"Otwórz / pokaż logi", logs}}) {
+        if (label == "Otwórz / pokaż logi" && !dev_tools::enabled()) continue;
         tools->add_command({{"label", label}, {"command", fn}});
+    }
     app->status.set("ŚPM / Alt+LPM: obrót · Shift+ŚPM: przesuń widok · PPM: szybkie menu · rolka: przybliżenie");
 }
 

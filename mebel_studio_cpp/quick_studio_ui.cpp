@@ -25,6 +25,8 @@
 #include "hardware_placement_ui.h"
 #include "hardware_ui.h"
 #include "migration_status.h"
+#include "dev_tools.h"
+#include "selftest.h"
 #include "opening_options.h"
 #include "productivity.h"
 #include "pyutil.h"
@@ -1173,8 +1175,12 @@ static void build_settings_page(App* app) {
     std::vector<Card> cards = {
         {"Okno, skala i panele", "Rozmiar okna, skala interfejsu, widoczność paneli. Silnik i jakość 3D ustawisz też w panelu Widok.", "Otwórz ustawienia", [app] { ui_settings::open_settings(app); }, true},
         {"Materiały i ceny produkcji", "Ceny płyt, obrzeży i robocizny, narzut oraz koszty używane w kosztorysie.", "Zmień ceny i materiały", [app] { app->settings(); }, false},
-        {"Pomoc", "Skróty myszy, opis trybów pracy i podstawowe procedury.", "Otwórz pomoc", [app] { app->help(); }, false},
-        {"Silnik C++ i stan migracji", "Informacje o silniku, module CAD i zgodności z wersją pierwotną.", "Pokaż stan", [app] { migration_status::open_status(app); }, false}};
+        {"Pomoc", "Skróty myszy, opis trybów pracy i podstawowe procedury.", "Otwórz pomoc", [app] { app->help(); }, false}};
+    if (dev_tools::enabled()) {  // tylko wersja deweloperska
+        cards.push_back({"DEV · Logi programu", "Panel logów: dziennik operacji, render, szkice, pliki, wydajność. Przyciski diagnostyczne i zapis logu.", "Otwórz logi", [app] { app->open_developer_logs(); }, false});
+        cards.push_back({"DEV · Pełny test programu", "Sprawdza wszystkie funkcje, renderowanie, szkice i pliki przykładowe, a także aktualność źródeł względem Pythona. Raport trafia do katalogu raporty_testu.", "Uruchom pełny test", [app] { selftest::launch_in_new_process(app); }, false});
+        cards.push_back({"DEV · Silnik C++ i stan migracji", "Informacje o silniku, module CAD i zgodności z wersją pierwotną.", "Pokaż stan", [app] { migration_status::open_status(app); }, false});
+    }
     for (auto& card : cards) {
         auto* box = new ttk::Frame(page, {{"style", "Card.TFrame"}, {"padding", "16 12"}});
         box->pack({{"anchor", "w"}, {"fill", "x"}, {"pady", 5}});

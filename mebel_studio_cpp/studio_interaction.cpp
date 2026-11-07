@@ -60,6 +60,13 @@ void select(App* app, const std::optional<std::string>& identity) {
     }
     app->selected_scene.reset();
     app->selected = identity;
+    if (identity && !identity->empty()) {
+        std::string what = *identity;
+        if (core::Part* chosen = app->selected_part()) what = chosen->name + " [" + chosen->role + "] grupa " + chosen->group + " (" + *identity + ")";
+        journal::event(app, "zaznaczenie", what);
+    } else {
+        journal::event(app, "zaznaczenie", "odznaczono");
+    }
     if (identity && !identity->empty() && app->tree->exists(*identity)) {
         app->tree->selection_set(*identity);
         app->tree->see(*identity);
@@ -97,6 +104,7 @@ tk::Menu* context_menu(App* app, const tk::Event& event, bool show) {
     auto action = [app, menu](const std::string& label, Cmd fn, tk::Menu* parent = nullptr) {
         auto run = [app, menu, label, fn = std::move(fn)] {
             menu->unpost();
+            journal::event(app, "menu", "menu podręczne: " + label);
             try {
                 fn();
             } catch (const std::invalid_argument& error) {  // ValueError
@@ -175,7 +183,7 @@ tk::Menu* context_menu(App* app, const tk::Event& event, bool show) {
     }
     menu->add_separator();
     action("Dopasuj widok", [app] { app->fit(); });
-    action("Logi developerskie", [app] { app->open_developer_logs(); });
+    if (dev_tools::enabled()) action("Logi developerskie", [app] { app->open_developer_logs(); });
     if (show) {
         try {
             menu->tk_popup(event.x_root, event.y_root);

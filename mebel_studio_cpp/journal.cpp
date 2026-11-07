@@ -1,7 +1,9 @@
 #include "journal.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <filesystem>
 #include <format>
 
 #include "app.h"
@@ -15,6 +17,37 @@ void event(App* app, const std::string& category, const std::string& message) {
         app->log->info("[operacja:" + category + "] " + message);
     } catch (...) {
     }
+}
+
+void draw_done(App* app, double milliseconds) {
+    if (app == nullptr || app->log == nullptr) return;
+    struct Window { int count = 0; double total = 0, longest = 0; std::chrono::steady_clock::time_point started{}; };
+    static Window window;
+    auto now = std::chrono::steady_clock::now();
+    if (window.count == 0) window.started = now;
+    ++window.count;
+    window.total += milliseconds;
+    window.longest = std::max(window.longest, milliseconds);
+    if (milliseconds > 150) event(app, "render", std::format("wolne rysowanie {:.0f} ms (silnik {}, jakość {})", milliseconds, app->canvas ? app->canvas->_active_renderer : std::string("?"), app->viewport_quality));
+    if (now - window.started < std::chrono::seconds(1)) return;
+    try {
+        event(app, "render", std::format("{} odrysowań w {:.1f} s · średnio {:.1f} ms, najdłużej {:.0f} ms · silnik {} (ustawiony {}) · jakość {} · części {} · kamera yaw {:.0f} pitch {:.0f} · tryb {}{}{}",
+                                         window.count, std::chrono::duration<double>(now - window.started).count(), window.total / window.count, window.longest,
+                                         app->canvas ? app->canvas->_active_renderer : std::string("?"), app->viewport_engine, app->viewport_quality, app->project ? app->project->parts.size() : 0,
+                                         app->camera.yaw, app->camera.pitch, app->edit_mode.get(), app->xray.get() ? " · X-ray" : "", app->explode.get() ? " · rozstrzelony" : ""));
+    } catch (...) {
+    }
+    window = Window{};
+}
+
+void file_event(App* app, const std::string& action, const std::string& path, double milliseconds, const std::string& result) {
+    std::string size;
+    try {
+        std::error_code ec;
+        if (!path.empty() && std::filesystem::is_regular_file(path, ec)) size = std::format(" · {} B", std::filesystem::file_size(path, ec));
+    } catch (...) {
+    }
+    event(app, "plik", std::format("{}: {}{} · {:.0f} ms · {}", action, path.empty() ? std::string("(bez ścieżki)") : path, size, milliseconds, result));
 }
 
 namespace {

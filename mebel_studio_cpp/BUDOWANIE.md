@@ -70,6 +70,10 @@ W powłoce MSYS2 UCRT64, w folderze `mebel_studio_cpp`:
 ./dev.sh run      # jw. i od razu start aplikacji
 ./dev.sh fast     # kompilacja -O0 w build-dev: najszybsza przy poprawkach interfejsu
 ./dev.sh test     # sam self-test bez budowania
+# Wersja deweloperska vs końcowa: narzędzia deweloperskie (panel Logi, dziennik operacji, pełny test, stan migracji)
+# są wbudowane tylko przy -DMEBEL_DEV_TOOLS=ON (domyślnie). Wersja dla użytkowników:
+#   cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release -DMEBEL_DEV_TOOLS=OFF
+# W wersji deweloperskiej MEBEL_DEV=0 chowa te elementy bez przebudowy (podgląd wyglądu dla użytkownika).
 ./dev.sh fulltest # budowanie + PEŁNY TEST wszystkich funkcji z raportem w raporty_testu/ (ustawienia programu nie są zapisywane)
 ```
 

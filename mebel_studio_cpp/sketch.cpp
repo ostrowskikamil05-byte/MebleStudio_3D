@@ -172,6 +172,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     if (part_) original = *part_;
     if (part_) points = part.points();
     closed = part_ != nullptr;
+    journal::event(app_, "szkic", part_ ? "otwarto szkic istniejącego elementu „" + part_->name + "”" : std::string("nowy szkic"));
     config = assembly::DEFAULTS;
     if (part.assembly.is_object() && part.assembly.contains("config") && part.assembly["config"].is_object())
         for (auto& [key, value] : part.assembly["config"].items()) config[key] = value;
@@ -430,6 +431,7 @@ void Sketch::recipe_settings() {
 }
 
 void Sketch::fit_to_furniture() {
+    journal::event(app, "szkic", "dopasowanie szkicu do mebla");
     try {
         const std::string role_name = role_value(role.get());
         auto [uu, vv] = assembly::suggested_size(*app->project, target.get(), role_name, number(fields.at("t")), current_config());
@@ -552,6 +554,7 @@ void Sketch::checkpoint() {
 }
 
 bool Sketch::cancel() {
+    journal::event(app, "szkic", std::format("anulowanie bieżącej operacji szkicu ({} punktów)", points.size()));
     if (has_changes() && !tk::messagebox::askyesno("Zamknij szkic", "Odrzucić niezapisane zmiany szkicu i jego parametrów?", winfo_toplevel())) return false;
     destroy();
     return true;
@@ -688,6 +691,7 @@ void Sketch::click(const tk::Event& event) {
 }
 
 void Sketch::add_point(const Point& p_in) {
+    journal::event(app, "szkic", std::format("punkt #{}: u={:.1f} v={:.1f} (kontur {})", points.size() + 1, p_in[0], p_in[1], closed ? "zamknięty" : "otwarty"));
     if (closed) {
         if (tk::messagebox::askyesno("Następny element", "Kontur jest gotowy. Zapisać go i rozpocząć następny element?", this)) {
             if (!save(true)) return;
@@ -712,6 +716,7 @@ void Sketch::add_point(const Point& p_in) {
 }
 
 void Sketch::numeric_point() {
+    journal::event(app, "szkic", "punkt z wartości liczbowych");
     try {
         add_point({number(u), number(v)});
     } catch (const ValueError& e) {
@@ -720,6 +725,7 @@ void Sketch::numeric_point() {
 }
 
 void Sketch::segment() {
+    journal::event(app, "szkic", "odcinek o zadanej długości i kącie");
     try {
         if (points.empty()) throw ValueError("Najpierw dodaj punkt początkowy.");
         double len = number(length);
@@ -743,6 +749,7 @@ void Sketch::select_point() {
 }
 
 void Sketch::edit_point() {
+    journal::event(app, "szkic", "edycja punktu");
     try {
         auto selection = listbox->curselection();
         if (selection.empty()) throw ValueError("Wybierz punkt na liście.");
@@ -766,6 +773,7 @@ void Sketch::edit_point() {
 }
 
 void Sketch::close_contour() {
+    journal::event(app, "szkic", std::format("zamknięcie konturu ({} punktów)", points.size()));
     try {
         core::Part base = part;
         json kept = json::array();
@@ -786,6 +794,7 @@ void Sketch::close_contour() {
 }
 
 void Sketch::undo() {
+    journal::event(app, "szkic", std::format("cofnij w szkicu (historia: {})", history.size()));
     if (!history.empty()) {
         Snapshot last = std::move(history.back());
         history.pop_back();
@@ -799,6 +808,7 @@ void Sketch::undo() {
 }
 
 void Sketch::clear() {
+    journal::event(app, "szkic", std::format("wyczyszczono kontur ({} punktów)", points.size()));
     checkpoint();
     points.clear();
     closed = false;
@@ -935,6 +945,7 @@ void Sketch::draw() {
 }
 
 bool Sketch::new_element(bool discard_confirmed) {
+    journal::event(app, "szkic", "nowy element w szkicu");
     if (has_changes() && !discard_confirmed &&
         !tk::messagebox::askyesno("Nowy element", "Odrzucić niezapisany szkic i rozpocząć nowy? Użyj „Zapisz i rysuj następny”, aby zachować go.", winfo_toplevel()))
         return false;
@@ -961,6 +972,7 @@ bool Sketch::new_element(bool discard_confirmed) {
 }
 
 void Sketch::set_sketch_points(const std::vector<Point>& new_points) {
+    journal::event(app, "szkic", std::format("ustawiono {} punktów konturu", new_points.size()));
     if (!part.holes.empty() || py::truthy(part.operations) || py::truthy(part.fillets) || py::truthy(part.chamfers) ||
         py::truthy(part.machining))
         throw ValueError("Ten szkic ma obróbkę. Zastosuj odbicie części z menu CAD, aby przeliczyć także otwory i profile.");
@@ -973,6 +985,7 @@ void Sketch::set_sketch_points(const std::vector<Point>& new_points) {
 }
 
 void Sketch::transform_sketch(const std::string& action) {
+    journal::event(app, "szkic", "przekształcenie: " + action);
     try {
         if (points.empty()) throw ValueError("Najpierw narysuj kontur.");
         std::vector<Point> result;
@@ -995,6 +1008,7 @@ void Sketch::transform_sketch(const std::string& action) {
 }
 
 void Sketch::offset_sketch() {
+    journal::event(app, "szkic", "odsunięcie konturu");
     auto distance = tk::simpledialog::askfloat("Odsunięcie konturu", "Odległość w mm: dodatnia na zewnątrz, ujemna do środka.", {{"parent", this}});
     if (!distance) return;
     try {
@@ -1009,6 +1023,7 @@ void Sketch::offset_sketch() {
 }
 
 void Sketch::constrain_edge(const std::string& kind) {
+    journal::event(app, "szkic", "więz krawędzi: " + kind);
     try {
         auto selection = listbox->curselection();
         if (selection.empty() || points.size() < 2) throw ValueError("Wybierz punkt początkowy odcinka na liście.");

@@ -63,6 +63,7 @@ namespace hardware_placement_ui { class HardwarePlacementPanel; }
 #include "viewport_annotations.h"
 #include "shaped_furniture.h"
 #include "stretch_choice.h"
+#include "dev_tools.h"
 #include "journal.h"
 #include "cad_geometry.h"
 #include "furniture_layout.h"
@@ -305,6 +306,7 @@ public:
     void apply_viewport_preferences(const json& prefs) {
         viewport_engine = prefs.value("engine", "auto");
         viewport_quality = prefs.value("quality", "balanced");
+        journal::event(this, "render", "ustawienia widoku: silnik " + viewport_engine + ", jakość " + viewport_quality + ", skala interfejsu " + prefs.value("ui_scale", json(1.0)).dump());
         if (canvas) {
             native_viewport::reset_native_failure(canvas);
         }
@@ -586,7 +588,12 @@ public:
 
     // native_viewport.install owija draw: po pełnym rysowaniu zatwierdza nakładki silnika C++.
     std::function<void()> draw_wrapper;
-    void draw() { perf::Scope perf_scope("App::draw"); if (draw_wrapper) draw_wrapper(); else draw_original(); }
+    void draw() {
+        perf::Scope perf_scope("App::draw");
+        auto t0 = std::chrono::steady_clock::now();
+        if (draw_wrapper) draw_wrapper(); else draw_original();
+        if (dev_tools::enabled()) journal::draw_done(this, std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
+    }
 
     void draw_original() {
         if (_native_document != nullptr) _sync_native_document();
@@ -716,7 +723,7 @@ public:
         if (explode.get()) camera.scale /= 1.22;
         draw();
     }
-    void view(double yaw, double pitch) { camera.yaw = yaw; camera.pitch = pitch; fit(); }
+    void view(double yaw, double pitch) { journal::event(this, "render", std::format("widok: yaw {:.0f} pitch {:.0f}", yaw, pitch)); camera.yaw = yaw; camera.pitch = pitch; fit(); }
     void zoom(double factor) { camera.scale = std::max(.003, std::min(15.0, camera.scale * factor)); draw(); }
     void wheel(tk::Event& e) { zoom(e.delta > 0 ? 1.12 : 1 / 1.12); }
     void mouse_down(tk::Event& e) {
@@ -910,6 +917,7 @@ public:
     }
     void undo() {
         if (cancel_active_edits()) return;
+        journal::event(this, "cofanie", std::format("cofnij (Ctrl+Z) · stos cofania: {}", undo_stack->empty() ? 0 : 1));
         if (_native_document != nullptr) {
             _sync_native_document(); ProjectPtr project_ = _native_document->undo();
             if (project_ != nullptr) { project = project_; changed(); refresh(); }
@@ -918,6 +926,7 @@ public:
         if (!undo_stack->empty()) { redo_stack->append(project->data()); project = Project::from_data(undo_stack->pop()); changed(); refresh(); }
     }
     void redo() {
+        journal::event(this, "cofanie", "ponów (Ctrl+Y)");
         if (cancel_active_edits()) return;
         if (_native_document != nullptr) {
             _sync_native_document(); ProjectPtr project_ = _native_document->redo();
@@ -1130,7 +1139,7 @@ public:
         palette::install_palette(project);
         if (_native_document != nullptr) _native_document->reset(project);
         open_amounts = {}; animation_job.reset(); motion_value.set(0); motion_all.set(false); resize_step.set(false);
-        path.reset(); selected.reset(); undo_stack->clear(); redo_stack->clear(); dirty = false; title("Mebel Studio 3D · Mój projekt"); refresh(); fit(); workspace->select(design_page); return true;
+        path.reset(); selected.reset(); undo_stack->clear(); redo_stack->clear(); dirty = false; title("Mebel Studio 3D · Mój projekt"); refresh(); fit(); workspace->select(design_page); journal::file_event(this, "nowy projekt", "", 0, "OK"); return true;
     }
     bool save(bool save_as = false) {
         if (!flush_parameter_drafts()) return false;
@@ -1140,7 +1149,10 @@ public:
         if (save_as || path_.empty()) path_ = tk::filedialog::asksaveasfilename({{"parent", this}, {"title", "Zapisz projekt"}, {"defaultextension", ".mebel"}, {"filetypes", tk::FileTypes{{"Projekt Mebel Studio", "*.mebel"}}}, {"initialfile", project->name + ".mebel"}});
         if (path_.empty()) return false;
         std::string previous_name = project->name;
+        auto save_started = std::chrono::steady_clock::now();
+        auto save_ms = [&] { return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - save_started).count(); };
         auto on_error = [&](const std::exception& e) {
+            journal::file_event(this, "zapis", path_, save_ms(), std::string("BŁĄD: ") + e.what());
             project->name = previous_name;
             if (_native_document != nullptr) {
                 std::string authoritative = _native_document->read();
@@ -1153,7 +1165,8 @@ public:
             project->name = py::path_str(py::to_path(path_).stem());
             if (_native_document != nullptr) _native_document->save(project, path_);
             else project->save(path_);
-            path = path_; dirty = false; title("Mebel Studio 3D · " + project->name); status.set("Zapisano: " + path_); log->info("Zapisano projekt: " + path_); return true;
+            path = path_; dirty = false; title("Mebel Studio 3D · " + project->name); status.set("Zapisano: " + path_); log->info("Zapisano projekt: " + path_);
+            journal::file_event(this, "zapis", path_, save_ms(), std::format("OK · {} części", project->parts.size())); return true;
         } catch (const OSError& e) { return on_error(e); } catch (const ValueError& e) { return on_error(e); }
     }
     bool open() {
@@ -1162,7 +1175,9 @@ public:
     }
     bool load_path(const std::string& path_) {
         ProjectPtr project_;
-        auto on_error = [&](const std::exception& e) { tk::messagebox::showerror("Nie udało się otworzyć projektu", e.what(), this); return false; };
+        auto load_started = std::chrono::steady_clock::now();
+        auto load_ms = [&] { return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - load_started).count(); };
+        auto on_error = [&](const std::exception& e) { journal::file_event(this, "otwarcie", path_, load_ms(), std::string("BŁĄD: ") + e.what()); tk::messagebox::showerror("Nie udało się otworzyć projektu", e.what(), this); return false; };
         try {
             project_ = Project::load(path_);
         } catch (const OSError& e) { return on_error(e); } catch (const ValueError& e) { return on_error(e); }
@@ -1170,7 +1185,8 @@ public:
         if (!confirm_project_transition()) return false;
         end_project_documents();
         if (_native_document != nullptr) _native_document->reset(project_);
-        project = project_; path = path_; dirty = false; undo_stack->clear(); redo_stack->clear(); selected.reset(); refresh(); fit(); workspace->select(design_page); title("Mebel Studio 3D · " + project_->name); status.set("Otwarto: " + path_); log->info("Otwarto projekt: " + path_); return true;
+        project = project_; path = path_; dirty = false; undo_stack->clear(); redo_stack->clear(); selected.reset(); refresh(); fit();
+        journal::file_event(this, "otwarcie", path_, load_ms(), std::format("OK · {} części, {} okuć", project_->parts.size(), project_->hardware.size())); workspace->select(design_page); title("Mebel Studio 3D · " + project_->name); status.set("Otwarto: " + path_); log->info("Otwarto projekt: " + path_); return true;
     }
     bool close() {
         if (!confirm_project_transition()) return false;
@@ -1206,7 +1222,9 @@ public:
             std::string ext = std::map<std::string, std::string>{{"csv", ".csv"}, {"dxf", ".dxf"}, {"html", ".html"}, {"svg", ".svg"}, {"json", ".json"}, {"step", ".step"}, {"stl", ".stl"}, {"drawings", ".html"}, {"labels", ".html"}, {"project_print", ".html"}}.at(kind);
             std::string path_ = tk::filedialog::asksaveasfilename({{"parent", d}, {"defaultextension", ext}, {"initialfile", project->name + ext}, {"filetypes", tk::FileTypes{{"Eksport", "*" + ext}}}});
             if (path_.empty()) return;
-            auto on_error = [&](const std::exception& e) { tk::messagebox::showerror("Błąd eksportu", e.what(), d); };
+            auto export_started = std::chrono::steady_clock::now();
+            auto export_ms = [&] { return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - export_started).count(); };
+            auto on_error = [&](const std::exception& e) { journal::file_event(this, "eksport " + kind, path_, export_ms(), std::string("BŁĄD: ") + e.what()); tk::messagebox::showerror("Błąd eksportu", e.what(), d); };
             try {
                 project->validate();
                 if (kind == "csv") csv_export(*project, path_);
@@ -1225,6 +1243,7 @@ public:
                     Camera cam = camera; cam.fit(*project, 1400, 900); py::write_text(path_, svg_view(*project, &cam, 1400, 900));
                 }
                 status.set("Wyeksportowano: " + path_);
+                journal::file_event(this, "eksport " + kind, path_, export_ms(), "OK");
                 if (kind == "html" || kind == "svg" || kind == "drawings" || kind == "labels" || kind == "project_print") py::webbrowser_open(py::as_uri(fs::weakly_canonical(py::to_path(path_))));
                 else tk::messagebox::showinfo("Eksport gotowy", "Zapisano plik:\n" + path_, d);
             } catch (const OSError& e) { on_error(e); } catch (const ValueError& e) { on_error(e); }

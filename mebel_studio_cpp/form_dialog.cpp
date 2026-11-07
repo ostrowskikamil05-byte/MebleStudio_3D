@@ -26,6 +26,7 @@ void FormContent::destroy() {
 
 FormDocument::FormDocument(App* app_, const std::string& title_, const std::string& size) : dock_workspace::DockDocument(app_) {
     _destroying = false;
+    journal::event(app_, "okno", "otwarto zakładkę/okno: " + title_);
     title(title_); geometry(size + "+30+30");
     footer = new ttk::Frame(this); footer->pack({{"side", "bottom"}, {"fill", "x"}});
     body = new ttk::Frame(this); body->pack({{"fill", "both"}, {"expand", true}});
