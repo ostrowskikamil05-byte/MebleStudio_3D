@@ -40,15 +40,15 @@ std::vector<Point> remove_point(const std::vector<Point>& points, size_t index, 
 // Upraszcza łamaną (Douglas–Peucker, kontur zamknięty) tak, by miała najwyżej `max_points` punktów.
 std::vector<Point> simplify(const std::vector<Point>& points, size_t max_points = MAX_POINTS);
 
-// Wartości wpisane z klawiatury (jak pole VCB w SketchUpie): „250”, „600x400”, „600;400”, „12,5”, „250<45”, „30cm”.
+// Wartości wpisane z klawiatury: „250”, „600x400”, „600;400”, „12,5”, „250<45”, „30cm”.
 // Separatorem pól jest ; spacja lub x; przecinek jest dziesiętny, chyba że `comma_separates` (prostokąt) i nie ma innego separatora.
 // Po „<” stoi kąt w stopniach. Jednostki: mm (domyślnie), cm, m. Śmieci zgłaszane jako std::invalid_argument.
-struct VcbValues {
+struct ValueInput {
     std::vector<double> numbers;
     bool has_angle = false;
     double angle = 0;
 };
-VcbValues parse_vcb(const std::string& text, bool comma_separates = false);
+ValueInput parse_value_input(const std::string& text, bool comma_separates = false);
 
 double signed_area(const std::vector<Point>& points);
 // Czy łamana zamknięta przecina samą siebie (nie licząc sąsiednich odcinków).

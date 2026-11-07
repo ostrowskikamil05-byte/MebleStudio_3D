@@ -1,0 +1,25 @@
+# Źródła pomysłów i licencje (Mebel Studio 3D, wersja C++)
+
+To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem programu warto, aby ktoś zweryfikował licencje.
+
+## Zasady przy dodawaniu funkcji
+- **Inspirujemy się ogólnymi pomysłami interfejsu** (np. podpowiedzi przy kursorze, wpisywanie wartości z klawiatury, skróty narzędzi),
+  ale **nie kopiujemy cudzego kodu, grafik, ikon, tekstów pomocy ani nazw handlowych**. Nazw cudzych produktów nie używamy w interfejsie programu
+  ani w nazwach funkcji; w dokumentacji tylko, gdy to konieczne i neutralnie.
+- Własne rozwiązania są pisane od zera na podstawie opisu zachowania, a nie cudzego kodu źródłowego.
+- Format **DXF** czytamy własnym parserem na podstawie publicznie dostępnego opisu formatu tekstowego (pary „kod grupy – wartość”).
+  Nie używamy bibliotek ani kodu Autodesk. Nie wypisujemy nazw produktów Autodesk w interfejsie.
+- Kopiując fragment cudzego kodu lub zasobu (nawet z internetu) trzeba najpierw sprawdzić jego licencję i dopisać go do listy poniżej.
+
+## Biblioteki używane przez program
+| Biblioteka | Licencja (sprawdź dokładną wersję przy wydaniu) | Uwagi |
+|---|---|---|
+| nlohmann/json 3.12 | MIT | tekst licencji dołączony do nagłówka |
+| OpenCASCADE Technology | LGPL 2.1 z wyjątkiem OCCT | biblioteki dołączamy jako osobne DLL (łączenie dynamiczne); trzeba dołączyć tekst licencji i umożliwić podmianę DLL |
+| Tcl/Tk 8.6 | licencja typu BSD (Tcl/Tk License) | dołączane skrypty Tcl/Tk razem z programem |
+| VTK (opcjonalnie, rendering GPU) | BSD 3-Clause | tylko gdy zbudowano z VTK |
+| Pakiet środowiska Python (katalog `LICENCJE`) | różne (BSD/MIT/NCSA) | dotyczy dołączonej wersji 0.14 |
+
+## Czego jeszcze brakuje
+- Zbiorczego pliku z pełnymi tekstami licencji dla wersji C++ (OpenCASCADE, Tcl/Tk, VTK) w paczce wydawniczej.
+- Przeglądu czcionek i ikon użytych w interfejsie pod kątem licencji.

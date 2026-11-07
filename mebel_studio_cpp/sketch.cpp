@@ -363,7 +363,7 @@ Sketch::Sketch(App* app_, const core::Part* part_)
         (new ttk::Label(row, {{"text", label_}}))->pack({{"side", "left"}, {"padx", 3}});
     }
     (new ttk::Button(side, {{"text", "Dodaj odcinek: długość + kąt"}, {"command", Cmd([this] { segment(); })}}))->pack({{"fill", "x"}, {"pady", 5}});
-    (new ttk::Label(side, {{"text", "0° = +U, 90° = +V.\nRolka: zoom · PPM: przesuwanie\nEnter: zamknij · Backspace: cofnij\nKliknij pierwszy punkt, aby zamknąć.\nEdycja punktów: wybierz na liście.\nObrzeża konturu zostaną wyłączone.\n\nSkróty (jak w SketchUpie): L linia · R prostokąt · C okrąg · P wielobok · A łuk · F odsuń · Del usuń punkt.\nStrzałki blokują oś U/V, Shift blokuje wykryty kierunek, Esc anuluje.\nPo zamknięciu konturu kliknij napis wymiaru, aby zmienić długość odcinka."},
+    (new ttk::Label(side, {{"text", "0° = +U, 90° = +V.\nRolka: zoom · PPM: przesuwanie\nEnter: zamknij · Backspace: cofnij\nKliknij pierwszy punkt, aby zamknąć.\nEdycja punktów: wybierz na liście.\nObrzeża konturu zostaną wyłączone.\n\nSkróty: L linia · R prostokąt · C okrąg · P wielobok · A łuk · F odsuń · Del usuń punkt.\nStrzałki blokują oś U/V, Shift blokuje wykryty kierunek, Esc anuluje.\nPo zamknięciu konturu kliknij napis wymiaru, aby zmienić długość odcinka."},
                                   {"wraplength", 270}}))->pack({{"anchor", "w"}, {"pady", 8}});
     auto* footer = new ttk::Frame(this, {{"padding", 6}});
     footer->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
@@ -372,18 +372,18 @@ Sketch::Sketch(App* app_, const core::Part* part_)
     (new ttk::Button(footer, {{"text", "Nowy element"}, {"command", Cmd([this] { new_element(); })}}))->pack({{"side", "left"}, {"padx", 4}});
     (new ttk::Button(footer, {{"text", "3. Dodaj do mebla / zapisz zmiany"}, {"command", Cmd([this] { save(); })}, {"style", "Accent.TButton"}}))
         ->pack({{"side", "right"}, {"padx", 4}});
-    vcb = tk::StringVar("");
-    vcb_prompt = tk::StringVar("Długość");
-    vcb_live = tk::StringVar("");
-    auto* vcb_row = new ttk::Frame(this, {{"padding", "8 2"}});
-    vcb_row->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
-    (new ttk::Label(vcb_row, {{"textvariable", vcb_prompt}, {"width", 11}, {"style", "Title.TLabel"}}))->pack({{"side", "left"}});
-    auto* vcb_entry = new ttk::Entry(vcb_row, {{"textvariable", vcb}, {"width", 18}});
-    vcb_entry->pack({{"side", "left"}, {"padx", 4}});
-    vcb_entry->bind("<Return>", [this](tk::Event&) { vcb_apply(); canvas->focus_set(); return std::string("break"); });
-    vcb_entry->bind("<Escape>", [this](tk::Event&) { vcb.set(""); canvas->focus_set(); return std::string("break"); });
-    (new ttk::Label(vcb_row, {{"textvariable", vcb_live}}))->pack({{"side", "left"}, {"padx", 8}});
-    (new ttk::Label(vcb_row, {{"text", "Wpisz wartość i Enter, bez klikania w pole: 250 · 250<45 · 600x400 · promień"}}))->pack({{"side", "right"}});
+    value_text = tk::StringVar("");
+    value_prompt = tk::StringVar("Długość");
+    value_live = tk::StringVar("");
+    auto* value_row = new ttk::Frame(this, {{"padding", "8 2"}});
+    value_row->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
+    (new ttk::Label(value_row, {{"textvariable", value_prompt}, {"width", 11}, {"style", "Title.TLabel"}}))->pack({{"side", "left"}});
+    auto* value_entry = new ttk::Entry(value_row, {{"textvariable", value_text}, {"width", 18}});
+    value_entry->pack({{"side", "left"}, {"padx", 4}});
+    value_entry->bind("<Return>", [this](tk::Event&) { value_apply(); canvas->focus_set(); return std::string("break"); });
+    value_entry->bind("<Escape>", [this](tk::Event&) { value_text.set(""); canvas->focus_set(); return std::string("break"); });
+    (new ttk::Label(value_row, {{"textvariable", value_live}}))->pack({{"side", "left"}, {"padx", 8}});
+    (new ttk::Label(value_row, {{"text", "Wpisz wartość i Enter, bez klikania w pole: 250 · 250<45 · 600x400 · promień"}}))->pack({{"side", "right"}});
     status = tk::StringVar("Kliknij pierwszy punkt lub wpisz U i V. Wszystkie wymiary w mm.");
     (new ttk::Label(this, {{"textvariable", status}, {"padding", 8}}))->pack({{"side", "bottom"}, {"fill", "x"}, {"before", body->path()}});
     canvas->bind("<Motion>", [this](tk::Event& e) { motion(e); return std::string(); });
@@ -621,9 +621,9 @@ void Sketch::change_mode() {
     journal::event(app, "szkic", "narzędzie szkicu: " + tool + (pending.empty() ? "" : " (porzucono rozpoczęty kształt)"));
     pending.clear();
     arrow_lock.reset();
-    vcb.set("");
-    vcb_prompt.set(vcb_prompt_text());
-    vcb_live.set("");
+    value_text.set("");
+    value_prompt.set(value_prompt_text());
+    value_live.set("");
     if (tool == "Prostokąt") status.set(!points.empty() && !closed ? "Kliknij przeciwległy narożnik prostokąta albo wpisz szer;wys i Enter." : "Kliknij pierwszy narożnik prostokąta (potem drugi albo szer;wys + Enter).");
     else if (tool == "Okrąg") status.set("Kliknij środek okręgu, potem promień (albo wpisz promień i Enter).");
     else if (tool == "Wielobok") status.set("Kliknij środek wieloboku, potem promień (liczba boków w polu „boki”; można wpisać promień;boki + Enter).");
@@ -639,17 +639,17 @@ void Sketch::set_tool(const std::string& tool) {
     change_mode();
 }
 
-std::string Sketch::vcb_prompt_text() const {
+std::string Sketch::value_prompt_text() const {
     const std::string tool = mode.get();
     return tool == "Prostokąt" ? "Wymiary" : tool == "Okrąg" || tool == "Wielobok" ? "Promień" : tool == "Łuk" ? "Łuk" : "Długość";
 }
 
 void Sketch::cancel_pending() {
-    bool had = !pending.empty() || arrow_lock || !vcb.get().empty();
+    bool had = !pending.empty() || arrow_lock || !value_text.get().empty();
     pending.clear();
     arrow_lock.reset();
-    vcb.set("");
-    vcb_live.set("");
+    value_text.set("");
+    value_live.set("");
     cursor.reset();
     if (had) journal::event(app, "szkic", "Esc: anulowano rozpoczętą operację (narzędzie " + mode.get() + ")");
     draw();
@@ -750,10 +750,10 @@ void Sketch::motion(const tk::Event& event) {
         }
         status.set(text);
         const std::string tool = mode.get();
-        if (tool == "Wielokąt" && !points.empty() && !closed) vcb_live.set(std::format("{:.2f} mm", dist(points.back(), *cursor)));
-        else if (tool == "Prostokąt" && !points.empty() && !closed) vcb_live.set(std::format("{:.2f} × {:.2f} mm", std::abs(uu - points[0][0]), std::abs(vv - points[0][1])));
-        else if ((tool == "Okrąg" || tool == "Wielobok") && !pending.empty()) vcb_live.set(std::format("R {:.2f} mm", dist(pending[0], *cursor)));
-        else vcb_live.set("");
+        if (tool == "Wielokąt" && !points.empty() && !closed) value_live.set(std::format("{:.2f} mm", dist(points.back(), *cursor)));
+        else if (tool == "Prostokąt" && !points.empty() && !closed) value_live.set(std::format("{:.2f} × {:.2f} mm", std::abs(uu - points[0][0]), std::abs(vv - points[0][1])));
+        else if ((tool == "Okrąg" || tool == "Wielobok") && !pending.empty()) value_live.set(std::format("R {:.2f} mm", dist(pending[0], *cursor)));
+        else value_live.set("");
         draw();
     } catch (const ValueError& e) {
         status.set(e.what());
@@ -1142,7 +1142,7 @@ bool Sketch::new_element(bool discard_confirmed) {
     pending.clear();
     centers.clear();
     arrow_lock.reset();
-    vcb.set("");
+    value_text.set("");
     cursor.reset();
     history.clear();
     replace_existing.set(false);
@@ -1334,20 +1334,20 @@ bool Sketch::key(const std::string& keysym, int state) {
     std::string digit;
     if (keysym.size() == 1 && keysym[0] >= '0' && keysym[0] <= '9') digit = keysym;
     else if (keysym.size() == 4 && keysym.rfind("KP_", 0) == 0 && keysym[3] >= '0' && keysym[3] <= '9') digit = keysym.substr(3);
-    const bool typing = !vcb.get().empty();
+    const bool typing = !value_text.get().empty();
     const std::string tool = mode.get();
-    // wartość do pola VCB: cyfry zawsze, litery/znaki tylko, gdy już coś wpisano (skróty narzędzi używają liter)
-    if (!digit.empty()) { vcb.set(vcb.get() + digit); return true; }
-    if (typing && typed.contains(keysym)) { vcb.set(vcb.get() + typed.at(keysym)); return true; }
-    if (!typing && (keysym == "minus" || keysym == "KP_Subtract" || keysym == "less")) { vcb.set(vcb.get() + typed.at(keysym)); return true; }
+    // wartość do pola wartości: cyfry zawsze, litery/znaki tylko, gdy już coś wpisano (skróty narzędzi używają liter)
+    if (!digit.empty()) { value_text.set(value_text.get() + digit); return true; }
+    if (typing && typed.contains(keysym)) { value_text.set(value_text.get() + typed.at(keysym)); return true; }
+    if (!typing && (keysym == "minus" || keysym == "KP_Subtract" || keysym == "less")) { value_text.set(value_text.get() + typed.at(keysym)); return true; }
     if (keysym == "Return" || keysym == "KP_Enter") {
-        if (typing) { vcb_apply(); return true; }
+        if (typing) { value_apply(); return true; }
         journal::event(app, "szkic", "Enter: zamknięcie konturu");
         close_contour();
         return true;
     }
     if (keysym == "BackSpace") {
-        if (typing) { std::string v = vcb.get(); v.pop_back(); vcb.set(v); return true; }
+        if (typing) { std::string v = value_text.get(); v.pop_back(); value_text.set(v); return true; }
         undo();
         return true;
     }
@@ -1373,8 +1373,8 @@ bool Sketch::key(const std::string& keysym, int state) {
     return false;
 }
 
-bool Sketch::vcb_apply() {
-    std::string text = vcb.get();
+bool Sketch::value_apply() {
+    std::string text = value_text.get();
     if (text.find_first_not_of(' ') == std::string::npos) return false;
     const std::string tool = mode.get();
     journal::event(app, "szkic", "wartość z klawiatury „" + text + "” (narzędzie " + tool + ")");
@@ -1384,7 +1384,7 @@ bool Sketch::vcb_apply() {
         return true;
     };
     try {
-        sketch_shapes::VcbValues values = sketch_shapes::parse_vcb(text, tool == "Prostokąt");
+        sketch_shapes::ValueInput values = sketch_shapes::parse_value_input(text, tool == "Prostokąt");
         auto cursor_point = [&]() -> std::optional<Point> { return cursor; };
         if (tool == "Wielokąt") {
             if (closed) return fail("kontur jest zamknięty — wyczyść go albo zapisz element");
@@ -1432,7 +1432,7 @@ bool Sketch::vcb_apply() {
     } catch (const ValueError& e) {
         return fail(e.what());
     }
-    vcb.set("");
+    value_text.set("");
     return true;
 }
 

@@ -12,3 +12,4 @@
 - Komendy: `./dev.sh fulltest` (`PULL=0 ./dev.sh fulltest`), raport w `raporty_testu/OSTATNI_RAPORT.md`.
 - Commity kończą się stopkami `Co-Authored-By` i `Claude-Session`.
 - Logikę geometryczną (wskazówki, kształty, DXF) trzymamy w czystych modułach bez Tk/OCCT (`sketch_inference`, `sketch_shapes`, `dxf_import`) — da się je przetestować poza aplikacją; testy UI są w `test_sketch_tools()`.
+- **Licencje i cudze pomysły:** czerpiemy tylko ogólne idee interfejsu; nie kopiujemy cudzego kodu, grafik, tekstów ani nazw produktów (por. `ZRODLA_I_LICENCJE.md`). Nowa zewnętrzna zależność lub zasób = wpis na tamtej liście.

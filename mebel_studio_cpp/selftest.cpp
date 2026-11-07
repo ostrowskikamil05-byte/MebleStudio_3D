@@ -159,7 +159,7 @@ double num(const json& v) { return v.get<double>(); }
 // Każda kategoria wpisów [operacja:…] użyta w kodzie (journal::event) musi tu mieć wskazany test. Dodajesz nową kategorię w kodzie
 // → audyt zgłosi brak wpisu tutaj, dopóki nie dopiszesz testu i nie opiszesz go w tej tabeli.
 const std::map<std::string, std::string> JOURNAL_COVERAGE = {
-    {"szkic", "Interfejs i okna · szkic: edytor, odpinanie i wpinanie · Szkic — narzędzia w stylu SketchUp (wskazówki, VCB, kształty, profile, DXF)"},
+    {"szkic", "Interfejs i okna · szkic: edytor, odpinanie i wpinanie · Szkic — wskazówki, pole wartości, kształty, DXF"},
     {"plik", "Eksporty i zapis (test_exports / test_persistence)"},
     {"okno", "Interfejs i okna · okna dialogowe"},
     {"zakładka", "Interfejs i okna · przełączanie wszystkich zakładek i paneli"},
@@ -2100,7 +2100,7 @@ public:
         });
     }
 
-    // ---- narzędzia szkicu w stylu SketchUp: wskazówki, pole wartości, kształty, profile, DXF
+    // ---- narzędzia szkicu: wskazówki, pole wartości, kształty, profile, DXF
 
     static std::string dxf_pair(int code, const std::string& value) { return std::to_string(code) + "\n" + value + "\n"; }
     static std::string dxf_number(int code, double value) { return dxf_pair(code, std::format("{}", value)); }
@@ -2114,8 +2114,8 @@ public:
     }
 
     void test_sketch_tools() {
-        const char* area = "Szkic — narzędzia w stylu SketchUp";
-        const char* where = "sketch_inference.cpp, sketch_shapes.cpp, dxf_import.cpp, sketch.cpp (local/key/vcb_apply/finish_shape/import_dxf)";
+        const char* area = "Szkic — wskazówki, pole wartości, kształty, DXF";
+        const char* where = "sketch_inference.cpp, sketch_shapes.cpp, dxf_import.cpp, sketch.cpp (local/key/value_apply/finish_shape/import_dxf)";
         using sketch_inference::Kind;
         auto near_to = [](double a, double b, double eps = 1e-6) { return std::abs(a - b) < eps; };
 
@@ -2253,19 +2253,19 @@ public:
             need(std::abs(sketch_shapes::signed_area(simple) - std::numbers::pi * 300 * 200) / (std::numbers::pi * 300 * 200) < 0.01, "uproszczenie zmieniło pole o ponad 1%");
         });
 
-        run(area, "pole wartości (VCB): długość, kąt, wymiary, jednostki, błędne dane", where, [=](Ctx&) {
-            auto one = sketch_shapes::parse_vcb("250");
+        run(area, "pole wartości: długość, kąt, wymiary, jednostki, błędne dane", where, [=](Ctx&) {
+            auto one = sketch_shapes::parse_value_input("250");
             need(one.numbers.size() == 1 && near_to(one.numbers[0], 250) && !one.has_angle, "„250” nie jest jedną liczbą");
-            need(near_to(sketch_shapes::parse_vcb("12,5").numbers[0], 12.5), "przecinek dziesiętny nie działa");
-            auto rect = sketch_shapes::parse_vcb("600,400", true);
+            need(near_to(sketch_shapes::parse_value_input("12,5").numbers[0], 12.5), "przecinek dziesiętny nie działa");
+            auto rect = sketch_shapes::parse_value_input("600,400", true);
             need(rect.numbers.size() == 2 && near_to(rect.numbers[1], 400), "„600,400” w prostokącie nie jest szer,wys");
-            need(sketch_shapes::parse_vcb("600x400").numbers.size() == 2 && sketch_shapes::parse_vcb("600;400").numbers.size() == 2, "x i ; nie rozdzielają pól");
-            auto angled = sketch_shapes::parse_vcb("250<45");
+            need(sketch_shapes::parse_value_input("600x400").numbers.size() == 2 && sketch_shapes::parse_value_input("600;400").numbers.size() == 2, "x i ; nie rozdzielają pól");
+            auto angled = sketch_shapes::parse_value_input("250<45");
             need(near_to(angled.numbers[0], 250) && angled.has_angle && near_to(angled.angle, 45), "„250<45” nie daje długości i kąta");
-            need(near_to(sketch_shapes::parse_vcb("30cm").numbers[0], 300) && near_to(sketch_shapes::parse_vcb("1,2m").numbers[0], 1200), "jednostki cm / m nie działają");
+            need(near_to(sketch_shapes::parse_value_input("30cm").numbers[0], 300) && near_to(sketch_shapes::parse_value_input("1,2m").numbers[0], 1200), "jednostki cm / m nie działają");
             for (const char* garbage : {"abc", "", "12<x", "1.2.3", "nan"}) {
                 bool rejected = false;
-                try { sketch_shapes::parse_vcb(garbage); } catch (const std::invalid_argument&) { rejected = true; }
+                try { sketch_shapes::parse_value_input(garbage); } catch (const std::invalid_argument&) { rejected = true; }
                 need(rejected, std::string("śmieci „") + garbage + "” powinny być odrzucone");
             }
         });
@@ -2354,36 +2354,36 @@ public:
             close_sketch(sk);
         });
 
-        run(area, "edytor VCB: długość z kątem (250<45) dodaje odcinek we wskazanym kierunku", where, [=, this](Ctx& ctx) {
+        run(area, "edytor, pole wartości: długość z kątem (250<45) dodaje odcinek we wskazanym kierunku", where, [=, this](Ctx& ctx) {
             auto* sk = open_sketch();
             sk->set_tool("Wielokąt");
             sk->add_point({0, 0});
             auto from = log_mark();
-            sk->vcb.set("250<45");
+            sk->value_text.set("250<45");
             need(sk->key("Return"), "Enter z wartością nie został obsłużony");
             need(sk->points.size() == 2, "wpisana długość nie dodała punktu");
             double length = std::hypot(sk->points[1][0], sk->points[1][1]), angle = std::atan2(sk->points[1][1], sk->points[1][0]) * 180 / std::numbers::pi;
             ctx.note(std::format("długość {:.2f}, kąt {:.2f}°", length, angle));
-            need(near_to(length, 250, 1e-6) && near_to(angle, 45, 1e-6), "odcinek z VCB ma zły rozmiar lub kąt");
-            need(sk->vcb.get().empty(), "pole wartości nie zostało wyczyszczone po zatwierdzeniu");
+            need(near_to(length, 250, 1e-6) && near_to(angle, 45, 1e-6), "odcinek z pola wartości ma zły rozmiar lub kąt");
+            need(sk->value_text.get().empty(), "pole wartości nie zostało wyczyszczone po zatwierdzeniu");
             need(has_text(log_since(from), "wartość z klawiatury „250<45”"), "wartość z klawiatury nie trafiła do dziennika");
             // wpisywanie cyfr z klawiatury
             for (const char* k : {"1", "2", "0"}) sk->key(k);
-            need(sk->vcb.get() == "120", "cyfry z klawiatury nie trafiły do pola wartości");
+            need(sk->value_text.get() == "120", "cyfry z klawiatury nie trafiły do pola wartości");
             sk->key("BackSpace");
-            need(sk->vcb.get() == "12", "Backspace nie usunął ostatniej cyfry z pola wartości");
+            need(sk->value_text.get() == "12", "Backspace nie usunął ostatniej cyfry z pola wartości");
             sk->key("Escape");
-            need(sk->vcb.get().empty(), "Esc nie wyczyścił pola wartości");
+            need(sk->value_text.get().empty(), "Esc nie wyczyścił pola wartości");
             close_sketch(sk);
         });
 
-        run(area, "edytor VCB: strzałka blokuje oś, wpisana długość idzie wzdłuż osi", where, [=, this](Ctx&) {
+        run(area, "edytor, pole wartości: strzałka blokuje oś, wpisana długość idzie wzdłuż osi", where, [=, this](Ctx&) {
             auto* sk = open_sketch();
             sk->set_tool("Wielokąt");
             sk->add_point({100, 100});
             need(sk->key("Up") && sk->arrow_lock && near_to((*sk->arrow_lock)[1], 1), "strzałka w górę nie zablokowała osi V");
-            sk->vcb.set("80");
-            sk->vcb_apply();
+            sk->value_text.set("80");
+            sk->value_apply();
             need(sk->points.size() == 2 && near_to(sk->points[1][0], 100) && near_to(sk->points[1][1], 180), "długość przy zablokowanej osi V nie poszła pionowo");
             sk->key("Right");
             sk->key("Right");
@@ -2391,15 +2391,15 @@ public:
             close_sketch(sk);
         });
 
-        run(area, "edytor VCB: prostokąt „szer;wys” po kliknięciu pierwszego narożnika", where, [=, this](Ctx&) {
+        run(area, "edytor, pole wartości: prostokąt „szer;wys” po kliknięciu pierwszego narożnika", where, [=, this](Ctx&) {
             auto* sk = open_sketch();
             sk->set_tool("Prostokąt");
             sk->add_point({50, 50});
-            sk->vcb.set("600;400");
-            sk->vcb_apply();
-            need(sk->closed && sk->points.size() == 4, "prostokąt z VCB nie zamknął konturu");
+            sk->value_text.set("600;400");
+            sk->value_apply();
+            need(sk->closed && sk->points.size() == 4, "prostokąt z pola wartości nie zamknął konturu");
             double w = std::abs(sk->points[1][0] - sk->points[0][0]), h = std::abs(sk->points[2][1] - sk->points[1][1]);
-            need(near_to(w, 600) && near_to(h, 400), std::format("prostokąt z VCB ma rozmiar {}×{} zamiast 600×400", w, h));
+            need(near_to(w, 600) && near_to(h, 400), std::format("prostokąt z pola wartości ma rozmiar {}×{} zamiast 600×400", w, h));
             close_sketch(sk);
         });
 
@@ -2409,9 +2409,9 @@ public:
             sk->set_tool("Okrąg");
             sk->add_point({100, 100});
             need(sk->pending.size() == 1, "kliknięcie środka okręgu nie zostało zapamiętane");
-            sk->vcb.set("50");
-            sk->vcb_apply();
-            need(sk->closed && sk->points.size() == 48, "okrąg z VCB nie zamknął konturu 48 punktów");
+            sk->value_text.set("50");
+            sk->value_apply();
+            need(sk->closed && sk->points.size() == 48, "okrąg z pola wartości nie zamknął konturu 48 punktów");
             for (auto& p : sk->points) need(near_to(std::hypot(p[0] - 100, p[1] - 100), 50, 1e-6), "punkt okręgu leży poza promieniem 50");
             need(sk->centers.size() == 1, "środek okręgu nie został zapamiętany jako wskazówka");
             auto [candidate, id] = sk->candidate();
@@ -2443,24 +2443,24 @@ public:
             close_sketch(sk);
         });
 
-        run(area, "edytor VCB: błędne wartości są odrzucane z powodem w dzienniku, Esc anuluje okrąg", where, [=, this](Ctx&) {
+        run(area, "edytor, pole wartości: błędne wartości są odrzucane z powodem w dzienniku, Esc anuluje okrąg", where, [=, this](Ctx&) {
             auto* sk = open_sketch();
             sk->set_tool("Wielokąt");
             sk->add_point({0, 0});
             auto from = log_mark();
-            sk->vcb.set("abc");
-            sk->vcb_apply();
+            sk->value_text.set("abc");
+            sk->value_apply();
             need(sk->points.size() == 1, "błędna wartość nie powinna dodać punktu");
             need(has_text(log_since(from), "wartość odrzucona:"), "odrzucona wartość nie zostawiła powodu w dzienniku");
-            sk->vcb.set("");
+            sk->value_text.set("");
             sk->set_tool("Okrąg");
             sk->add_point({10, 10});
             need(sk->pending.size() == 1, "środek okręgu nie został ustawiony");
             sk->key("Escape");
             need(sk->pending.empty(), "Esc nie anulował rozpoczętego okręgu");
             need(has_text(log_since(from), "Esc: anulowano rozpoczętą operację"), "Esc nie zostawił wpisu w dzienniku");
-            sk->vcb.set("50");
-            sk->vcb_apply();
+            sk->value_text.set("50");
+            sk->value_apply();
             need(sk->points.size() == 1 && has_text(log_since(from), "najpierw kliknij środek"), "promień bez środka powinien być odrzucony z powodem");
             close_sketch(sk);
         });

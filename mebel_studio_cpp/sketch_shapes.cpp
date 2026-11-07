@@ -306,7 +306,7 @@ double parse_number_with_unit(std::string token, const std::string& original) {
 
 }  // namespace
 
-VcbValues parse_vcb(const std::string& input, bool comma_separates) {
+ValueInput parse_value_input(const std::string& input, bool comma_separates) {
     std::string text;
     for (size_t i = 0; i < input.size(); ++i) {
         unsigned char c = (unsigned char)input[i];
@@ -314,7 +314,7 @@ VcbValues parse_vcb(const std::string& input, bool comma_separates) {
         else if (c == 'x' || c == 'X') text += ';';
         else text += (char)c;
     }
-    VcbValues out;
+    ValueInput out;
     std::string angle_text;
     if (auto lt = text.find('<'); lt != std::string::npos) {
         angle_text = text.substr(lt + 1);

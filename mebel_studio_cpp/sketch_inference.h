@@ -1,4 +1,4 @@
-// Silnik wskazówek szkicu (w stylu SketchUp): co kursor „widzi” pod myszą.
+// Silnik wskazówek szkicu : co kursor „widzi” pod myszą.
 //
 // Czysta geometria 2D bez Tk i OpenCASCADE — dzięki temu jest testowana osobno.
 // Kolejność ważności: punkt końcowy › środek › przecięcie › środek okręgu › na krawędzi ›

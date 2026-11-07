@@ -58,11 +58,11 @@ public:
     using GuideKey = std::tuple<const void*, std::string, std::string, std::string, std::string, std::string>;
     std::optional<std::pair<GuideKey, std::vector<Segment>>> guide_cache;
     tk::StringVar grid, target, role, hinge_side, level, plane, u, v, length, angle, status;
-    // --- narzędzia w stylu SketchUp: wskazówki pod kursorem, pole wartości (VCB), okrąg/wielobok/łuk, profile
+    // --- narzędzia rysowania: wskazówki pod kursorem, pole wartości, okrąg/wielobok/łuk, profile
     sketch_inference::Result inference;           // ostatnia wskazówka pod kursorem
     std::optional<Point> arrow_lock;              // kierunek zablokowany strzałką (wektor jednostkowy)
     std::vector<Point> pending;                   // punkty rozpoczętego okręgu / wieloboku / łuku
-    tk::StringVar vcb, vcb_prompt, vcb_live, sides, profile_name, profile_width, profile_height, profile_param, profile_param_label;
+    tk::StringVar value_text, value_prompt, value_live, sides, profile_name, profile_width, profile_height, profile_param, profile_param_label;
     std::vector<Point> centers;                   // środki narysowanych okręgów (wskazówka „środek okręgu”)
     tk::BooleanVar automatic, replace_existing;
     std::map<std::string, tk::StringVar> fields;  // name, group, t
@@ -99,11 +99,11 @@ public:
     void checkpoint();
     bool cancel();
     void change_mode();
-    // --- narzędzia w stylu SketchUp
+    // --- narzędzia rysowania
     void set_tool(const std::string& tool);
     bool key(const std::string& keysym, int state = 0);   // skróty i pole wartości; true = klawisz obsłużony
-    bool vcb_apply();                                      // zatwierdza wpisaną wartość (długość, szer,wys, promień)
-    std::string vcb_prompt_text() const;
+    bool value_apply();                                      // zatwierdza wpisaną wartość (długość, szer,wys, promień)
+    std::string value_prompt_text() const;
     void cancel_pending();
     std::vector<Point> shape_preview(const Point& cursor) const;   // podgląd okręgu / wieloboku / łuku pod kursorem
     void finish_shape(const std::vector<Point>& shape, const std::string& what, std::optional<Point> center = std::nullopt);
