@@ -103,10 +103,14 @@ public:
     void field_pair(tk::Widget* parent, const std::string& key_a, const std::string& label_a, const std::string& key_b, const std::string& label_b, bool int_a = false, bool int_b = false);
     tk::StringVar* field(tk::Widget* parent, const std::string& key, const std::string& label, bool integer = false, bool text = false);
     ttk::Combobox* combo(tk::Widget* parent, const std::string& key, const std::string& label, const json& choices, bool hidden = false);
-    // Kafelki stylu frontu (Gładki / Ramkowy / Ryflowany / Frezowany) zamiast listy rozwijanej.
-    void build_style_tiles(tk::Widget* parent);
-    std::vector<std::pair<std::string, tk::Canvas*>> style_tiles;  // etykieta pozycji listy -> kafelek
-    void draw_style_tile(const std::string& choice_label, tk::Canvas* tile);
+    // Kafelki z miniaturami zamiast listy rozwijanej (styl frontu, wypełnienie strefy, zawiasy, nóżki, LED...).
+    struct Tile {
+        std::string key, choice, label;
+        tk::Canvas* canvas = nullptr;
+    };
+    std::vector<Tile> tiles;
+    void choice_tiles(tk::Widget* parent, const std::string& key, const std::string& caption, const std::vector<std::pair<std::string, std::string>>& items);
+    void draw_tile(const Tile& tile);
     void choice_changed(const std::string& key);
     void check(tk::Widget* parent, const std::string& key, const std::string& label);
     void section_fields(tk::Widget* parent, const std::string& key);
