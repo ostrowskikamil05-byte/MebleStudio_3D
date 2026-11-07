@@ -60,15 +60,14 @@ void dump_groups(App* app, const core::Project& project, const std::string& labe
                 double gap[3];
                 for (int axis = 0; axis < 3; ++axis)
                     gap[axis] = std::max(boxes[i].first[axis] - boxes[j].second[axis], boxes[j].first[axis] - boxes[i].second[axis]);
-                // odstęp liczymy tylko tam, gdzie mebel naprawdę sąsiaduje: w pozostałych osiach muszą się pokrywać
-                for (int axis = 0; axis < 3; ++axis) {
-                    bool others_overlap = true;
-                    for (int other = 0; other < 3; ++other) if (other != axis && gap[other] > 0.5) others_overlap = false;
-                    if (!others_overlap || gap[axis] > 250) continue;
-                    event(app, "stan", std::format("  sąsiedzi {} ↔ {}: {} {:.1f} mm (oś {})", names[i], names[j], gap[axis] > 0.5 ? "odstęp" : (gap[axis] < -0.5 ? "nakładają się o" : "styk"),
-                                                   std::abs(gap[axis]), "XYZ"[axis]));
-                    break;
-                }
+                // oś „rozdzielająca" to ta o największym odstępie; w pozostałych meble muszą się pokrywać (inaczej nie sąsiadują)
+                int axis = 0;
+                for (int k = 1; k < 3; ++k) if (gap[k] > gap[axis]) axis = k;
+                bool neighbours = true;
+                for (int other = 0; other < 3; ++other) if (other != axis && gap[other] > 0.5) neighbours = false;
+                if (!neighbours || gap[axis] > 250) continue;
+                event(app, "stan", std::format("  sąsiedzi {} ↔ {}: {} {:.1f} mm (oś {})", names[i], names[j], gap[axis] > 0.5 ? "odstęp" : (gap[axis] < -0.5 ? "nakładają się o" : "styk"),
+                                               std::abs(gap[axis]), "XYZ"[axis]));
             }
         }
     } catch (const std::exception& error) {

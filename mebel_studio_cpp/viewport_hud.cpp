@@ -73,6 +73,14 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
     if (grid_spacing.is_number()) spacing_text = std::format("Siatka {:g} mm   ·   ", grid_spacing.get<double>());
     app->status_right.set(spacing_text + std::format("Zoom {:.0f}%", std::fabs(app->camera.scale) * 100));
 
+    // Podpowiedź, gdy włączony jest tryb wstawiania okucia: klik w widoku nie zaznacza wtedy mebli, tylko wskazuje miejsce okucia.
+    if (app->hardware_drag != nullptr && app->hardware_drag->active() && width >= 520) {
+        std::string text = "Wstawianie okucia — kliknij element mebla  ·  Esc albo narzędzie „Zaznacz” anuluje";
+        double pill_w = measure.measure(text) + size(32), x0 = (width - pill_w) / 2, y0 = size(14), h0 = size(34);
+        card(c, x0, y0, x0 + pill_w, y0 + h0, size(17));
+        c->create_text(width / 2, y0 + h0 / 2, {{"text", text}, {"fill", forma_theme::ACCENT}, {"font", label_font}, {"tags", "hud"}});
+    }
+
     // Paleta narzędzi po lewej: Zaznacz · Przesuń · Obróć · Wymiary · Okucia (jak na makiecie).
     if (height >= 380) {
         struct Tool { std::string label, glyph, mode; };
@@ -98,6 +106,12 @@ void paint(App* app, double width, double height, const core::json& grid_spacing
             std::string tool_label = tools[i].label;
             g_areas.push_back({cx, cy, cx + cell_w, cy + cell_h, [app, target, tool_label] {
                 journal::event(app, "narzędzie", "kliknięto „" + tool_label + "” (tryb " + target + ", poprzedni " + app->edit_mode.get() + ")");
+                // Wybór narzędzia kończy wstawianie okucia (zawias / prowadnica / LED / uchwyt) — inaczej każde kliknięcie w widoku trafiałoby do tego trybu i nic nie dałoby się zaznaczyć.
+                if (app->hardware_drag != nullptr && app->hardware_drag->active()) {
+                    journal::event(app, "okucia", "anulowano wstawianie okucia (wybrano narzędzie)");
+                    app->hardware_drag->cancel();
+                    app->draw();
+                }
                 if (target == "tray") { if (app->toggle_hardware_tray) app->toggle_hardware_tray(); }
                 else if (target == "rotate") { if (app->rotate_furniture) app->rotate_furniture(90); }
                 else if (target == "dimensions") { app->dimensions.set(!app->dimensions.get()); app->draw(); }
