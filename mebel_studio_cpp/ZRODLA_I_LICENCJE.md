@@ -23,6 +23,10 @@ To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem p
 ## Własne implementacje (bez cudzego kodu)
 - Tryb grafiki Klasyczny/Realistyczny (`render_style`, `graphics_mode_ui`), kanty i wzorki szkicownika (`sketch_design`) — napisane od zera dla tego programu;
   z makiety użytkownika wzięto wyłącznie ogólny układ interfejsu (panel „Silnik i jakość 3D”, zaokrąglenia, fronty). Nie używamy żadnych zewnętrznych grafik ani tekstów.
+- Pracownia 3D (`modeler_geometry`, `modeler_ui`) i system frezów (`cutters`) — napisane od zera. Z programów do modelowania bryłowego (np. SketchUp) przejęto
+  wyłącznie ogólne, niechronione pomysły użytkowe: rysowanie prostokąta na płaszczyźnie, wyciąganie ściany, przyciąganie do punktów i osi, wpisywanie wymiarów
+  z klawiatury. Nie używamy cudzego kodu, bibliotek modelowania, ikon, nazw poleceń ani plików; rzut ekranu → promień, wybór ściany, przyciąganie
+  i zamiana bryły na płytę to własna matematyka na kamerze programu. Katalog frezów (prosty, kulowy, V, zaokrąglający, fazujący) to powszechnie znane rodzaje narzędzi CNC.
 
 ## Czego jeszcze brakuje
 - Zbiorczego pliku z pełnymi tekstami licencji dla wersji C++ (OpenCASCADE, Tcl/Tk, VTK) w paczce wydawniczej.

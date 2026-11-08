@@ -64,6 +64,9 @@
 #include "sketch_inference.h"
 #include "sketch_shapes.h"
 #include "sketch_design.h"
+#include "cutters.h"
+#include "modeler_geometry.h"
+#include "modeler_ui.h"
 #include "sketch_live.h"
 #include "render_style.h"
 #include "graphics_mode_ui.h"
@@ -189,6 +192,8 @@ const std::map<std::string, std::string> JOURNAL_COVERAGE = {
     {"projekt z opisu", "Dziennik zdarzeń · projekt z opisu zdaniem"},
     {"kanty i wzorki", "Szkic — kanty, wzorki i zestaw elementów (test_design)"},
     {"grafika", "Tryb grafiki — przełączanie, cienie, miniatury (test_design)"},
+    {"modelowanie", "Pracownia 3D — rysowanie, wyciąganie, przesuwanie, kopiowanie, usuwanie, odrzucenia (pracownia 3D: rysowanie płyt…)"},
+    {"frezy", "Frezy — wiele operacji na płycie, frezy krawędziowe, wzorki, odrzucenia (frezy: katalog pięciu narzędzi… + pracownia 3D)"},
 };
 
 // ---------------------------------------------------------------- audyt źródeł
@@ -2715,6 +2720,386 @@ public:
             }
             graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie");
             close_sketch(sk);
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "pracownia 3D: geometria — promień z ekranu, płyta z bryły, wyciąganie ściany, kopie, przyciąganie i wpisywanie wymiarów", where, [=, this](Ctx& ctx) {
+            namespace mg = modeler_geometry;
+            core::Camera cam(-38, 24, 0.4);
+            for (auto p : {mg::Vec3{300, 250, 420}, mg::Vec3{0, 0, 0}, mg::Vec3{-120, 980, 33}}) {
+                auto s = cam.project(p, 900, 600);
+                mg::Ray ray = mg::unproject(cam, s[0], s[1], 900, 600);
+                need(mg::length(mg::cross(mg::sub(p, ray.origin), ray.dir)) < 1e-6, "promień z ekranu nie przechodzi przez punkt, z którego powstał");
+            }
+            auto s = cam.project({100, 200, 0}, 900, 600);
+            mg::Ray ray = mg::unproject(cam, s[0], s[1], 900, 600);
+            auto t = mg::ray_plane(ray, mg::ground_plane(0));
+            need(t.has_value(), "promień nie trafia w podłogę");
+            auto hit_point = mg::at(ray, *t);
+            need(std::fabs(hit_point[0] - 100) < 1e-6 && std::fabs(hit_point[1] - 200) < 1e-6, "punkt na podłodze nie wraca z rzutu odwrotnego");
+            auto side = mg::board_from_box({{0, 0, 0}, {18, 560, 720}}, "Bok", "M", "");
+            need(side.plane == "YZ" && side.u == 560 && side.v == 720 && side.t == 18, "bryła 18×560×720 powinna być płytą YZ 560×720×18");
+            auto top = mg::board_from_box({{0, 0, 720}, {600, 560, 738}}, "Wieniec", "M", "");
+            need(top.plane == "XY" && top.z == 720 && top.t == 18, "poziomy wieniec powinien być płytą XY na wysokości 720");
+            auto back = mg::board_from_box({{0, 560, 0}, {600, 563, 720}}, "Plecy", "M", "");
+            need(back.plane == "XZ" && back.t == 3, "plecy 3 mm powinny być płytą XZ");
+            need(throws([&] { mg::board_from_box({{0, 0, 0}, {0.2, 100, 100}}, "X", "M", ""); }), "bryła cieńsza niż 0,5 mm powinna być odrzucona");
+            need(mg::pull_face(side, "top", 10).t == 28, "wyciągnięcie ściany górnej o 10 mm powinno dać grubość 28");
+            auto lowered = mg::pull_face(side, "bottom", 5);
+            need(lowered.t == 23 && lowered.x == -5, "wyciągnięcie ściany dolnej powinno przesunąć początek płyty");
+            need(throws([&] { mg::pull_face(side, "top", -30); }), "wciśnięcie ściany głębiej niż grubość płyty powinno być odrzucone");
+            auto copies = mg::array_copies(side, {100, 0, 0}, 3);
+            need(copies.size() == 3 && copies[2].x == 300 && copies[0].id != side.id && copies[0].id != copies[1].id, "kopie powinny mieć kolejne położenia i własne identyfikatory");
+            need(mg::parse_numbers("600x400").size() == 2 && mg::parse_numbers("12,5").at(0) == 12.5, "wpisywanie wymiarów: 600x400 i przecinek dziesiętny");
+            need(throws([&] { mg::parse_numbers("abc"); }), "tekst bez liczby powinien być odrzucony");
+            auto axis = mg::snap_to_axes({0, 0, 0}, {100, 1.5, 0.4}, 1);
+            need(axis.snapped && axis.label == "oś X" && axis.point[1] == 0, "kierunek prawie równoległy do osi X powinien się przyciągnąć");
+            ctx.note("3 płyty z brył, wyciąganie, kopie, wpisywanie");
+        });
+
+        run(area, "frezy: katalog pięciu narzędzi, wiele operacji na jednej płycie, usuwanie, odrzucenia z powodem i limit obróbek", where, [=, this](Ctx& ctx) {
+            need(cutters::catalog().size() == 5, std::format("katalog frezów ma {} narzędzi (oczekiwano 5)", cutters::catalog().size()));
+            std::set<std::string> ids;
+            for (const auto& c : cutters::catalog()) need(ids.insert(c.id).second && !c.description.empty(), "frez „" + c.name + "” ma powtórzony identyfikator albo brak opisu");
+            need(cutters::info("V (grawerski)").id == "v" && cutters::info("v").name == "V (grawerski)", "frez V powinien być znajdowany po nazwie i po identyfikatorze");
+            need(throws([&] { cutters::info("nieistniejący"); }), "nieznany frez powinien być odrzucony");
+            need(throws([&] { cutters::validate({"prosty", 0, 90}); }) && throws([&] { cutters::validate({"prosty", 80, 90}); }), "średnica freza poza 0,5 … 40 mm powinna być odrzucona");
+            need(throws([&] { cutters::validate({"v", 8, 10}); }), "kąt freza V poniżej 20° powinien być odrzucony");
+            need(cutters::effective_width({"kulowy", 8, 90}, 1) < 8 && cutters::effective_width({"kulowy", 8, 90}, 6) == 8, "rowek frezem kulowym ma być węższy przy płytkim cięciu");
+            need(cutters::effective_width({"v", 12, 60}, 4) > cutters::effective_width({"v", 12, 60}, 2), "rowek frezem V ma poszerzać się z głębokością");
+            core::Part part;
+            part.u = 600; part.v = 300; part.t = 18;
+            cutters::Op groove;
+            groove.id = "a"; groove.name = "Rowek V"; groove.kind = "rowek"; groove.cutter = {"v", 8, 90}; groove.depth = 4; groove.points = {{50, 150}, {550, 150}};
+            auto first = cutters::cuts_for(groove, part);
+            need(first.size() == 1 && first[0].at("op") == "a", "rowek powinien dać jeden wpis oznaczony identyfikatorem operacji");
+            cutters::Op pocket;
+            pocket.id = "b"; pocket.name = "Kieszeń"; pocket.kind = "kieszen"; pocket.cutter = {"prosty", 8, 90}; pocket.depth = 5; pocket.points = {{100, 50}, {200, 120}};
+            cutters::Op round;
+            round.id = "c"; round.name = "Okrągła"; round.kind = "kieszen_okragla"; round.cutter = {"kulowy", 10, 90}; round.depth = 6; round.width = 30; round.points = {{400, 80}};
+            json machining = json::array({json{{"type", "pocket"}, {"shape", "rect"}, {"face", "top"}, {"u", 10}, {"v", 10}, {"length", 20}, {"width", 20}, {"depth", 2}}});
+            for (const auto* op : {&groove, &pocket, &round}) machining = cutters::add_cuts(machining, cutters::cuts_for(*op, part));
+            auto ops = cutters::list_ops(machining);
+            need(ops.size() == 3 && ops[0].id == "a" && ops[2].id == "c", std::format("lista operacji ma {} pozycji (oczekiwano 3)", ops.size()));
+            need(cutters::count_unowned(machining) == 1, "ręczna obróbka bez operacji powinna być policzona osobno");
+            std::set<std::string> cutter_names;
+            for (const auto& op : ops) cutter_names.insert(op.cutter_name);
+            need(cutter_names.size() == 3, "trzy operacje powinny pamiętać trzy różne frezy");
+            auto fewer = cutters::remove_op(machining, "b");
+            need(cutters::list_ops(fewer).size() == 2 && cutters::count_unowned(fewer) == 1 && fewer.size() == machining.size() - 1, "usunięcie operacji nie może ruszać pozostałych ani ręcznych wpisów");
+            auto bad = groove;
+            bad.cutter = {"zaokraglajacy", 3, 90};
+            need(throws([&] { cutters::cuts_for(bad, part); }), "frez krawędziowy nie może rowkować powierzchni");
+            bad = groove; bad.depth = 18;
+            need(throws([&] { cutters::cuts_for(bad, part); }), "głębokość równa grubości płyty powinna być odrzucona");
+            bad = groove; bad.points = {{-5, 50}, {50, 120}};
+            need(throws([&] { cutters::cuts_for(bad, part); }), "ścieżka poza płytą powinna być odrzucona");
+            bad = groove; bad.points = {{50, 150}, {50, 150}};
+            need(throws([&] { cutters::cuts_for(bad, part); }), "rowek o zerowej długości powinien być odrzucony");
+            std::vector<json> many(cutters::MAX_CUTS + 1, first[0]);
+            need(throws([&] { cutters::add_cuts(json::array(), many); }), "więcej niż 200 obróbek na płycie powinno być odrzucone");
+            core::Part edged;
+            edged.u = 400; edged.v = 300; edged.t = 18;
+            cutters::EdgeOp round_over{"zaokraglajacy", 3, sketch_design::edge_ids_all(4)};
+            auto rounded = cutters::apply_edge_cutter(edged, round_over);
+            need(rounded.touched == 8 && !rounded.fillets.empty() && rounded.chamfers.empty(), "frez zaokrąglający powinien objąć 8 krawędzi i nie dawać fazek");
+            edged.fillets = rounded.fillets;
+            cutters::EdgeOp chamfer{"fazujacy", 2, sketch_design::edge_ids_all(4)};
+            auto chamfered = cutters::apply_edge_cutter(edged, chamfer);
+            need(chamfered.fillets.empty() && !chamfered.chamfers.empty(), "fazka na zaokrąglonych krawędziach powinna zastąpić zaokrąglenie");
+            need(throws([&] { cutters::apply_edge_cutter(edged, {"fazujacy", 50, sketch_design::edge_ids_all(4)}); }), "fazka większa niż pół grubości powinna być odrzucona");
+            ctx.note("5 frezów, 3 operacje na jednej płycie, limit 200");
+        });
+
+        run(area, "miniaturki: frezy (katalog i panel pracowni) mają różne, narysowane miniaturki", where, [=, this](Ctx& ctx) {
+            std::set<std::string> signatures;
+            for (const auto& c : cutters::catalog()) {
+                auto shapes = cutters::cutter_thumbnail(c.id, 120, 78);
+                need(shapes.size() >= 2, "frez „" + c.name + "” nie ma miniaturki z przekrojem");
+                std::string signature = std::to_string(shapes.size());
+                for (const auto& shape : shapes)
+                    for (const auto& p : shape) {
+                        need(p[0] >= -0.01 && p[0] <= 120.01 && p[1] >= -0.01 && p[1] <= 78.01, "miniaturka freza „" + c.name + "” wychodzi poza pole");
+                        signature += std::format("|{:.0f},{:.0f}", p[0], p[1]);
+                    }
+                need(signatures.insert(signature).second, "frez „" + c.name + "” ma miniaturkę identyczną z innym frezem");
+            }
+            need(throws([&] { cutters::cutter_thumbnail("nieznany", 120, 78); }), "miniaturka nieznanego freza powinna być odrzucona");
+            app->project = fresh(); app->refresh();
+            auto* m = modeler_ui::open(app);
+            try {
+                need(m->cutter_preview != nullptr && m->edge_preview != nullptr && m->pattern_preview != nullptr, "panel pracowni nie ma miniaturek frezów, kantów i wzorków");
+                for (const auto& c : cutters::catalog()) {
+                    if (c.for_edges) {
+                        m->edge_cutter_var.set(c.name);
+                        m->draw_edge_preview();
+                        need(!m->edge_preview->find_withtag("edge_preview").empty(), "frez krawędziowy „" + c.name + "” nie jest narysowany w panelu pracowni");
+                    } else {
+                        m->cutter_var.set(c.name);
+                        m->draw_cutter_preview();
+                        need(!m->cutter_preview->find_withtag("cutter_preview").empty(), "frez „" + c.name + "” nie jest narysowany w panelu pracowni");
+                    }
+                }
+                for (const auto& p : sketch_design::pattern_catalog()) {
+                    m->pattern_var.set(p.name);
+                    m->draw_pattern_preview();
+                    need(!m->pattern_preview->find_withtag("pattern_preview").empty(), "wzorek „" + p.name + "” nie jest narysowany w panelu pracowni");
+                }
+            } catch (...) { m->destroy(); throw; }
+            m->destroy();
+            ctx.note(std::format("{} frezów", cutters::catalog().size()));
+        });
+
+        run(area, "pracownia 3D: rysowanie płyt, wyciąganie, wiele frezów na jednej płycie, kopiowanie, usuwanie, odrzucenia i cofanie", where, [=, this](Ctx& ctx) {
+            namespace mg = modeler_geometry;
+            app->project = fresh(); app->refresh();
+            auto* m = modeler_ui::open(app);
+            auto cleanup = [&] { try { if (m->winfo_exists()) m->destroy(); } catch (const std::exception&) {} };
+            try {
+                need(modeler_ui::open(app) == m && modeler_ui::current() == m, "drugie otwarcie powinno pokazać istniejące okno pracowni");
+                app->update();
+                m->view(0, 90);
+                m->draw_scene();
+                const int w = m->canvas->winfo_width(), h = m->canvas->winfo_height();
+                need(w >= 100 && h >= 100, std::format("płótno pracowni jest za małe do testu ({}×{} px)", w, h));
+                auto px = [&](double x, double y, double z) {
+                    auto s = m->camera.project({x, y, z}, w, h);
+                    return std::pair<double, double>{s[0], s[1]};
+                };
+                auto find = [&](const std::string& id) -> const core::Part& {
+                    for (const auto& p : app->project->parts) if (p.id == id) return p;
+                    throw std::runtime_error("płyta nie istnieje w projekcie testu");
+                };
+                auto top_center = [&](const std::string& id) {
+                    mg::Box b = mg::part_box(find(id));
+                    return px((b.lo[0] + b.hi[0]) / 2, (b.lo[1] + b.hi[1]) / 2, b.hi[2]);
+                };
+                auto from = log_mark();
+
+                // 1. prostokąt na podłodze → płyta (kliknięcie, wpisane wymiary, wpisana grubość)
+                m->thickness.set("18");
+                m->group_name.set("Szafka z pracowni");
+                m->set_tool("rect");
+                auto [x0, y0] = px(300, 200, 0);
+                m->on_click(x0, y0);
+                need(m->draft.stage == 1, "pierwsze kliknięcie nie rozpoczęło rysowania prostokąta");
+                need(m->apply_typed("600x400") && m->draft.stage == 2, "wpisanie wymiarów 600x400 nie zakończyło rysowania podstawy");
+                need(m->apply_typed("18"), "wpisanie grubości 18 nie utworzyło płyty");
+                need(app->project->parts.size() == 1, std::format("po narysowaniu jest {} płyt (oczekiwano 1)", app->project->parts.size()));
+                const std::string id = app->project->parts[0].id;
+                {
+                    const auto& p = find(id);
+                    need(p.plane == "XY" && p.u == 600 && p.v == 400 && p.t == 18 && p.group == "Szafka z pracowni", std::format("płyta z pracowni: {} {}×{}×{}, mebel „{}”", p.plane, p.u, p.v, p.t, p.group));
+                }
+                need(has_text(log_since(from), "[operacja:modelowanie] dodano płytę"), "narysowanie płyty nie zapisało się w dzienniku [modelowanie]");
+                app->undo();
+                need(app->project->parts.empty(), "jedno cofnięcie powinno usunąć narysowaną płytę");
+                app->redo();
+                need(app->project->parts.size() == 1, "ponowienie powinno przywrócić płytę");
+
+                // 2. odrzucenia z powodem, bez zmiany projektu
+                from = log_mark();
+                m->set_tool("rect");
+                need(!m->apply_typed("abc"), "tekst zamiast wymiarów powinien być odrzucony");
+                m->on_click(x0, y0);
+                need(!m->apply_typed("0x50"), "prostokąt o wymiarze zerowym powinien być odrzucony");
+                m->cancel();
+                need(m->draft.stage == 0 && app->project->parts.size() == 1, "po odrzuceniu i anulowaniu projekt nie powinien się zmienić");
+                need(has_text(log_since(from), "odrzucono:"), "odrzucenie wymiaru nie zostawiło powodu w dzienniku");
+                m->on_key("1"); m->on_key("2"); m->on_key("BackSpace");
+                need(m->typed.get() == "1", "klawisze cyfr i BackSpace powinny budować wpisywaną wartość");
+                m->on_key("Escape");
+                need(m->typed.get().empty(), "Esc powinien wyczyścić wpisywaną wartość");
+                m->on_key("p");
+                need(m->tool == "pull", "skrót P powinien wybierać narzędzie Wyciągnij");
+                need(throws([&] { m->set_tool("zzz"); }), "nieznane narzędzie powinno być odrzucone");
+
+                // 3. wyciąganie ściany górnej: kliknięcie + wpisana odległość; odrzucenie zbyt głębokiego wciśnięcia
+                m->set_tool("pull");
+                auto [tx, ty] = top_center(id);
+                m->on_click(tx, ty);
+                need(m->draft.stage == 1, "kliknięcie w ścianę górną nie rozpoczęło wyciągania");
+                need(!m->apply_typed("-100"), "wciśnięcie ściany głębiej niż grubość płyty powinno być odrzucone");
+                need(find(id).t == 18, "odrzucone wyciąganie zmieniło grubość płyty");
+                need(m->apply_typed("12") && find(id).t == 30, std::format("wyciągnięcie o 12 mm powinno dać grubość 30 (jest {})", find(id).t));
+                app->undo();
+                need(find(id).t == 18, "jedno cofnięcie powinno przywrócić grubość 18");
+                app->redo();
+                need(find(id).t == 30, "ponowienie powinno przywrócić grubość 30");
+
+                // 4. WIELE frezów na jednej płycie: rowek prosty, rowek kulowy, kieszeń V, kieszeń okrągła
+                from = log_mark();
+                m->selection = {id};
+                m->set_tool("mill");
+                auto op_count = [&] { return cutters::list_ops(find(id).machining).size(); };
+                auto mill_groove = [&](const std::string& cutter, double dx_mm, double dy_mm, const std::string& depth, const std::string& typed_length) {
+                    m->cutter_var.set(cutters::info(cutter).name);
+                    m->cutter_kind.set("Rowek");
+                    m->cutter_depth.set(depth);
+                    mg::Box b = mg::part_box(find(id));
+                    double cx = (b.lo[0] + b.hi[0]) / 2 + dx_mm, cy = (b.lo[1] + b.hi[1]) / 2 + dy_mm;
+                    auto [sx, sy] = px(cx, cy, b.hi[2]);
+                    m->on_click(sx, sy);
+                    need(m->draft.stage == 1, "kliknięcie w górną ścianę nie rozpoczęło rowka (frez " + cutter + ")");
+                    auto [ex, ey] = px(cx + 120, cy, b.hi[2]);
+                    m->on_motion(ex, ey);
+                    return m->apply_typed(typed_length);
+                };
+                need(mill_groove("prosty", -100, 0, "5", "200") && op_count() == 1, "pierwszy rowek (frez prosty) nie został dodany");
+                need(mill_groove("kulowy", -100, -80, "4", "150") && op_count() == 2, "drugi rowek (frez kulowy) nie został dodany — jedna płyta musi mieć wiele frezów");
+                m->cutter_var.set(cutters::info("v").name);
+                m->cutter_angle.set("60");
+                m->cutter_kind.set("Kieszeń prostokątna");
+                m->cutter_depth.set("3");
+                {
+                    mg::Box b = mg::part_box(find(id));
+                    auto [sx, sy] = px((b.lo[0] + b.hi[0]) / 2 + 100, (b.lo[1] + b.hi[1]) / 2 + 60, b.hi[2]);
+                    m->on_click(sx, sy);
+                    auto [ex, ey] = px((b.lo[0] + b.hi[0]) / 2 + 250, (b.lo[1] + b.hi[1]) / 2 + 140, b.hi[2]);
+                    m->on_motion(ex, ey);
+                    need(m->apply_typed("80x40") && op_count() == 3, "kieszeń prostokątna (frez V) nie została dodana");
+                    m->cutter_var.set(cutters::info("prosty").name);
+                    m->cutter_kind.set("Kieszeń okrągła");
+                    m->pocket_size.set("30");
+                    m->cutter_depth.set("6");
+                    auto [cx, cy] = px((b.lo[0] + b.hi[0]) / 2 + 150, (b.lo[1] + b.hi[1]) / 2 - 100, b.hi[2]);
+                    m->on_click(cx, cy);
+                    need(op_count() == 4 && m->draft.stage == 0, std::format("kieszeń okrągła: operacji {} (oczekiwano 4), etap {}", op_count(), m->draft.stage));
+                }
+                {
+                    auto ops = cutters::list_ops(find(id).machining);
+                    std::set<std::string> op_ids, op_cutters;
+                    for (const auto& op : ops) { op_ids.insert(op.id); op_cutters.insert(op.cutter_name); }
+                    need(op_ids.size() == 4 && op_cutters.size() >= 3, std::format("operacje: {} unikalnych identyfikatorów, {} różnych frezów (oczekiwano 4 i ≥3)", op_ids.size(), op_cutters.size()));
+                    need(find(id).machining.size() >= 4, "obróbka płyty nie zawiera wpisów wszystkich operacji");
+                    app->undo();
+                    need(op_count() == 3, "jedno cofnięcie powinno usunąć tylko ostatnią operację frezowania");
+                    app->redo();
+                    need(op_count() == 4, "ponowienie powinno przywrócić ostatnią operację");
+                    need(m->remove_mill_op(0, ops[1].id) && op_count() == 3, "usunięcie operacji z listy nie zadziałało");
+                    for (const auto& op : cutters::list_ops(find(id).machining)) need(op.id != ops[1].id, "usunięta operacja nadal jest na liście");
+                    need(!m->remove_mill_op(0, "nie-ma-takiej"), "usunięcie nieistniejącej operacji powinno być odrzucone");
+                }
+                m->selection = {id};
+                m->refresh_panel();
+                need(m->ops_listed == 3, std::format("lista operacji w panelu ma {} pozycji (oczekiwano 3)", m->ops_listed));
+                {
+                    const std::string log = log_since(from);
+                    need(has_text(log, "[operacja:frezy] operacja frezowania na płycie"), "dodanie operacji frezowania nie zapisało się w dzienniku [frezy]");
+                    need(has_text(log, "[operacja:frezy] usunięto operację"), "usunięcie operacji frezowania nie zapisało się w dzienniku [frezy]");
+                }
+                // odrzucenia frezowania: za głęboko, zła średnica, kliknięcie poza płytą, kliknięcie w bok płyty
+                from = log_mark();
+                size_t machining_before = find(id).machining.size();
+                need(!mill_groove("prosty", -100, 100, "30", "100"), "rowek głębszy niż płyta powinien być odrzucony");
+                m->cancel();
+                m->cutter_depth.set("5");
+                m->cutter_diameter.set("0");
+                need(!mill_groove("prosty", -100, 100, "5", "100"), "frez o średnicy 0 powinien być odrzucony");
+                m->cancel();
+                m->cutter_diameter.set("8");
+                m->on_click(px(5000, 5000, 0).first, px(5000, 5000, 0).second);
+                need(find(id).machining.size() == machining_before, "odrzucone frezowania zmieniły obróbkę płyty");
+                need(has_text(log_since(from), "odrzucono:"), "odrzucone frezowanie nie zostawiło powodu w dzienniku");
+
+                // 5. frezy krawędziowe (wzajemnie wykluczające się) i wzorek razem z operacjami
+                m->selection = {id};
+                m->edge_cutter_var.set(cutters::info("zaokraglajacy").name);
+                m->edge_size.set("3");
+                m->edge_scope.set("Wszystkie krawędzie");
+                need(m->apply_edge_cutter_ui() && !find(id).fillets.empty() && find(id).chamfers.empty(), "frez zaokrąglający nie zaokrąglił krawędzi");
+                m->edge_cutter_var.set(cutters::info("fazujacy").name);
+                m->edge_size.set("2");
+                need(m->apply_edge_cutter_ui() && find(id).fillets.empty() && !find(id).chamfers.empty(), "frez fazujący powinien zastąpić zaokrąglenie fazką");
+                m->edge_size.set("40");
+                need(!m->apply_edge_cutter_ui(), "fazka większa niż pół grubości powinna być odrzucona");
+                size_t ops_before_pattern = op_count();
+                m->pattern_var.set(sketch_design::pattern_catalog().at(0).name);
+                bool pattern_ok = m->add_pattern_ui();
+                if (pattern_ok) {
+                    need(sketch_design::count_patterns(find(id).machining) > 0 && op_count() == ops_before_pattern, "wzorek nie powinien zmieniać listy operacji frezowania");
+                    need(m->clear_patterns_ui() && sketch_design::count_patterns(find(id).machining) == 0 && op_count() == ops_before_pattern, "usunięcie wzorków nie powinno ruszać operacji");
+                } else {
+                    need(has_text(log_since(from), "odrzucono: wzorek"), "odrzucony wzorek nie zostawił powodu w dzienniku");
+                }
+
+                // 6. przesuwanie z kopiami, przesuwanie bez kopii, usuwanie
+                from = log_mark();
+                const double base_x = find(id).x;
+                m->selection.clear();
+                m->set_tool("move");
+                m->copy_mode.set(false);
+                {
+                    auto [mx, my] = top_center(id);
+                    m->on_click(mx, my);
+                    need(m->draft.stage == 1 && m->selection.contains(id), "kliknięcie w płytę nie rozpoczęło przesuwania");
+                    m->on_key("Right");
+                    need(m->draft.axis_lock == 0, "strzałka w prawo powinna zablokować oś X");
+                    need(m->apply_typed("700*2"), "przesunięcie z kopiami „700*2” nie zadziałało");
+                }
+                need(app->project->parts.size() == 3, std::format("po kopiowaniu jest {} płyt (oczekiwano 3)", app->project->parts.size()));
+                {
+                    std::set<long long> xs;
+                    for (const auto& p : app->project->parts) xs.insert((long long)std::llround(p.x - base_x));
+                    need(xs == std::set<long long>{0, 700, 1400}, "kopie powinny stać co 700 mm w osi X");
+                }
+                std::string copy_id;
+                for (const auto& p : app->project->parts) if (p.id != id && std::llround(p.x - base_x) == 700) copy_id = p.id;
+                need(!copy_id.empty() && cutters::list_ops(find(copy_id).machining).size() == op_count(), "kopia powinna mieć te same operacje frezowania co oryginał");
+                app->undo();
+                need(app->project->parts.size() == 1, "jedno cofnięcie powinno usunąć wszystkie kopie naraz");
+                app->redo();
+                m->set_tool("move");
+                m->selection.clear();
+                {
+                    auto [mx, my] = top_center(copy_id);
+                    m->on_click(mx, my);
+                    m->on_key("Right");
+                    const double before_x = find(copy_id).x;
+                    need(m->apply_typed("50") && std::llround(find(copy_id).x - before_x) == 50 && app->project->parts.size() == 3, "przesunięcie bez kopii o 50 mm nie zadziałało");
+                }
+                need(has_text(log_since(from), "[operacja:modelowanie] skopiowano") && has_text(log_since(from), "[operacja:modelowanie] przesunięto"), "kopiowanie i przesuwanie nie zapisały się w dzienniku");
+                m->set_tool("erase");
+                {
+                    auto [ex, ey] = top_center(copy_id);
+                    m->on_click(ex, ey);
+                }
+                need(app->project->parts.size() == 2, "narzędzie Usuń nie usunęło płyty");
+                need(has_text(log_since(from), "[operacja:modelowanie] usunięto płyty"), "usunięcie płyty nie zapisało się w dzienniku");
+                need(m->selection.empty() && m->selection_text.get() == "Nic nie zaznaczono.", "po usunięciu panel nadal pokazuje zaznaczenie");
+                app->undo();
+                need(app->project->parts.size() == 3, "cofnięcie usunięcia powinno przywrócić płytę");
+
+                // 7. kontur (wielokąt) → płyta
+                app->project = fresh(); app->refresh();
+                m->selection.clear();
+                m->set_tool("polygon");
+                for (auto [vx, vy] : std::vector<std::pair<double, double>>{{0, 0}, {300, 0}, {300, 200}, {0, 200}}) {
+                    auto [sx, sy] = px(vx, vy, 0);
+                    m->on_click(sx, sy);
+                }
+                need(m->draft.stage == 1 && m->draft.points.size() == 4, std::format("kontur ma {} wierzchołków (oczekiwano 4)", m->draft.points.size()));
+                need(m->apply_typed("") && m->draft.stage == 2, "Enter nie zamknął konturu");
+                need(m->apply_typed("18") && app->project->parts.size() == 1, "wpisanie grubości nie utworzyło płyty z konturu");
+                need(find(app->project->parts[0].id).t == 18, "płyta z konturu ma złą grubość");
+
+                // 8. widok: obie grafiki, nakładka zaznaczenia i brak zmian projektu
+                using render_style::Mode;
+                const Mode original_mode = view_style::state.mode;
+                try {
+                    m->selection = {app->project->parts[0].id};
+                    for (Mode mode : {Mode::Classic, Mode::Realistic}) {
+                        graphics_mode_ui::set_mode(app, mode, "test — pracownia 3D");
+                        m->draw_scene();
+                        need(!m->canvas->find_all().empty(), std::string("pracownia nic nie narysowała w trybie ") + render_style::info(mode).id);
+                        need(!m->canvas->find_withtag("overlay").empty(), "zaznaczona płyta nie ma obrysu w nakładce");
+                    }
+                } catch (...) { graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie"); throw; }
+                graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie");
+                ctx.note("rysowanie, wyciąganie, 4 frezy na płycie, kopie, usuwanie, kontur, cofanie");
+            } catch (...) { cleanup(); app->project = fresh(); app->refresh(); throw; }
+            cleanup();
+            need(modeler_ui::current() == nullptr, "po zamknięciu pracownia nadal jest zarejestrowana jako otwarta");
             app->project = fresh(); app->refresh();
         });
 

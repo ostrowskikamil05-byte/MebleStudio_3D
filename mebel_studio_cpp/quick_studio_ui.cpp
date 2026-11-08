@@ -31,6 +31,7 @@
 #include "hardware_placement_ui.h"
 #include "hardware_ui.h"
 #include "migration_status.h"
+#include "modeler_ui.h"
 #include "dev_tools.h"
 #include "selftest.h"
 #include "opening_options.h"
@@ -102,7 +103,7 @@ std::optional<std::string> label_of(const json& choices, const json& value) {
 // Ikona z lewej strony wiersza listy poleceń (jak na makiecie); przyciski akcentowane jej nie mają.
 std::string row_label(const std::string& label) {
     static const std::map<std::string, std::string> glyphs = {
-        {"Rysuj", "✚"}, {"Edytuj szkic", "✎"}, {"Dopasuj element", "⚙"}, {"Zaokrąglenia", "◠"}, {"Dopasuj 3D", "⛶"},
+        {"Pracownia 3D", "⬚"}, {"Rysuj", "✚"}, {"Edytuj szkic", "✎"}, {"Dopasuj element", "⚙"}, {"Zaokrąglenia", "◠"}, {"Dopasuj 3D", "⛶"},
         {"Biblioteka wszystkich mebli", "▦"}, {"Kształty i style", "◇"}, {"Kolory", "◐"}, {"Fronty / uchwyty", "▭"}, {"Zawiasy / prowadnice", "⚙"},
         {"Nóżki / blat", "⊓"}, {"Materiały", "▤"}, {"LED", "✦"}, {"Okucia elementu…", "⚙"}, {"−90°", "↶"}, {"+90°", "↷"},
         {"Łączenie i pozycja…", "⊞"}, {"Narożnik…", "⌐"}, {"Wspólny blat…", "▬"}, {"Drukuj komplet…", "⎙"}, {"Eksport CAD / CNC", "⇪"},
@@ -1570,6 +1571,7 @@ void build(App* app) {
     make_button(pages["Fronty i okucia"], "Okucia elementu…", [app] { if (app->fittings_dialog) app->fittings_dialog(); });
     // Zakładka „CAD": szkic, element, tryb pracy myszą.
     make_group(pages["Szkic / CAD"], "SZKIC");
+    make_button(pages["Szkic / CAD"], "Pracownia 3D", [app] { modeler_ui::open(app); });
     make_button(pages["Szkic / CAD"], "Rysuj", [app] { new Sketch(app, nullptr); });
     make_button(pages["Szkic / CAD"], "Edytuj szkic", [app] { app->edit_sketch(); });
     make_group(pages["Szkic / CAD"], "ELEMENT");
