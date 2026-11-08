@@ -1,1 +1,0 @@
-from ..OCP.BRepGProp import *

@@ -18,7 +18,7 @@ To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem p
 | OpenCASCADE Technology | LGPL 2.1 z wyjątkiem OCCT | biblioteki dołączamy jako osobne DLL (łączenie dynamiczne); trzeba dołączyć tekst licencji i umożliwić podmianę DLL |
 | Tcl/Tk 8.6 | licencja typu BSD (Tcl/Tk License) | dołączane skrypty Tcl/Tk razem z programem |
 | VTK (opcjonalnie, rendering GPU) | BSD 3-Clause | tylko gdy zbudowano z VTK |
-| Pakiet środowiska Python (katalog `LICENCJE`) | różne (BSD/MIT/NCSA) | dotyczy dołączonej wersji 0.14 |
+| Pakiet środowiska Python (katalog `licencje`) | różne (BSD/MIT/NCSA) | dotyczy dołączonej wersji 0.14 |
 
 ## Czego jeszcze brakuje
 - Zbiorczego pliku z pełnymi tekstami licencji dla wersji C++ (OpenCASCADE, Tcl/Tk, VTK) w paczce wydawniczej.

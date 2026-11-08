@@ -1,1 +1,0 @@
-from ..OCP.BRepAdaptor import *

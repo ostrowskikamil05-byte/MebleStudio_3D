@@ -11,7 +11,7 @@ project(MebelStudio3D_Cpp VERSION 0.16 LANGUAGES CXX)
 #   build/bin/MebelStudio3D_cpp.exe
 #
 # Pliki MebelModel.dll i MebelNative3D.dll są ładowane w czasie działania; CMake kopiuje je obok programu
-# z katalogu MEBEL_NATIVE_DIR (domyślnie: katalog nadrzędny, czyli korzeń repozytorium).
+# z katalogu MEBEL_NATIVE_DIR (domyślnie: ../biblioteki_natywne w repozytorium).
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,7 +33,7 @@ option(MEBEL_GUI_SUBSYSTEM "Podsystem Windows GUI zamiast konsoli (konsola pokaz
 option(MEBEL_LAUNCHER "Punkt wejścia z launcher.cpp (--self-test); OFF = prosty main() z app.cpp" ON)
 option(MEBEL_BUNDLE_RUNTIME "Po zbudowaniu kopiuj obok programu wymagane DLL i skrypty Tcl/Tk" ON)
 option(MEBEL_BUILD_TK_TESTS "Zbuduj test warstwy Tk na atrapie interpretera Tcl" OFF)
-set(MEBEL_NATIVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." CACHE PATH "Katalog z MebelModel.dll i MebelNative3D.dll")
+set(MEBEL_NATIVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../biblioteki_natywne" CACHE PATH "Katalog z MebelModel.dll i MebelNative3D.dll")
 
 # ---------------------------------------------------------------- zależności
 find_package(nlohmann_json 3.11 CONFIG REQUIRED)
@@ -160,7 +160,7 @@ foreach(dll MebelModel.dll MebelNative3D.dll)
     endif()
 endforeach()
 
-# Manifest migracji (panel „stan migracji”) leży w korzeniu repozytorium — kopiujemy obok programu.
+# Manifest migracji (panel „stan migracji”) leży w biblioteki_natywne/ — kopiujemy obok programu.
 if(EXISTS "${MEBEL_NATIVE_DIR}/MIGRACJA_CPP.json")
     add_custom_command(TARGET MebelStudio3D_cpp POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MEBEL_NATIVE_DIR}/MIGRACJA_CPP.json" "$<TARGET_FILE_DIR:MebelStudio3D_cpp>"

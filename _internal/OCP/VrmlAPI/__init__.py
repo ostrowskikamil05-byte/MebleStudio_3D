@@ -1,1 +1,0 @@
-from ..OCP.VrmlAPI import *

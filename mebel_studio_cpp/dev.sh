@@ -7,7 +7,7 @@
 #   ./dev.sh fulltest   jw. jak „run”, ale zamiast aplikacji uruchamia PEŁNY TEST wszystkich funkcji i zapisuje raport do raporty_testu/
 #                       (ustawienia programu nie są zapisywane; ten sam test: MebelStudio3D_cpp.exe --full-test [katalog])
 #   ./dev.sh addr 0x…   nazwa funkcji dla adresu z logu "Stos postoju" (exe+0x…)
-#   ./dev.sh dll        przebuduj MebelNative3D.dll i MebelModel.dll ze źródeł (ZRODLA_PROGRAMU/native) do native-dll/
+#   ./dev.sh dll        przebuduj MebelNative3D.dll i MebelModel.dll ze źródeł (biblioteki_natywne/zrodla) do native-dll/
 #   ./dev.sh clean      usuń katalog build
 # Zmienna PULL=0 wyłącza git pull.
 set -euo pipefail
@@ -20,7 +20,7 @@ if [ "$mode" = "fast" ]; then dir=build-dev; type=Debug; fi
 if [ "$mode" = "clean" ]; then rm -rf build build-dev; echo "Usunięto katalogi build."; exit 0; fi
 
 build_dlls() {
-  local native="../ZRODLA_PROGRAMU/native" out="native-dll" cxx="${CXX:-g++}"
+  local native="../biblioteki_natywne/zrodla" out="native-dll" cxx="${CXX:-g++}"
   command -v "$cxx" >/dev/null || { echo "Brak kompilatora $cxx (powłoka MSYS2 UCRT64?)"; exit 1; }
   mkdir -p "$out"
   local flags=(-std=c++20 -O2 -Wall -Wextra -Wno-missing-field-initializers -static -static-libstdc++ -static-libgcc -DUNICODE -D_UNICODE)

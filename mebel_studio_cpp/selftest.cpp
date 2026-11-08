@@ -459,7 +459,7 @@ public:
     std::ofstream log;
     std::vector<Case> cases;
     std::set<std::string> baseline_windows;
-    fs::path data_root;   // korzeń repozytorium z plikami przykładowymi (*.mebel, PRZYKLADY/, MANIFEST_SHA256.json, DLL)
+    fs::path data_root;   // korzeń repozytorium (mebel_studio_cpp/, app/, biblioteki_natywne/, przyklady/, licencje/)
     std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
 
     void say(const std::string& text) {
@@ -2027,7 +2027,7 @@ public:
         const char* where = "core.cpp (Project::load/validate), app.h (load_path/refresh/draw), core.cpp (render_faces, csv/dxf/report), project_print.cpp, cad_geometry.cpp";
         if (data_root.empty()) { skip(area, "pliki przykładowe", "nie znaleziono korzenia repozytorium (ustaw MEBEL_SOURCE_DIR)"); return; }
         std::vector<fs::path> files;
-        for (const auto& dir : {data_root, data_root / "PRZYKLADY"}) {
+        for (const auto& dir : {data_root / "przyklady"}) {
             std::error_code ec;
             if (!fs::is_directory(dir, ec)) continue;
             for (const auto& entry : fs::directory_iterator(dir, ec))
@@ -2037,8 +2037,10 @@ public:
         if (files.empty()) { skip(area, "pliki przykładowe", "brak plików .mebel w " + py::path_str(data_root)); return; }
         say(std::format("pliki przykładowe do sprawdzenia: {}", files.size()));
         for (const auto& file : files) {
-            bool in_root = file.parent_path() == data_root;
-            std::string shown = (in_root ? "" : "PRZYKLADY/") + py::path_str(file.filename());
+            // dawne pliki z korzenia (DEMO_*, PRZYKLAD_*) dostają pełne testy eksportów; reszta — wczytanie, widok i podstawowe eksporty
+            std::string file_name = py::path_str(file.filename());
+            bool in_root = file_name.starts_with("DEMO_") || file_name.starts_with("PRZYKLAD_");
+            std::string shown = "przyklady/" + file_name;
             run(area, shown, where, [this, file, in_root](Ctx& ctx) {
                 ProjectPtr p = Project::load(py::path_str(file));
                 p->validate();
@@ -2086,39 +2088,32 @@ public:
     }
 
     void test_program_files() {
-        const char* area = "Pliki programu (manifest, biblioteki DLL)";
-        const char* where = "MANIFEST_SHA256.json, MebelModel.dll, MebelNative3D.dll, native_model.cpp, native_viewport.cpp";
+        const char* area = "Pliki programu (układ repozytorium, biblioteki DLL)";
+        const char* where = "biblioteki_natywne/, przyklady/, MebelModel.dll, MebelNative3D.dll, native_model.cpp, native_viewport.cpp";
         if (data_root.empty()) { skip(area, "pliki programu", "nie znaleziono korzenia repozytorium"); return; }
-        run(area, "manifest SHA-256: rozmiary i sumy plików", where, [this](Ctx& ctx) {
-            fs::path manifest = data_root / "MANIFEST_SHA256.json";
-            need(fs::is_regular_file(manifest), "brak MANIFEST_SHA256.json w " + py::path_str(data_root));
-            json m = json::parse(read_file(manifest));
-            long long ok = 0, missing = 0, changed = 0;
-            std::vector<std::string> bad;
-            for (auto& [name, info] : m.items()) {
-                fs::path file = data_root / py::to_path(name);
-                std::error_code ec;
-                if (!fs::is_regular_file(file, ec)) { ++missing; if (bad.size() < 8) bad.push_back(name + " (brak pliku)"); continue; }
-                std::string bytes = read_file(file);
-                if ((long long)bytes.size() != info.value("bytes", -1LL) || py::sha256_hex(bytes) != info.value("sha256", std::string())) {
-                    ++changed; if (bad.size() < 8) bad.push_back(name + " (inna zawartość)");
-                } else ++ok;
-            }
-            ctx.note(std::format("{} zgodnych, {} zmienionych, {} brakujących", ok, changed, missing));
-            if (changed + missing > 0) {
-                // MANIFEST_SHA256.json opisuje starą paczkę Pythona (pliki .py/.pyd/.dll środowiska, kopie demo). Rozjazd z repozytorium
-                // C++ jest oczekiwany, więc to tylko informacja — ostrzegamy wyłącznie o braku plików.
-                ctx.note("manifest pochodzi z paczki Pythona; rozbieżności z repozytorium C++ są oczekiwane");
-                if (missing > 0) {
-                    std::string list;
-                    for (auto& b : bad) if (b.find("(brak pliku)") != std::string::npos) list += (list.empty() ? "" : ", ") + b;
-                    ctx.warn(std::format("manifest wymienia {} nieistniejących plików: {}", missing, list));
-                }
-            }
+        run(area, "układ repozytorium: katalogi i pliki, od których zależy budowa i testy", where, [this](Ctx& ctx) {
+            // Porządek na GitHubie: tylko to, co działa i nad czym pracujemy. Test pilnuje, żeby nikt nie zgubił katalogu ani nie wrócił do starego bałaganu.
+            const char* required_dirs[] = {"mebel_studio_cpp", "app", "biblioteki_natywne", "biblioteki_natywne/zrodla", "przyklady", "licencje"};
+            std::string missing;
+            for (const char* dir : required_dirs)
+                if (!fs::is_directory(data_root / dir)) missing += (missing.empty() ? "" : ", ") + std::string(dir);
+            need(missing.empty(), "brak katalogów repozytorium: " + missing);
+            need(fs::is_regular_file(data_root / "biblioteki_natywne" / "MIGRACJA_CPP.json"), "brak biblioteki_natywne/MIGRACJA_CPP.json (panel stanu migracji)");
+            need(fs::is_regular_file(data_root / "biblioteki_natywne" / "zrodla" / "tools" / "build_model.ps1"), "brak źródeł bibliotek natywnych (biblioteki_natywne/zrodla)");
+            long long examples = 0;
+            std::error_code ec;
+            for (const auto& entry : fs::directory_iterator(data_root / "przyklady", ec)) if (entry.path().extension() == ".mebel") ++examples;
+            need(examples >= 10, "w przyklady/ powinno być co najmniej 10 projektów .mebel");
+            // stare rzeczy z paczki Pythona nie mają wracać do głównego katalogu (kopia: gałąź archiwum-python-0.15)
+            std::string intruders;
+            for (const char* old : {"_internal", "runtime", "ZRODLA_PROGRAMU", "PRZYKLADY", "MebelStudio3D.exe", "MANIFEST_SHA256.json", "SPRAWDZENIE_ETAP3", "dokumentacja", "LICENCJE"})
+                if (fs::exists(data_root / old, ec)) intruders += (intruders.empty() ? "" : ", ") + std::string(old);
+            need(intruders.empty(), "w głównym katalogu wróciły stare elementy paczki Pythona: " + intruders);
+            ctx.note(std::format("{} katalogów na miejscu, {} projektów w przyklady/", std::size(required_dirs), examples));
         });
         for (const char* dll : {"MebelModel.dll", "MebelNative3D.dll"}) {
             run(area, std::string("biblioteka ") + dll, where, [this, dll](Ctx& ctx) {
-                std::vector<fs::path> places{py::executable_dir() / dll, data_root / dll, data_root / "mebel_studio_cpp" / "native-dll" / dll};
+                std::vector<fs::path> places{py::executable_dir() / dll, data_root / "biblioteki_natywne" / dll, data_root / "mebel_studio_cpp" / "native-dll" / dll};
                 for (const auto& place : places) {
                     std::error_code ec;
                     if (!fs::is_regular_file(place, ec)) continue;
@@ -2127,7 +2122,7 @@ public:
                     if (size < 4096) ctx.warn("plik poniżej 4 KB to wskaźnik Git LFS, a nie biblioteka — pobierz właściwy plik (git lfs pull)");
                     return;
                 }
-                ctx.warn("nie znaleziono pliku (szukano obok programu, w korzeniu repozytorium i w native-dll/)");
+                ctx.warn("nie znaleziono pliku (szukano obok programu, w biblioteki_natywne/ i w native-dll/)");
             });
         }
         run(area, "pliki w katalogu programu: skrypty Tcl/Tk i biblioteki uruchomieniowe", "bundle_runtime.cmake, tkcore.cpp", [](Ctx& ctx) {

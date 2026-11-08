@@ -23,7 +23,7 @@ cmake --build build
 * Wynik: `build/bin/MebelStudio3D_cpp.exe` (domyślnie z oknem konsoli — widać komunikaty błędów).
   `-DMEBEL_GUI_SUBSYSTEM=ON` wyłącza konsolę.
 * `MebelModel.dll` i `MebelNative3D.dll` CMake kopiuje obok programu z katalogu nadrzędnego
-  (korzeń repozytorium). Inny katalog: `-DMEBEL_NATIVE_DIR=C:/ścieżka`.
+  (`biblioteki_natywne/` w repozytorium). Inny katalog: `-DMEBEL_NATIVE_DIR=C:/ścieżka`.
 * Po zbudowaniu CMake kopiuje obok programu wymagane biblioteki DLL (g++, Tcl/Tk, OpenCASCADE…)
   i katalogi `lib/tcl8.6`, `lib/tk8.6`. Dzięki temu `build/bin` można uruchomić poza powłoką MSYS2.
   Wyłączenie: `-DMEBEL_BUNDLE_RUNTIME=OFF` (wtedy uruchamiaj z powłoki UCRT64).
@@ -57,8 +57,8 @@ Zasady: ścieżki widgetów jak w tkinter (`.!frame.!button`), opcje `{"nazwa", 
 zwrotnych trafiają do `Tk::report_callback_exception`. Katalog projektu **nie może** być w `-I`
 (`<tk.h>` trafiłby do naszego `tk.h`) — CMake tego pilnuje.
 
-Skrypty Tcl/Tk program szuka kolejno w: `TCL_LIBRARY`/`TK_LIBRARY`, `_internal/_tcl_data` i
-`_internal/_tk_data` (układ PyInstallera z repozytorium), `lib/tcl8.6`, `lib/tk8.6` obok programu.
+Skrypty Tcl/Tk program szuka kolejno w: `TCL_LIBRARY`/`TK_LIBRARY`, `lib/tcl8.6` i `lib/tk8.6` obok programu
+(kopiuje je CMake przy `MEBEL_BUNDLE_RUNTIME=ON`).
 
 
 ## Szybki cykl pracy (bez ciągłego budowania od zera)
@@ -82,7 +82,7 @@ Dodatkowo `pacman -S --needed mingw-w64-ucrt-x86_64-ccache` przyspiesza ponowne 
 
 ## 5. Przebudowa bibliotek DLL (MebelNative3D.dll, MebelModel.dll)
 
-DLL-e w korzeniu repozytorium są w Git LFS i mogą być **starsze niż źródła** w `ZRODLA_PROGRAMU/native`
+DLL-e w `biblioteki_natywne/` są w Git LFS i mogą być **starsze niż źródła** w `biblioteki_natywne/zrodla`
 (np. ciemne tło i brak podłogi/siatki w silniku natywnym). Świeże buduje się lokalnie, w powłoce UCRT64:
 
 ```bash
@@ -94,8 +94,8 @@ cd mebel_studio_cpp
 Oficjalna ścieżka (LLVM-MinGW, razem z testami sceny), z PowerShella:
 
 ```powershell
-ZRODLA_PROGRAMU\native\tools\build_embed.ps1 -Compiler 'C:\llvm-mingw\bin\clang++.exe' -RunTests
-ZRODLA_PROGRAMU\native\tools\build_model.ps1 -Compiler 'C:\llvm-mingw\bin\clang++.exe'
+biblioteki_natywne\zrodla\tools\build_embed.ps1 -Compiler 'C:\llvm-mingw\bin\clang++.exe' -RunTests
+biblioteki_natywne\zrodla\tools\build_model.ps1 -Compiler 'C:\llvm-mingw\bin\clang++.exe'
 ```
 
 Zmienna `CXX=clang++ ./dev.sh dll` wybiera inny kompilator. Plik DLL poniżej 4 KB to wskaźnik LFS —

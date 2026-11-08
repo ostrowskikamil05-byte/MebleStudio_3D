@@ -1,3 +1,0 @@
-OCP
-cadquery_ocp
-dist
