@@ -294,7 +294,7 @@ void GPUViewport::configure_lights(const core::Project& project, const core::Cam
     if (project.scene.is_object() && project.scene.contains("brightness")) brightness = project.scene["brightness"].get<double>();
     brightness = std::max(.1, std::min(2.0, brightness));
     const json& lights = context->lights;
-    double boost = quality == "high" ? 1.8 : 1;
+    double boost = quality == "high" || view_style::realistic() ? 1.8 : 1;
     json key_lights = json::array();
     if (lights.is_array()) for (auto& l : lights) key_lights.push_back(json::array({py::get(l, "position"), py::get(l, "color"), py::get(l, "intensity"), py::get(l, "direction", json::array())}));
     std::string key = py::repr(brightness) + "|" + py::repr(boost) + "|" + key_lights.dump();
@@ -333,7 +333,7 @@ void GPUViewport::configure_lights(const core::Project& project, const core::Cam
 }
 
 void GPUViewport::quality_pass(const std::string& quality_, bool interactive) {
-    bool use_ssao = quality_ == "high" && !interactive;
+    bool use_ssao = (quality_ == "high" || view_style::realistic()) && !interactive;
 #ifdef MEBEL_HAVE_VTK
     if (use_ssao) {
         if (!backend->ssao) {
@@ -362,7 +362,7 @@ void GPUViewport::material_pass(const core::Project& project, const std::set<std
         vtkProperty* prop = actor->GetProperty(); auto c = rgb_unit(group.color); prop->SetColor(c[0], c[1], c[2]); prop->LightingOn();
         prop->SetAmbient(.2); prop->SetDiffuse(.78); prop->SetInterpolationToPhong();
         gpu_scene::MaterialStyle style = gpu_scene::material_style(project, *group.source_groups.front()); prop->SetSpecular(style.specular); prop->SetSpecularPower(style.power);
-        if (quality == "high" && !group.emissive) {
+        if ((quality == "high" || view_style::realistic()) && !group.emissive) {
             prop->SetInterpolationToPBR(); prop->SetRoughness(style.roughness); prop->SetMetallic(style.metallic);
         }
         prop->SetOpacity(group.ghost ? .13 : group.opacity);

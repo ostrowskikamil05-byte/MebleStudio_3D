@@ -18,6 +18,7 @@
 #include "responsive_ui.h"
 #include "ui_preferences.h"
 #include "ui_settings.h"
+#include "graphics_mode_ui.h"
 #include "view_style.h"
 
 namespace side_panels {
@@ -179,6 +180,8 @@ void show_fillet(App* app) {
         tk::StringVar radius("20"), thickness, scope("part");
         core::Part* selected = app->selected_part();
         thickness.set(selected ? std::format("{:g}", selected->t) : std::string("—"));
+        forma_widgets::caption(body, "Tryb grafiki");
+        graphics_mode_ui::add_switch(body, app, "panel CAD · Zaokrąglenia");
         forma_widgets::field_row(body, "Promień", radius, "mm");
         forma_widgets::field_row(body, "Grubość", thickness, "mm", true);
         forma_widgets::caption(body, "Zastosowanie");
@@ -219,6 +222,11 @@ void show_engine(App* app) {
                 app->status.set(std::string("Ustawienia 3D: ") + error.what());
             }
         };
+        // Tryb grafiki: klasyczna (jak dotąd) albo realistyczna.
+        forma_widgets::caption(body, "Tryb grafiki");
+        graphics_mode_ui::add_switch(body, app, "panel Silnik i jakość 3D");
+        (new ttk::Label(body, {{"text", render_style::info(view_style::state.mode).description}, {"style", "Panel.TLabel"}, {"foreground", forma_theme::MUTED},
+                               {"font", "{Segoe UI} 8"}, {"wraplength", 280}}))->pack({{"anchor", "w"}, {"pady", "0 4"}});
         // Silnik renderujący.
         (new ttk::Label(body, {{"text", "Silnik renderujący"}, {"style", "Panel.TLabel"}, {"font", "{Segoe UI} 9"}}))->pack({{"anchor", "w"}, {"pady", "4 1"}});
         std::vector<std::string> names;

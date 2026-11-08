@@ -63,6 +63,12 @@
 #include "sketch.h"
 #include "sketch_inference.h"
 #include "sketch_shapes.h"
+#include "sketch_design.h"
+#include "render_style.h"
+#include "graphics_mode_ui.h"
+#include "view_style.h"
+#include "viewport_scene.h"
+#include "features.h"
 #include "dxf_import.h"
 #include "stretch_choice.h"
 #include "ui_preferences.h"
@@ -180,6 +186,8 @@ const std::map<std::string, std::string> JOURNAL_COVERAGE = {
     {"menu", "Dziennik zdarzeń · menu podręczne"},
     {"kształty", "Dziennik zdarzeń · okno kształtów (zatwierdzenie / odrzucenie)"},
     {"projekt z opisu", "Dziennik zdarzeń · projekt z opisu zdaniem"},
+    {"kanty i wzorki", "Szkic — kanty, wzorki i zestaw elementów (test_design)"},
+    {"grafika", "Tryb grafiki — przełączanie, cienie, miniatury (test_design)"},
 };
 
 // ---------------------------------------------------------------- audyt źródeł
@@ -2214,6 +2222,432 @@ public:
         return text + dxf_pair(0, "SECTION") + dxf_pair(2, "ENTITIES") + entities + dxf_pair(0, "ENDSEC") + dxf_pair(0, "EOF");
     }
 
+    // ---- kanty, wzorki, zestaw elementów, tryb grafiki i pamięć podręczna CAD
+
+    void test_design() {
+        const char* area = "Szkic — kanty, wzorki, zestaw elementów; tryb grafiki; CAD";
+        const char* where = "sketch_design.cpp, sketch.cpp (apply_design/stage_element/save_all/propagate_design), render_style.cpp, graphics_mode_ui.cpp, viewport_scene.cpp, cad_geometry.cpp";
+        auto open_sketch = [this] {
+            app->project = fresh(); app->selected.reset(); app->refresh(); app->update();
+            auto* sk = new sketch::Sketch(app, nullptr);
+            app->update();
+            return sk;
+        };
+        auto close_sketch = [this](sketch::Sketch* sk) {
+            try { if (sk->winfo_exists()) sk->destroy(); } catch (const std::exception&) {}
+            app->project = fresh(); app->refresh();
+        };
+        auto throws = [](const std::function<void()>& action) {
+            try { action(); } catch (const std::invalid_argument&) { return true; }
+            return false;
+        };
+
+        run(area, "wzorki: katalog — każdy wzorek daje poprawne frezy przyjmowane przez CAD", where, [=, this](Ctx& ctx) {
+            std::set<std::string> ids, names;
+            core::Part plate;
+            plate.u = 600; plate.v = 400; plate.t = 18;
+            for (const auto& info : sketch_design::pattern_catalog()) {
+                need(ids.insert(info.id).second && names.insert(info.name).second, "powtórzony wzorek w katalogu: " + info.name);
+                for (const auto& p : info.params) need(p.def >= p.min && p.def <= p.max, "wartość domyślna poza zakresem: " + info.name + " / " + p.label);
+                auto result = sketch_design::generate_pattern(info.id, {}, plate.u, plate.v, plate.t);
+                need(!result.cuts.empty() && result.cuts.size() <= sketch_design::MAX_PATTERN_CUTS, "wzorek „" + info.name + "” nie dał frezów");
+                for (const auto& cut : result.cuts) {
+                    need(sketch_design::pattern_of(cut) == info.id, "frez bez znacznika wzorka: " + info.name);
+                    features::validate_cut(plate, cut);  // te same reguły co ręczne frezowanie
+                }
+                ctx.note(std::format("{}: {} frezów", info.name, result.cuts.size()));
+            }
+            need(sketch_design::pattern_catalog().size() >= 6, "katalog wzorków ma mniej niż 6 pozycji");
+        });
+
+        run(area, "wzorki: kontury nieprostokątne, odrzucenia z powodem, scalanie i usuwanie", where, [=, this](Ctx& ctx) {
+            std::vector<core::Point> shape_l = {{0, 0}, {600, 0}, {600, 200}, {250, 200}, {250, 500}, {0, 500}};
+            core::Part plate;
+            plate.u = 600; plate.v = 500; plate.t = 18;
+            plate.contour = {{0, 0}, {600, 0}, {600, 200}, {250, 200}, {250, 500}, {0, 500}};
+            auto l_result = sketch_design::generate_pattern("perforacja", shape_l, 600, 500, 18, {{"margin", 10}});
+            need(l_result.skipped > 0 && !l_result.cuts.empty(), "perforacja na kształcie L powinna pominąć otwory poza konturem, nie wszystkie");
+            for (const auto& cut : l_result.cuts) features::validate_cut(plate, cut);
+            ctx.note(std::format("kształt L: {} otworów, pominięto {}", l_result.cuts.size(), l_result.skipped));
+            need(throws([&] { sketch_design::generate_pattern("ryfle", {}, 600, 400, 18, {{"depth", 17.8}}); }), "głębokość zostawiająca < 0,5 mm materiału powinna być odrzucona");
+            need(throws([&] { sketch_design::generate_pattern("ryfle", {}, 600, 400, 18, {{"nie_ma_takiego", 1}}); }), "nieznany parametr powinien być odrzucony");
+            need(throws([&] { sketch_design::generate_pattern("ryfle", {}, 600, 400, 18, {{"width", 20}, {"pitch", 20}}); }), "podziałka równa szerokości rowka powinna być odrzucona");
+            need(throws([&] { sketch_design::generate_pattern("ramka", {}, 100, 100, 18, {{"margin", 45}}); }), "ramka na zbyt małej płycie powinna być odrzucona");
+            need(throws([&] { sketch_design::generate_pattern("ryfle", {}, 600, 400, 18, {}, "front"); }), "nieznana powierzchnia powinna być odrzucona");
+            need(throws([&] { sketch_design::generate_pattern("nie ma", {}, 600, 400, 18); }), "nieznany wzorek powinien być odrzucony");
+            need(throws([&] { sketch_design::generate_pattern("perforacja", {}, 3000, 3000, 18, {{"diameter", 2}, {"pitch_u", 4}, {"pitch_v", 4}, {"margin", 0}}); }), "perforacja ponad limit frezów powinna być odrzucona");
+            // scalanie: ręczne obróbki i inne wzorki zostają, ten sam wzorek się nie dubluje
+            json manual = json::array({json{{"type", "pocket"}, {"shape", "rect"}, {"face", "top"}, {"u", 300}, {"v", 200}, {"length", 50}, {"width", 40}, {"depth", 5}, {"angle", 0}}});
+            auto ryfle = sketch_design::generate_pattern("ryfle", {}, 600, 400, 18).cuts;
+            auto paski = sketch_design::generate_pattern("paski", {}, 600, 400, 18).cuts;
+            json merged = sketch_design::merge_pattern(manual, "ryfle", ryfle);
+            merged = sketch_design::merge_pattern(merged, "paski", paski);
+            size_t once = merged.size();
+            merged = sketch_design::merge_pattern(merged, "ryfle", ryfle);
+            need(merged.size() == once, "ponowne dodanie tego samego wzorka zdublowało frezy");
+            need(sketch_design::count_patterns(merged, "ryfle") == ryfle.size() && sketch_design::count_patterns(merged) == ryfle.size() + paski.size(), "liczniki wzorków się nie zgadzają");
+            json only_ryfle = sketch_design::remove_patterns(merged, "paski");
+            need(sketch_design::count_patterns(only_ryfle, "paski") == 0 && sketch_design::count_patterns(only_ryfle, "ryfle") == ryfle.size(), "usunięcie jednego wzorka ruszyło inne");
+            need(sketch_design::remove_patterns(merged).size() == 1, "usunięcie wszystkich wzorków powinno zostawić tylko ręczną obróbkę");
+        });
+
+        run(area, "kanty: zaokrąglenie, fazka i prosta na krawędziach, limity grubości", where, [=, this](Ctx& ctx) {
+            json none = json::array();
+            auto ids = sketch_design::edge_ids_for_segment(2);
+            need(ids.size() == 2 && ids[0] == "top:2" && ids[1] == "bottom:2", "identyfikatory krawędzi boku 3 są błędne");
+            need(sketch_design::edge_ids_all(4).size() == 8, "wszystkie boki prostokąta to 8 krawędzi");
+            auto round = sketch_design::apply_edge_style(none, none, "Zaokrąglona", 3, sketch_design::edge_ids_all(4), 18);
+            need(round.fillets.size() == 8 && round.chamfers.empty() && round.touched == 8, "zaokrąglenie wszystkich boków powinno dać 8 wpisów");
+            auto chamfer = sketch_design::apply_edge_style(round.fillets, round.chamfers, "fazka", 2, sketch_design::edge_ids_for_segment(1), 18);
+            need(chamfer.fillets.size() == 6 && chamfer.chamfers.size() == 2, "fazka powinna zastąpić zaokrąglenie na tej samej krawędzi");
+            auto straight = sketch_design::apply_edge_style(chamfer.fillets, chamfer.chamfers, "prosta", 0, sketch_design::edge_ids_all(4), 18);
+            need(straight.fillets.empty() && straight.chamfers.empty(), "krawędź prosta powinna zdjąć całą obróbkę");
+            need(throws([&] { sketch_design::apply_edge_style(none, none, "zaokraglenie", 9, {"top:0"}, 18); }), "promień równy połowie grubości powinien być odrzucony");
+            need(throws([&] { sketch_design::apply_edge_style(none, none, "zaokraglenie", 0.01, {"top:0"}, 18); }), "promień poniżej 0,1 mm powinien być odrzucony");
+            need(throws([&] { sketch_design::apply_edge_style(none, none, "zaokraglenie", 2, {}, 18); }), "brak krawędzi powinien być odrzucony");
+            need(throws([&] { sketch_design::apply_edge_style(none, none, "ostry jak brzytwa", 2, {"top:0"}, 18); }), "nieznany styl powinien być odrzucony");
+            need(sketch_design::describe_edge_style("zaokraglenie", 5, 8) == "zaokrąglenie R5 mm na 8 krawędziach", "opis zaokrąglenia do dziennika jest inny niż oczekiwany");
+            ctx.note("zaokrąglenie / fazka / prosta / limity OK");
+        });
+
+        run(area, "miniaturki: wzorki, kanty i tryby grafiki mają różne, narysowane miniaturki", where, [=, this](Ctx& ctx) {
+            std::set<std::string> signatures;
+            for (const auto& info : sketch_design::pattern_catalog()) {
+                auto shapes = sketch_design::pattern_thumbnail(info.id, 150, 90, 6);
+                need(shapes.size() >= 2, "wzorek „" + info.name + "” nie ma miniaturki z frezami");
+                std::string signature = std::to_string(shapes.size());
+                for (const auto& shape : shapes)
+                    for (const auto& p : shape) {
+                        need(p[0] >= -0.01 && p[0] <= 150.01 && p[1] >= -0.01 && p[1] <= 90.01, "miniaturka wzorka „" + info.name + "” wychodzi poza pole");
+                        signature += std::format("|{:.0f},{:.0f}", p[0], p[1]);
+                    }
+                need(signatures.insert(signature).second, "wzorek „" + info.name + "” ma miniaturkę identyczną z innym wzorkiem");
+            }
+            std::set<size_t> edge_sizes;
+            std::set<std::string> edge_signatures;
+            for (const auto& style : sketch_design::edge_styles()) {
+                auto shape = sketch_design::edge_section_thumbnail(style.id, 110, 64, 10);
+                need(shape.size() >= 4, "styl „" + style.name + "” nie ma miniaturki przekroju");
+                std::string signature;
+                for (const auto& p : shape) signature += std::format("|{:.0f},{:.0f}", p[0], p[1]);
+                need(edge_signatures.insert(signature).second, "styl „" + style.name + "” ma miniaturkę identyczną z innym stylem");
+            }
+            need(sketch_design::edge_section_thumbnail("prosta", 10, 10, 6).empty(), "za małe pole miniaturki powinno dać pustą miniaturkę");
+            auto* sk = open_sketch();
+            need(sk->edge_preview != nullptr && sk->pattern_preview != nullptr, "panel szkicu nie ma miniaturek kantów i wzorków");
+            for (const auto& info : sketch_design::pattern_catalog()) {
+                sk->pattern_var.set(info.name);
+                sk->pattern_selected();
+                need(!sk->pattern_preview->find_withtag("pattern_preview").empty(), "wzorek „" + info.name + "” nie jest narysowany w panelu szkicu");
+            }
+            for (const auto& style : sketch_design::edge_styles()) {
+                sk->edge_style_var.set(style.name);
+                sk->edge_style_selected();
+                need(!sk->edge_preview->find_withtag("edge_preview").empty(), "styl „" + style.name + "” nie jest narysowany w panelu szkicu");
+            }
+            close_sketch(sk);
+            std::set<std::string> mode_signatures;
+            for (const auto& mode : render_style::modes()) {
+                auto polys = render_style::mode_thumbnail(mode.mode, 112, 70);
+                std::string signature;
+                size_t body = 0;
+                for (const auto& poly : polys) {
+                    signature += poly.fill + ";";
+                    if (poly.body) {
+                        ++body;
+                        for (const auto& p : poly.points) need(p[0] >= 0 && p[0] <= 112 && p[1] >= 0 && p[1] <= 70, "miniatura trybu „" + mode.name + "” ma bryłę poza polem");
+                    }
+                }
+                need(body >= 3, "miniatura trybu „" + mode.name + "” nie ma bryły mebla");
+                need(mode_signatures.insert(signature).second, "tryby grafiki mają identyczne miniatury");
+                auto* canvas = new tk::Canvas(app, {{"width", 112}, {"height", 70}});
+                graphics_mode_ui::draw_thumbnail(canvas, mode.mode, 112, 70);
+                bool drawn = !canvas->find_withtag("mode_thumb").empty();
+                canvas->destroy();
+                need(drawn, "miniatura trybu „" + mode.name + "” nie została narysowana");
+            }
+            ctx.note(std::format("{} wzorków, {} stylów kantu, {} trybów", sketch_design::pattern_catalog().size(), sketch_design::edge_styles().size(), render_style::modes().size()));
+        });
+
+        run(area, "szkic: kant i wzorek trafiają do elementu 3D, zapis, cofnięcie i dziennik", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_sketch_points({{0, 0}, {500, 0}, {500, 300}, {0, 300}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            auto from = log_mark();
+            sk->edge_style_var.set("Zaokrąglona");
+            sk->edge_size.set("3");
+            sk->edge_scope.set("Wszystkie boki konturu");
+            sk->apply_edge_ui();
+            need(sk->edge_assigns.size() == 1, "kant nie został zapamiętany w szkicu");
+            sk->pattern_var.set("Ryfle pionowe");
+            sk->pattern_selected();
+            sk->add_pattern_ui();
+            need(sk->pattern_assigns.size() == 1, "wzorek nie został zapamiętany w szkicu");
+            sk->draw();
+            need(sk->design_note.get().find("Ryfle pionowe") != std::string::npos && sk->design_note.get().find("zaokrąglenie") != std::string::npos, "podsumowanie kantów i wzorków w panelu jest puste");
+            auto [candidate, id] = sk->candidate();
+            candidate->validate();
+            const core::Part& q = sketch::find_part(*candidate, id);
+            need(q.fillets.size() == 8, std::format("element powinien mieć 8 zaokrąglonych krawędzi, ma {}", q.fillets.size()));
+            need(sketch_design::count_patterns(q.machining, "ryfle") > 5, "element nie ma frezów ryfli");
+            size_t before = app->project->parts.size();
+            need(sk->save(false), "zapis szkicu z kantami i wzorkiem nie powiódł się");
+            need(app->project->parts.size() == before + 1, "zapis nie dodał elementu");
+            ctx.note(std::format("{} zaokrągleń, {} frezów", q.fillets.size(), q.machining.size()));
+            app->undo(); app->update();
+            need(app->project->parts.size() == before, "cofnięcie nie usunęło elementu z kantami i wzorkiem");
+            std::string text = log_since(from);
+            for (const char* needle : {"[operacja:kanty i wzorki] kant: zaokrąglenie R3 mm", "[operacja:kanty i wzorki] wzorek „Ryfle pionowe”", "wybrano wzorek „Ryfle pionowe”"})
+                need(has_text(text, needle), std::string("brak w dzienniku: ") + needle);
+            try { if (sk->winfo_exists()) sk->destroy(); } catch (const std::exception&) {}
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "szkic: odrzucenia kantów i wzorków mają powód w dzienniku, a stan zostaje bez zmian", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            auto from = log_mark();
+            sk->edge_style_var.set("Zaokrąglona"); sk->edge_size.set("3"); sk->edge_scope.set("Wszystkie boki konturu");
+            sk->apply_edge_ui();  // kontur jeszcze niezamknięty
+            sk->add_pattern_ui();
+            need(sk->edge_assigns.empty() && sk->pattern_assigns.empty(), "niezamknięty kontur przyjął kant lub wzorek");
+            sk->set_sketch_points({{0, 0}, {400, 0}, {400, 300}, {0, 300}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            sk->edge_size.set("20");  // ≥ połowy grubości 18 mm
+            sk->apply_edge_ui();
+            need(sk->edge_assigns.empty(), "zbyt duży promień został przyjęty");
+            sk->edge_size.set("3"); sk->edge_scope.set("Wybrany bok konturu");
+            sk->apply_edge_ui();      // żaden punkt nie jest zaznaczony na liście
+            need(sk->edge_assigns.empty(), "kant boku przyjęty bez wybranego boku");
+            sk->pattern_var.set("Ramka frezowana"); sk->pattern_selected();
+            sk->pattern_values[0].set("5000");  // odsunięcie poza zakresem
+            sk->add_pattern_ui();
+            need(sk->pattern_assigns.empty(), "wzorek z parametrem poza zakresem został przyjęty");
+            std::string text = log_since(from);
+            for (const char* needle : {"kant odrzucony: Najpierw zamknij kontur", "wzorek odrzucony: Najpierw zamknij kontur", "kant odrzucony: Kanty lub wzorek: Zaokrąglenie krawędzi: wartość musi mieścić się",
+                                       "kant odrzucony: Wybierz bok konturu", "wzorek odrzucony:"})
+                need(has_text(text, needle), std::string("brak w dzienniku powodu odrzucenia: ") + needle);
+            ctx.note("5 odrzuceń zapisanych z powodem");
+            close_sketch(sk);
+        });
+
+        run(area, "szkic: zmiana liczby boków usuwa kanty pojedynczych boków, „wszystkie boki” zostają", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            sk->set_sketch_points({{0, 0}, {400, 0}, {400, 300}, {0, 300}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            sk->edge_style_var.set("Fazowana 45°"); sk->edge_size.set("2");
+            sk->edge_scope.set("Wszystkie boki konturu"); sk->apply_edge_ui();
+            sk->edge_style_var.set("Fazowana 45°"); sk->edge_size.set("2.5"); sk->edge_scope.set("Wybrany bok konturu");
+            sk->select_row(1); sk->apply_edge_ui();
+            need(sk->edge_assigns.size() == 2, "powinny być dwa kanty: wszystkie boki i bok 2");
+            auto from = log_mark();
+            sk->fillet_point(2, 30, false);  // dodaje punkty łuku → zmienia liczbę boków
+            need(sk->edge_assigns.size() == 1 && sk->edge_assigns[0].segment < 0, "po zmianie liczby boków zostać powinien tylko kant „wszystkie boki”");
+            need(has_text(log_since(from), "zmieniła się liczba boków konturu"), "usunięcie kantów nie zostało zapisane w dzienniku");
+            ctx.note("kanty segmentowe usunięte po zmianie konturu");
+            close_sketch(sk);
+        });
+
+        run(area, "zestaw: kilka elementów w jednym szkicu, zapis całego mebla jednym krokiem i cofnięcie", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            size_t before = app->project->parts.size();
+            auto from = log_mark();
+            sk->fields.at("name").set("Bok testowy");
+            sk->set_sketch_points({{0, 0}, {300, 0}, {300, 600}, {0, 600}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            sk->edge_style_var.set("Zaokrąglona"); sk->edge_size.set("2"); sk->edge_scope.set("Wszystkie boki konturu"); sk->apply_edge_ui();
+            need(sk->stage_element(), "pierwszy element nie trafił do zestawu");
+            need(sk->staged.size() == 1 && sk->points.empty() && !sk->closed, "po dodaniu do zestawu płótno powinno być czyste");
+            need(sk->edge_assigns.empty(), "kanty poprzedniego elementu przeszły na kolejny");
+            sk->fields.at("name").set("Półka testowa");
+            sk->set_sketch_points({{0, 0}, {500, 0}, {500, 250}, {0, 250}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            sk->pattern_var.set("Paski poziome"); sk->pattern_selected(); sk->add_pattern_ui();
+            need(sk->stage_element() && sk->staged.size() == 2, "drugi element nie trafił do zestawu");
+            need(sk->staged_list != nullptr, "okno szkicu nie ma listy zestawu elementów");
+            sk->fields.at("name").set("Front testowy");
+            sk->set_sketch_points({{0, 0}, {400, 0}, {400, 200}, {0, 200}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            need(sk->save_all(), "zapis całego mebla nie powiódł się");  // trzeci element to bieżący kontur — dołączany automatycznie
+            need(app->project->parts.size() == before + 3, std::format("projekt powinien mieć {} elementów, ma {}", before + 3, app->project->parts.size()));
+            bool has_fillets = false, has_pattern = false;
+            for (const auto& part : app->project->parts) {
+                if (part.name == "Bok testowy") has_fillets = part.fillets.size() == 8;
+                if (part.name == "Półka testowa") has_pattern = sketch_design::count_patterns(part.machining, "paski") > 0;
+            }
+            need(has_fillets && has_pattern, "elementy zestawu nie zachowały swoich kantów i wzorków");
+            app->undo(); app->update();
+            need(app->project->parts.size() == before, "jedno cofnięcie powinno usunąć cały zapisany mebel");
+            std::string text = log_since(from);
+            for (const char* needle : {"do zestawu dodano element „Bok testowy”", "do zestawu dodano element „Półka testowa”", "zapisano cały mebel z szkicu: 3 elementów"})
+                need(has_text(text, needle), std::string("brak w dzienniku: ") + needle);
+            ctx.note("3 elementy, jedno cofnięcie");
+            close_sketch(sk);
+        });
+
+        run(area, "zestaw: zapis z błędnym elementem niczego nie zapisuje (wszystko albo nic)", where, [=, this](Ctx& ctx) {
+            auto* sk = open_sketch();
+            size_t before = app->project->parts.size();
+            auto from = log_mark();
+            need(!sk->save_all(), "pusty zestaw nie powinien się zapisać");
+            sk->set_sketch_points({{0, 0}, {300, 0}, {300, 300}, {0, 300}});
+            sk->close_contour();
+            sk->fields.at("t").set("18");
+            need(sk->stage_element(), "poprawny element nie trafił do zestawu");
+            sk->staged[0].thickness = "-5";  // uszkodzony element w zestawie
+            need(!sk->save_all(), "zestaw z uszkodzonym elementem nie powinien się zapisać");
+            need(app->project->parts.size() == before, "nieudany zapis zestawu zostawił część elementów w projekcie");
+            std::string text = log_since(from);
+            need(has_text(text, "zapis całego mebla odrzucony (nic nie zapisano)") && has_text(text, "Zestaw jest pusty"), "odrzucenia zestawu nie mają powodu w dzienniku");
+            close_sketch(sk);
+        });
+
+        run(area, "kanty i wzorki: przekazanie pasującym elementom mebla (np. oba boki)", where, [=, this](Ctx& ctx) {
+            auto [p, g] = cabinet(Project());
+            app->project = p; app->selected.reset(); app->refresh(); app->update();
+            const core::Part* left = nullptr;
+            for (const auto& part : p->parts) if (part.role == "left" || assembly::inferred_role(part) == "left") { left = &part; break; }
+            need(left != nullptr, "szablon szafki nie ma lewego boku");
+            auto siblings = sketch_design::matching_parts(*p, *left, sketch::design_role);
+            need(!siblings.empty(), "lewy bok nie ma pasującego elementu (prawego boku)");
+            auto from = log_mark();
+            auto* sk = new sketch::Sketch(app, left);
+            app->update();
+            need(sk->propagate_check != nullptr, "okno szkicu nie ma opcji przekazania kantów");
+            sk->edge_style_var.set("Zaokrąglona"); sk->edge_size.set("2"); sk->edge_scope.set("Wszystkie boki konturu");
+            sk->apply_edge_ui();
+            need(!sk->edge_assigns.empty(), "kant boku nie został przyjęty");
+            sk->propagate.set(true);
+            need(sk->save(false), "zapis szkicu z przekazaniem nie powiódł się");
+            size_t with_fillets = 0;
+            for (const auto& part : app->project->parts) if (!part.fillets.empty()) ++with_fillets;
+            need(with_fillets >= 1 + siblings.size(), std::format("kanty powinny mieć {} elementy, mają {}", 1 + siblings.size(), with_fillets));
+            need(has_text(log_since(from), "przekazano kanty i wzorki elementowi"), "przekazanie nie zostało zapisane w dzienniku");
+            ctx.note(std::format("kanty na {} elementach", with_fillets));
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "tryb grafiki: cieniowanie, miękkie cienie rzucane, płytki i miniatury — logika", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            need(render_style::modes().size() == 2 && render_style::mode_from("Realistyczna") == Mode::Realistic && render_style::mode_from("classic") == Mode::Classic, "katalog trybów grafiki jest błędny");
+            need(throws([] { render_style::mode_from("fotorealizm"); }), "nieznany tryb grafiki powinien być odrzucony");
+            auto top = render_style::shade_face(Mode::Realistic, {0, 0, 1}, 1, .82), side = render_style::shade_face(Mode::Realistic, {0, -1, 0}, 1, .82);
+            auto ctop = render_style::shade_face(Mode::Classic, {0, 0, 1}, 1, .82), cside = render_style::shade_face(Mode::Classic, {0, -1, 0}, 1, .82);
+            need(top.factor > side.factor, "w trybie realistycznym górna ścianka powinna być jaśniejsza od bocznej");
+            need(top.factor - side.factor > ctop.factor - cside.factor, "tryb realistyczny ma mieć większy kontrast ścianek niż klasyczny");
+            need(render_style::apply_shading({200, 160, 100}, top)[0] <= 255, "cieniowanie wyszło poza zakres koloru");
+            // cień: warstwy od zewnętrznej (jasnej) do wewnętrznej (ciemnej), zagnieżdżone, uniesiony mebel słabszy
+            std::vector<render_style::Point2> foot = {{0, 0}, {1800, 0}, {1800, 420}, {0, 420}};
+            auto grounded = render_style::cast_shadow(foot, 0, 800), hanging = render_style::cast_shadow(foot, 600, 1400);
+            need(grounded.size() == 6 && hanging.size() == 6, "cień powinien mieć 6 warstw półcienia");
+            for (size_t i = 1; i < grounded.size(); ++i) need(grounded[i].strength > grounded[i - 1].strength, "warstwy cienia powinny ciemnieć ku wnętrzu");
+            auto extent = [](const std::vector<render_style::Point2>& poly) { double lo = 1e18, hi = -1e18; for (auto& p : poly) { lo = std::min(lo, p[0]); hi = std::max(hi, p[0]); } return hi - lo; };
+            need(extent(grounded.front().polygon) > extent(grounded.back().polygon), "warstwa zewnętrzna cienia powinna być szersza od wewnętrznej");
+            need(hanging.back().strength < grounded.back().strength, "meble wiszące powinny rzucać słabszy cień");
+            need(extent(grounded.back().polygon) > 1800, "cień rzucany powinien wystawać poza obrys mebla w stronę od światła");
+            need(render_style::cast_shadow({{0, 0}, {1, 1}}, 0, 100).empty(), "zdegenerowana podstawa nie powinna dawać cienia");
+            need(render_style::blend_hex("#000000", "#ffffff", .5) == "#808080", "mieszanie kolorów cienia jest błędne");
+            need(throws([] { render_style::blend_hex("czerwony", "#ffffff", .5); }), "zły zapis koloru powinien być odrzucony");
+            auto tiles = render_style::floor_tile_lines(0, 0, 3000, 600, 0, 16);
+            need(tiles.size() >= 20 && tiles.size() <= 66, std::format("liczba linii płytek poza oczekiwanym zakresem: {}", tiles.size()));
+            need(throws([] { render_style::floor_tile_lines(0, 0, 3000, 0.5, 0); }), "płytki o zerowym boku powinny być odrzucone");
+            ctx.note(std::format("kontrast ścianek {:.2f} (klasyczny {:.2f})", top.factor - side.factor, ctop.factor - cside.factor));
+        });
+
+        run(area, "tryb grafiki: przełącznik zmienia widok (cienie, płytki, kolory), zapisuje ustawienie i wpisuje do dziennika", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            const Mode original = view_style::state.mode;
+            auto restore = [&] { graphics_mode_ui::set_mode(app, original, "test — przywrócenie"); };
+            try {
+                graphics_mode_ui::set_mode(app, Mode::Classic, "test — start");
+                auto [p, g] = cabinet(Project());
+                app->project = p; app->refresh(); app->update();
+                core::Camera camera = app->camera;
+                auto count_tags = [&](Mode mode, const char* tag) {
+                    view_style::state.mode = mode;
+                    auto* canvas = new tk::Canvas(app, {{"width", 700}, {"height", 450}});
+                    viewport_scene::BackgroundOptions options;
+                    options.grid = false;
+                    viewport_scene::paint_background(canvas, camera, p, {700, 450}, options);
+                    size_t n = canvas->find_withtag(tag).size();
+                    canvas->destroy();
+                    return n;
+                };
+                size_t classic_tiles = count_tags(Mode::Classic, "viewport.tiles"), real_tiles = count_tags(Mode::Realistic, "viewport.tiles");
+                size_t classic_shadow = count_tags(Mode::Classic, "viewport.shadow"), real_shadow = count_tags(Mode::Realistic, "viewport.shadow");
+                view_style::state.mode = Mode::Classic;
+                need(classic_tiles == 0 && real_tiles > 10, std::format("płytki podłogi: klasyczny {}, realistyczny {} (oczekiwano 0 i > 10)", classic_tiles, real_tiles));
+                need(real_shadow > classic_shadow, std::format("tryb realistyczny ma mieć więcej warstw cienia niż klasyczny ({} vs {})", real_shadow, classic_shadow));
+                // kolory ścianek zmieniają się razem z trybem (pamięć podręczna kolorów rozróżnia tryb)
+                auto context = viewport_render::prepare_scene(*p);
+                auto sample = [&](Mode mode) {
+                    view_style::state.mode = mode;
+                    std::string colors;
+                    for (const auto& record : context->records(false)) { const auto& c = context->face_colors(*record); if (!c.empty()) { for (size_t i = 0; i < std::min<size_t>(c.size(), 12); ++i) colors += c[i]; break; } }
+                    return colors;
+                };
+                std::string classic_colors = sample(Mode::Classic), real_colors = sample(Mode::Realistic), classic_again = sample(Mode::Classic);
+                view_style::state.mode = Mode::Classic;
+                need(!classic_colors.empty() && classic_colors != real_colors, "kolory ścianek nie zmieniły się po przełączeniu trybu");
+                need(classic_colors == classic_again, "powrót do trybu klasycznego nie przywrócił dawnych kolorów");
+                // przełącznik: stan, plik ustawień, dziennik, brak zmiany przy powtórzeniu
+                auto from = log_mark();
+                need(graphics_mode_ui::set_mode(app, Mode::Realistic, "test") && view_style::state.mode == Mode::Realistic, "przełączenie na tryb realistyczny nie zadziałało");
+                need(!graphics_mode_ui::set_mode(app, Mode::Realistic, "test"), "powtórne ustawienie tego samego trybu powinno być bez zmiany");
+                std::ifstream saved(view_style::file_path());
+                need(saved && std::string((std::istreambuf_iterator<char>(saved)), {}).find("\"realistic\"") != std::string::npos, "tryb grafiki nie został zapisany w ustawieniach");
+                app->draw(); app->update();  // widok w trybie realistycznym nie może rzucić wyjątku
+                std::string text = log_since(from);
+                need(has_text(text, "[operacja:grafika] tryb grafiki: Klasyczna → Realistyczna (test)") && has_text(text, "jest już ustawiony (test) — bez zmian"), "przełączenie nie zostało opisane w dzienniku");
+                // przełączniki w CAD
+                auto* sk = open_sketch();
+                need(sk->live_canvas != nullptr, "szkic nie ma podglądu 3D");
+                auto* switch_frame = graphics_mode_ui::add_switch(sk, app, "test");
+                need(switch_frame != nullptr && !switch_frame->winfo_children().empty(), "przełącznik trybu z miniaturami nie powstał");
+                from = log_mark();
+                graphics_mode_ui::set_mode(app, Mode::Classic, "test — okno szkicu");
+                need(has_text(log_since(from), "→ Klasyczna (test — okno szkicu)"), "zmiana z okna szkicu nie została zapisana");
+                close_sketch(sk);
+                restore();
+                ctx.note(std::format("płytki {}→{}, warstwy cienia {}→{}", classic_tiles, real_tiles, classic_shadow, real_shadow));
+            } catch (...) {
+                restore();
+                throw;
+            }
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "CAD: dodanie wiercenia nie przelicza bryły bazowej (pamięć podręczna bez wierceń)", where, [=, this](Ctx& ctx) {
+            core::Part part;
+            part.u = 400; part.v = 300; part.t = 18;
+            part.fillets = json::array({json{{"edge", "top:0"}, {"radius", 3}}, json{{"edge", "bottom:0"}, {"radius", 3}}});
+            part.machining = sketch_design::generate_pattern("ramka", {}, 400, 300, 18).cuts.empty() ? json::array() : json::array();
+            for (const auto& cut : sketch_design::generate_pattern("ramka", {}, 400, 300, 18).cuts) part.machining.push_back(cut);
+            cad_geometry::reset_cache_stats();
+            cad_geometry::local_shape(part);
+            auto first = cad_geometry::cache_stats();
+            need(first.shape_misses >= 1, "pierwsze zbudowanie bryły powinno liczyć się jako przeliczenie");
+            part.operations = json::array({json{{"type", "drill"}, {"u", 100}, {"v", 100}, {"diameter", 8}, {"depth", 10}, {"face", "top"}}});
+            cad_geometry::local_shape(part);
+            auto second = cad_geometry::cache_stats();
+            need(second.shape_misses == first.shape_misses && second.shape_hits > first.shape_hits, "dodanie wiercenia przeliczyło bryłę bazową — pamięć podręczna powinna ją oddać");
+            part.fillets = json::array({json{{"edge", "top:0"}, {"radius", 4}}});
+            cad_geometry::local_shape(part);
+            need(cad_geometry::cache_stats().shape_misses > second.shape_misses, "zmiana zaokrąglenia musi przeliczyć bryłę");
+            cad_geometry::mesh(part);
+            auto meshed = cad_geometry::cache_stats();
+            cad_geometry::mesh(part);
+            need(cad_geometry::cache_stats().mesh_hits > meshed.mesh_hits, "ta sama siatka powinna pochodzić z pamięci podręcznej");
+            ctx.note(std::format("bryły: {} trafień / {} przeliczeń · siatki: {} / {}", cad_geometry::cache_stats().shape_hits, cad_geometry::cache_stats().shape_misses,
+                                 cad_geometry::cache_stats().mesh_hits, cad_geometry::cache_stats().mesh_misses));
+        });
+    }
+
     void test_sketch_tools() {
         const char* area = "Szkic — wskazówki, pole wartości, kształty, DXF";
         const char* where = "sketch_inference.cpp, sketch_shapes.cpp, dxf_import.cpp, sketch.cpp (local/key/value_apply/finish_shape/import_dxf)";
@@ -3333,6 +3767,7 @@ public:
         test_render_matrix();
         test_sketches();
         test_sketch_tools();
+        test_design();
         test_catalogue();
         test_files();
         test_program_files();

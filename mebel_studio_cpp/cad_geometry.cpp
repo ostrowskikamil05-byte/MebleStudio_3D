@@ -508,9 +508,20 @@ TopoDS_Shape outline_solid(const json& data) {
     return solid;
 }
 
-TopoDS_Shape cached_shape(const std::string& key_) {
-    static py::LruCache<TopoDS_Shape> cache(128);
-    return cache.get(key_, [](const std::string& key) {
+namespace {
+CacheStats g_stats;
+
+// Wiercenia nie wpływają na bryłę bazową (są wycinane osobno w cut_drills), więc nie wchodzą do klucza pamięci podręcznej:
+// dodanie okucia nie przelicza zaokrągleń, faz i frezowania — to najdroższa część budowy bryły.
+std::string shape_key_without_drilling(const std::string& key) {
+    json data = json::parse(key);
+    if (!data.is_object() || !data.contains("drilling")) return key;
+    data.erase("drilling");
+    return py::dumps(data, true, -1, true);
+}
+
+TopoDS_Shape build_shape(const std::string& key) {
+    {
         kernel(); json data = json::parse(key); std::vector<Point> points = points_from_json(data["points"]); double thickness = num(data["thickness"]);
         TopoDS_Shape shape = outline_solid(data);
         TopoDS_Shape nominal = shape;
@@ -565,7 +576,22 @@ TopoDS_Shape cached_shape(const std::string& key_) {
         if (!is_valid(shape) || volume(shape) <= 0 || entities(shape, TopAbs_SOLID).size() != 1)
             throw ValueError("Obróbka usuwa cały materiał lub dzieli część na oddzielne bryły.");
         return shape;
+    }
+}
+}  // namespace
+
+CacheStats cache_stats() { return g_stats; }
+void reset_cache_stats() { g_stats = CacheStats{}; }
+
+TopoDS_Shape cached_shape(const std::string& key_) {
+    static py::LruCache<TopoDS_Shape> cache(128);
+    bool computed = false;
+    TopoDS_Shape result = cache.get(shape_key_without_drilling(key_), [&computed](const std::string& key) {
+        computed = true;
+        return build_shape(key);
     });
+    ++(computed ? g_stats.shape_misses : g_stats.shape_hits);
+    return result;
 }
 
 std::string shape_key(const Part& part) {
@@ -590,7 +616,9 @@ TopoDS_Shape local_shape(const Part& part) { return cached_shape(shape_key(part)
 
 std::vector<Triangle> cached_mesh(const std::string& key_) {
     static py::LruCache<std::vector<Triangle>> cache(128);
-    return cache.get(key_, [](const std::string& key) {
+    bool computed = false;
+    auto result = cache.get(key_, [&computed](const std::string& key) {
+        computed = true;
         TopoDS_Shape shape = cached_shape(key);
         json data = json::parse(key); shape = cut_drills(shape, data["drilling"], num(data["thickness"]), points_from_json(data["points"]));
         // Shape.tessellate(0.2, 0.15)
@@ -615,6 +643,8 @@ std::vector<Triangle> cached_mesh(const std::string& key_) {
         for (auto& t : triangles) out.push_back({vertices[t[0]], vertices[t[1]], vertices[t[2]]});
         return out;
     });
+    ++(computed ? g_stats.mesh_misses : g_stats.mesh_hits);
+    return result;
 }
 
 std::vector<Triangle> mesh(const Part& part) { return cached_mesh(shape_key(part)); }

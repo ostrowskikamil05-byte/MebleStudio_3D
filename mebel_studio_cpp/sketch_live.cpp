@@ -7,6 +7,7 @@
 #include "app.h"
 #include "core.h"
 #include "gpu_viewport.h"
+#include "graphics_mode_ui.h"
 #include "native_viewport.h"
 #include "pyutil.h"
 #include "quick_studio_ui.h"
@@ -46,6 +47,16 @@ void install(Sketch* s) {
     panel->pack({{"side", "left"}, {"fill", "y"}, {"before", s->canvas->path()}});
     panel->pack_propagate(false);
     (new ttk::Label(panel, {{"text", "Podgląd 3D na żywo"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}});
+    graphics_mode_ui::add_compact(panel, s->app, "okno szkicownika");
+    graphics_mode_ui::add_listener([s] {
+        try {
+            if (!s->winfo_exists()) return false;
+            schedule(s);  // podgląd 3D na żywo przerysuje się w nowym trybie
+            return true;
+        } catch (const std::exception&) {
+            return false;
+        }
+    });
     s->live_canvas = new quick_studio_ui::StudioCanvas(panel, {{"bg", "#eef1f5"}, {"width", 239}, {"height", 350}, {"highlightthickness", 0}});
     s->live_canvas->pack({{"fill", "both"}, {"expand", true}, {"pady", 8}});
     s->live_note = tk::StringVar();

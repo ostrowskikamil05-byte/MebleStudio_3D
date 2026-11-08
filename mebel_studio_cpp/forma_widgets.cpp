@@ -66,6 +66,7 @@ tk::Frame* segmented(tk::Widget* parent, const std::vector<std::string>& labels,
             return no_event();
         });
     }
+    var.trace_add("write", paint);  // zmiana zmiennej z kodu (np. drugi przełącznik tego samego ustawienia) odmalowuje segmenty
     paint();
     return box;
 }

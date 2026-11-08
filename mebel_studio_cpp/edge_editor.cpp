@@ -1,5 +1,7 @@
 #include "edge_editor.h"
 
+#include "graphics_mode_ui.h"
+
 #include <algorithm>
 #include <format>
 #include <set>
@@ -44,6 +46,7 @@ EdgeEditor::EdgeEditor(App* app_, const Part& part_, std::optional<cad_geometry:
     auto* body = new ttk::Frame(this); body->pack({{"fill", "both"}, {"expand", true}});
     auto* side = new ttk::Frame(body, {{"padding", 10}}); side->pack({{"side", "left"}, {"fill", "y"}});
     auto* controls = new ttk::Frame(side); controls->pack({{"side", "bottom"}, {"fill", "x"}});
+    graphics_mode_ui::add_compact(controls, app_, "edytor krawędzi");
     radius = tk::StringVar("3");
     (new ttk::Label(controls, {{"text", "Odległość fazy / promień [mm]"}}))->pack({{"anchor", "w"}, {"pady", "8 0"}});
     (new ttk::Entry(controls, {{"textvariable", radius}}))->pack({{"fill", "x"}});

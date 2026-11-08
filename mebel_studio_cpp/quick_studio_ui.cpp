@@ -3,6 +3,7 @@
 #include "forma_widgets.h"
 #include "perf_monitor.h"
 #include "quick_studio_ui.h"
+#include "graphics_mode_ui.h"
 #include "production_docs.h"
 #include "production_inspector.h"
 #include "sheet_nesting.h"
@@ -1574,6 +1575,8 @@ void build(App* app) {
     make_group(pages["Szkic / CAD"], "ELEMENT");
     make_button(pages["Szkic / CAD"], "Dopasuj element", [app] { if (app->fit_selected) app->fit_selected(); });
     side_panels::register_row("fillet", make_button(pages["Szkic / CAD"], "Zaokrąglenia", [app] { side_panels::show_fillet(app); }));
+    make_group(pages["Szkic / CAD"], "GRAFIKA");
+    graphics_mode_ui::add_compact(pages["Szkic / CAD"], app, "zakładka CAD");
     make_group(pages["Szkic / CAD"], "TRYB MYSZY");
     auto* modes = new ttk::Combobox(pages["Szkic / CAD"], {{"state", "readonly"}, {"width", 24}, {"values", std::vector<std::string>{"Wybór / obrót", "Rozciągaj część", "Rozciągaj mebel", "Kanty"}}});
     modes->current(0);

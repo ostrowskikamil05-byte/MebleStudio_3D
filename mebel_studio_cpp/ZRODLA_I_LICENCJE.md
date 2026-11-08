@@ -20,6 +20,10 @@ To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem p
 | VTK (opcjonalnie, rendering GPU) | BSD 3-Clause | tylko gdy zbudowano z VTK |
 | Pakiet środowiska Python (katalog `licencje`) | różne (BSD/MIT/NCSA) | dotyczy dołączonej wersji 0.14 |
 
+## Własne implementacje (bez cudzego kodu)
+- Tryb grafiki Klasyczny/Realistyczny (`render_style`, `graphics_mode_ui`), kanty i wzorki szkicownika (`sketch_design`) — napisane od zera dla tego programu;
+  z makiety użytkownika wzięto wyłącznie ogólny układ interfejsu (panel „Silnik i jakość 3D”, zaokrąglenia, fronty). Nie używamy żadnych zewnętrznych grafik ani tekstów.
+
 ## Czego jeszcze brakuje
 - Zbiorczego pliku z pełnymi tekstami licencji dla wersji C++ (OpenCASCADE, Tcl/Tk, VTK) w paczce wydawniczej.
 - Przeglądu czcionek i ikon użytych w interfejsie pod kątem licencji.

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include "core.h"
+#include "render_style.h"
 #include "ui_preferences.h"
 
 namespace view_style {
@@ -16,9 +17,12 @@ struct State {
     bool shadows = true;   // cienie kontaktowe pod meblami
     int aa = 0;            // MSAA dla silnika OpenGL (0 = wyłączony); działa od następnego uruchomienia
     int background = 0;    // indeks palety tła
+    render_style::Mode mode = render_style::Mode::Classic;  // tryb grafiki: klasyczny / realistyczny
 };
 
 inline State state;
+
+inline bool realistic() { return state.mode == render_style::Mode::Realistic; }
 
 struct Palette {
     const char* swatch;      // próbka w panelu
@@ -53,6 +57,7 @@ inline void load() {
         state.shadows = data.value("shadows", true);
         state.aa = std::clamp(data.value("aa", 0), 0, 8);
         state.background = std::clamp(data.value("background", 0), 0, 3);
+        state.mode = render_style::mode_from(data.value("mode", std::string("classic")));
     } catch (...) {
     }
 }
@@ -61,7 +66,8 @@ inline void save() {
     try {
         std::filesystem::create_directories(file_path().parent_path());
         std::ofstream output(file_path());
-        core::json data = {{"lighting", state.lighting}, {"shadows", state.shadows}, {"aa", state.aa}, {"background", state.background}};
+        core::json data = {{"lighting", state.lighting}, {"shadows", state.shadows}, {"aa", state.aa}, {"background", state.background},
+                           {"mode", render_style::info(state.mode).id}};
         output << data.dump(2);
     } catch (...) {
     }

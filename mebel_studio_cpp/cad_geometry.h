@@ -57,6 +57,14 @@ std::pair<json, json> grouped_edge_features(const std::map<std::string, EdgeSpec
 // Extrude exact parametric outline; polygon points remain a GUI proxy.
 TopoDS_Shape outline_solid(const json& data);
 
+// Liczniki pamięci podręcznej brył i siatek (do testów i dziennika wydajności).
+struct CacheStats {
+    size_t shape_hits = 0, shape_misses = 0, mesh_hits = 0, mesh_misses = 0;
+};
+CacheStats cache_stats();
+void reset_cache_stats();
+
+// Klucz pamięci podręcznej pomija wiercenia (bryła bazowa nie zależy od okuć).
 TopoDS_Shape cached_shape(const std::string& key);  // @lru_cache(maxsize=128)
 
 std::string shape_key(const core::Part& part);

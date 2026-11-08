@@ -20,6 +20,7 @@
 #include <vector>
 #include "core.h"
 #include "dock_workspace.h"
+#include "sketch_design.h"
 #include "sketch_inference.h"
 #include "tk.h"
 #include "ttk.h"
@@ -33,6 +34,7 @@ using json = core::json;
 using Point = core::Point;
 
 core::Part normalized_part(const core::Part& part, const std::vector<Point>& points);
+std::string design_role(const core::Part& part);  // funkcja elementu przy przekazywaniu kantów (lewy i prawy bok = „side”)
 // next(p for p in project.parts if p.id == id) — py::StopIteration, gdy brak.
 core::Part& find_part(core::Project& project, const std::string& id);
 
@@ -91,6 +93,48 @@ public:
     quick_studio_ui::StudioCanvas* live_canvas = nullptr;
     tk::StringVar live_note;
     std::function<void()> viewport_preferences_changed;
+
+    // --- kanty, wzorki i zestaw elementów (projektowanie całego mebla w jednym oknie)
+    struct EdgeAssign { std::string style; double size = 0; int segment = -1; };   // segment −1 = wszystkie boki konturu
+    struct PatternAssign { std::string id, face; std::map<std::string, double> params; };
+    struct Staged {
+        std::string name, group, thickness, role, plane, level, hinge_side;
+        std::vector<Point> points;
+        core::Part part;
+        int material_index = 0;
+        bool automatic = false;
+        std::vector<EdgeAssign> edges;
+        std::vector<PatternAssign> patterns;
+    };
+    std::vector<EdgeAssign> edge_assigns;
+    size_t design_skipped = 0;                    // frezy wzorków pominięte przy ostatnim nałożeniu (nie mieszczą się w konturze)
+    std::vector<PatternAssign> pattern_assigns;
+    std::vector<Staged> staged;                   // elementy odłożone do zestawu (zapisywane razem jednym krokiem)
+    tk::StringVar edge_style_var, edge_size, edge_scope, pattern_var, pattern_face, design_note;
+    tk::BooleanVar propagate;                     // przekaż kanty i wzorki pasującym elementom mebla
+    std::vector<tk::StringVar> pattern_labels, pattern_values;
+    std::vector<ttk::Frame*> pattern_rows;
+    tk::Canvas* edge_preview = nullptr;
+    tk::Canvas* pattern_preview = nullptr;
+    tk::Listbox* staged_list = nullptr;
+    ttk::Checkbutton* propagate_check = nullptr;
+    void edge_style_selected();
+    void pattern_selected();
+    void draw_edge_preview();
+    void draw_pattern_preview();
+    void apply_edge_ui();
+    void add_pattern_ui();
+    void clear_patterns_ui();
+    void refresh_design_note();
+    // Nakłada kanty i wzorki na część (q.fillets / q.chamfers / q.machining); ValueError z powodem, gdy się nie da.
+    void apply_design(core::Part& q);
+    void draw_design_overlay();
+    void propagate_design(core::ProjectPtr& project, const std::string& saved_id);
+    bool stage_element();
+    void unstage_selected();
+    void load_staged(const Staged& item);
+    bool save_all();
+    void refresh_staged_list();
 
     Sketch(App* app, const core::Part* part = nullptr);
 

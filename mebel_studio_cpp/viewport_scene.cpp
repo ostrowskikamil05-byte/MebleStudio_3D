@@ -1,5 +1,6 @@
 // Tłumaczenie 1:1 viewport_scene.py (patrz viewport_scene.h).
 #include "viewport_scene.h"
+#include "render_style.h"
 #include "view_style.h"
 
 #include <algorithm>
@@ -433,7 +434,50 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
             }
         }
     }
-    if (options.shadows && view_style::state.shadows) {
+    // Tryb realistyczny: płytki podłogi (fugi) rysowane zawsze, siatka techniczna nadal tylko na życzenie.
+    if (view_style::realistic() && std::fabs(std::sin(camera.pitch * (std::numbers::pi / 180))) > .035) {
+        std::string tile_color = mix_color(floor, brightness < .65 ? "#ffffff" : "#8d8272", brightness < .65 ? .06 : .13);
+        double tile_extent = std::max(width, height) / scale * .9;
+        for (const auto& line : render_style::floor_tile_lines(center_x, center_y, tile_extent, 600, floor_z, options.interactive ? 10 : 16)) {
+            Point3 pa = camera.project({line.a[0], line.a[1], line.a[2] + .02}, width, height), pb = camera.project({line.b[0], line.b[1], line.b[2] + .02}, width, height);
+            canvas->create_line(std::vector<double>{pa[0], pa[1], pb[0], pb[1]}, {{"fill", tile_color}, {"width", 1}, {"tags", "viewport.tiles"}});
+            ++count;
+        }
+    }
+    if (options.shadows && view_style::state.shadows && view_style::realistic()) {
+        // Miękki cień rzucany przez cały mebel (rzut wzdłuż światła głównego + półcień), a nie tylko cień kontaktowy.
+        auto& cache = context->cast_hulls;
+        if (!cache.contains(options.include_fittings)) {
+            auto& entry = cache[options.include_fittings];
+            for (const auto& group : groups) {
+                if (group.second.empty()) continue;
+                double low = group.second[0][2], high = low;
+                std::vector<render_style::Point2> footprint;
+                for (const auto& p : group.second) { low = std::min(low, p[2]); high = std::max(high, p[2]); footprint.push_back({p[0], p[1]}); }
+                entry.push_back({low, high, render_style::convex_hull(footprint)});
+            }
+        }
+        render_style::ShadowSettings settings;
+        settings.layers = options.interactive ? 3 : 6;
+        if (brightness < .65) settings.max_strength = .42;
+        const std::string shadow_color = brightness < .65 ? "#101114" : "#3a342c";
+        std::vector<std::vector<render_style::ShadowLayer>> all;
+        size_t counted = 0;
+        for (const auto& item : cache[options.include_fittings]) {
+            if (counted++ >= 40) break;
+            if (item.hull.size() < 3) continue;
+            all.push_back(render_style::cast_shadow(item.hull, std::max(0.0, item.bottom - floor_z), std::max(0.0, item.top - floor_z), settings));
+        }
+        // warstwy zewnętrzne wszystkich mebli najpierw, potem wewnętrzne — nakładające się cienie nie ciemnieją podwójnie
+        for (int layer = 0; layer < settings.layers; ++layer)
+            for (const auto& shadow : all) {
+                if (layer >= (int)shadow.size()) continue;
+                std::vector<Point3> screen;
+                for (const auto& p : shadow[(size_t)layer].polygon) screen.push_back(camera.project({p[0], p[1], floor_z + .03}, width, height));
+                canvas->create_polygon(flat(screen), {{"fill", mix_color(floor, shadow_color, shadow[(size_t)layer].strength)}, {"outline", ""}, {"tags", "viewport.shadow"}});
+                ++count;
+            }
+    } else if (options.shadows && view_style::state.shadows) {
         // Contact shadows should not suggest a hanging cabinet touches the floor.
         auto& cache = context->shadow_hulls;
         if (!cache.contains(options.include_fittings)) {

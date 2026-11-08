@@ -120,6 +120,12 @@ std::vector<Point> offset_contour(const std::vector<Point>& pts, double distance
 
 }  // namespace
 
+// „Ta sama funkcja” przy przekazywaniu kantów i wzorków: lewy i prawy bok to jedna para.
+std::string design_role(const core::Part& p) {
+    std::string r = assembly::inferred_role(p);
+    return r == "left" || r == "right" ? "side" : r;
+}
+
 core::Part& find_part(core::Project& project, const std::string& id) {
     for (auto& p : project.parts)
         if (p.id == id) return p;
@@ -318,6 +324,79 @@ Sketch::Sketch(App* app_, const core::Part* part_)
         param_entry->bind("<KeyRelease>", [this](tk::Event&) { draw_profile_preview(); return std::string(); });
         draw_profile_preview();
         (new ttk::Button(side, {{"text", "Wstaw profil"}, {"command", Cmd([this] { insert_profile(); })}}))->pack({{"fill", "x"}, {"pady", 3}});
+    }
+    (new ttk::Label(side, {{"text", "Kanty i wzorki"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 4"}});
+    {
+        (new ttk::Label(side, {{"text", "Kant (obróbka krawędzi płyty)"}}))->pack({{"anchor", "w"}});
+        std::vector<std::string> edge_names;
+        for (const auto& info : sketch_design::edge_styles()) edge_names.push_back(info.name);
+        edge_style_var = tk::StringVar(edge_names.at(1));
+        edge_size = tk::StringVar("3");
+        edge_scope = tk::StringVar("Wybrany bok konturu");
+        auto* edge_combo = new ttk::Combobox(side, {{"textvariable", edge_style_var}, {"values", edge_names}, {"state", "readonly"}});
+        edge_combo->pack({{"fill", "x"}, {"pady", 2}});
+        edge_preview = new tk::Canvas(side, {{"width", 110}, {"height", 64}, {"bg", forma_theme::CARD}, {"highlightthickness", 1}, {"highlightbackground", forma_theme::BORDER}});
+        edge_preview->pack({{"anchor", "w"}, {"pady", "2 4"}});
+        edge_combo->bind("<<ComboboxSelected>>", [this](tk::Event&) { edge_style_selected(); return std::string(); });
+        auto* edge_row = new ttk::Frame(side);
+        edge_row->pack({{"fill", "x"}});
+        (new ttk::Label(edge_row, {{"text", "R / C"}}))->pack({{"side", "left"}});
+        (new ttk::Entry(edge_row, {{"textvariable", edge_size}, {"width", 6}}))->pack({{"side", "left"}, {"padx", 3}});
+        (new ttk::Label(edge_row, {{"text", "mm"}}))->pack({{"side", "left"}});
+        (new ttk::Combobox(side, {{"textvariable", edge_scope}, {"values", std::vector<std::string>{"Wybrany bok konturu", "Wszystkie boki konturu"}}, {"state", "readonly"}}))
+            ->pack({{"fill", "x"}, {"pady", 2}});
+        (new ttk::Button(side, {{"text", "Zastosuj kant"}, {"command", Cmd([this] { apply_edge_ui(); })}}))->pack({{"fill", "x"}, {"pady", 2}});
+        draw_edge_preview();
+
+        (new ttk::Label(side, {{"text", "Wzorek frezowany"}}))->pack({{"anchor", "w"}, {"pady", "8 0"}});
+        std::vector<std::string> pattern_names;
+        for (const auto& info : sketch_design::pattern_catalog()) pattern_names.push_back(info.name);
+        pattern_var = tk::StringVar(pattern_names.at(0));
+        pattern_face = tk::StringVar("Góra (+T)");
+        auto* pattern_combo = new ttk::Combobox(side, {{"textvariable", pattern_var}, {"values", pattern_names}, {"state", "readonly"}});
+        pattern_combo->pack({{"fill", "x"}, {"pady", 2}});
+        pattern_preview = new tk::Canvas(side, {{"width", 150}, {"height", 90}, {"bg", forma_theme::CARD}, {"highlightthickness", 1}, {"highlightbackground", forma_theme::BORDER}});
+        pattern_preview->pack({{"anchor", "w"}, {"pady", "2 4"}});
+        pattern_combo->bind("<<ComboboxSelected>>", [this](tk::Event&) { pattern_selected(); return std::string(); });
+        size_t max_params = 0;
+        for (const auto& info : sketch_design::pattern_catalog()) max_params = std::max(max_params, info.params.size());
+        pattern_labels.assign(max_params, tk::StringVar(""));
+        pattern_values.assign(max_params, tk::StringVar(""));
+        for (size_t i = 0; i < max_params; ++i) {
+            pattern_labels[i] = tk::StringVar("");
+            pattern_values[i] = tk::StringVar("");
+            auto* row_frame = new ttk::Frame(side);
+            (new ttk::Label(row_frame, {{"textvariable", pattern_labels[i]}, {"wraplength", 190}}))->pack({{"side", "left"}});
+            (new ttk::Entry(row_frame, {{"textvariable", pattern_values[i]}, {"width", 7}}))->pack({{"side", "right"}});
+            pattern_rows.push_back(row_frame);
+        }
+        (new ttk::Combobox(side, {{"textvariable", pattern_face}, {"values", std::vector<std::string>{"Góra (+T)", "Spód (−T)"}}, {"state", "readonly"}}))
+            ->pack({{"fill", "x"}, {"pady", 2}});
+        auto* pattern_buttons = new ttk::Frame(side);
+        pattern_buttons->pack({{"fill", "x"}});
+        (new ttk::Button(pattern_buttons, {{"text", "Dodaj wzorek"}, {"command", Cmd([this] { add_pattern_ui(); })}}))->pack({{"side", "left"}, {"expand", true}, {"fill", "x"}});
+        (new ttk::Button(pattern_buttons, {{"text", "Usuń wzorki"}, {"command", Cmd([this] { clear_patterns_ui(); })}}))->pack({{"side", "left"}, {"expand", true}, {"fill", "x"}});
+        design_note = tk::StringVar("Kanty i wzorki: brak");
+        (new ttk::Label(side, {{"textvariable", design_note}, {"wraplength", 270}, {"foreground", forma_theme::MUTED}}))->pack({{"anchor", "w"}, {"pady", "4 0"}});
+        propagate = tk::BooleanVar(false);
+        size_t siblings = original ? sketch_design::matching_parts(*app->project, *original, design_role).size() : 0;
+        propagate_check = new ttk::Checkbutton(side, {{"text", siblings ? std::format("Przekaż kanty i wzorki pasującym elementom mebla ({})", siblings)
+                                                                         : std::string("Przekazanie pasującym elementom: brak takich elementów")},
+                                                      {"variable", propagate}, {"state", siblings ? "normal" : "disabled"}});
+        propagate_check->pack({{"anchor", "w"}, {"pady", 2}});
+        pattern_selected();
+    }
+    (new ttk::Label(side, {{"text", "Zestaw elementów (cały mebel)"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 4"}});
+    {
+        (new ttk::Label(side, {{"text", "Narysuj kontur, ustaw kanty i wzorki, wybierz funkcję (bok, półka, front…) i dodaj do zestawu. Rysuj kolejne elementy; na końcu zapisz cały mebel jednym krokiem."},
+                               {"wraplength", 270}, {"foreground", forma_theme::MUTED}}))->pack({{"anchor", "w"}});
+        staged_list = new tk::Listbox(side, {{"height", 5}, {"exportselection", false}});
+        staged_list->pack({{"fill", "x"}, {"pady", 3}});
+        auto* staged_buttons = new ttk::Frame(side);
+        staged_buttons->pack({{"fill", "x"}});
+        (new ttk::Button(staged_buttons, {{"text", "Dodaj element do zestawu"}, {"command", Cmd([this] { stage_element(); })}}))->pack({{"fill", "x"}});
+        (new ttk::Button(staged_buttons, {{"text", "Usuń z zestawu"}, {"command", Cmd([this] { unstage_selected(); })}}))->pack({{"fill", "x"}, {"pady", 2}});
+        (new ttk::Button(staged_buttons, {{"text", "Zapisz cały mebel"}, {"command", Cmd([this] { save_all(); })}, {"style", "Accent.TButton"}}))->pack({{"fill", "x"}});
     }
     (new ttk::Label(side, {{"text", "2. Narysuj lub dopasuj kontur"}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 6"}});
     for (auto& [key, label_] : std::vector<std::pair<std::string, std::string>>{{"name", "Nazwa"}, {"group", "Mebel / grupa"}, {"t", "Grubość [mm]"}}) {
@@ -543,6 +622,7 @@ std::pair<core::ProjectPtr, std::string> Sketch::candidate() {
     base.plane = plane.get();
     base.material = app->project->materials.at(material->current()).id;
     core::Part q = normalized_part(base, points);
+    apply_design(q);
     std::string group = role_name != "other" ? target.get() : fields.at("group").get();
     if (!original && replace_existing.get() && (role_name == "left" || role_name == "right" || role_name == "top" || role_name == "bottom")) {
         std::vector<const core::Part*> targets;
@@ -1170,6 +1250,7 @@ void Sketch::draw() {
             c->create_oval(m.first - 4, m.second - 4, m.first + 4, m.second + 4, {{"fill", inference.color}, {"outline", "white"}});
         label(m.first + 16 + inference.tip.size() * 3, m.second - 16, inference.tip, inference.color);
     }
+    draw_design_overlay();
 }
 
 bool Sketch::new_element(bool discard_confirmed) {
@@ -1197,6 +1278,9 @@ bool Sketch::new_element(bool discard_confirmed) {
     cursor.reset();
     history.clear();
     replace_existing.set(false);
+    edge_assigns.clear();
+    pattern_assigns.clear();
+    design_note.set("Kanty i wzorki: brak");
     fields.at("name").set("Własny element");
     fields.at("group").set(group);
     listbox->delete_("0", "end");
@@ -1214,6 +1298,11 @@ void Sketch::set_sketch_points(const std::vector<Point>& new_points) {
         throw ValueError("Ten szkic ma obróbkę. Zastosuj odbicie części z menu CAD, aby przeliczyć także otwory i profile.");
     if (closed) normalized_part(part, new_points);
     checkpoint();
+    if (new_points.size() != points.size() && std::any_of(edge_assigns.begin(), edge_assigns.end(), [](const EdgeAssign& e) { return e.segment >= 0; })) {
+        std::erase_if(edge_assigns, [](const EdgeAssign& e) { return e.segment >= 0; });
+        journal::event(app, "kanty i wzorki", "zmieniła się liczba boków konturu — kanty ustawione na pojedynczych bokach zostały usunięte (kanty „wszystkie boki” zostają)");
+        status.set("Zmieniła się liczba boków konturu — kanty pojedynczych boków usunięto, ustaw je ponownie.");
+    }
     points = new_points;
     cursor.reset();
     update_list();
@@ -1720,10 +1809,359 @@ bool Sketch::import_dxf(const std::string& path_in, bool confirm_replace) {
     }
 }
 
+// ---------------------------------------------------------------- kanty, wzorki i zestaw elementów
+
+void Sketch::edge_style_selected() {
+    draw_edge_preview();
+    journal::event(app, "kanty i wzorki", "wybrano styl kantu „" + edge_style_var.get() + "”");
+}
+
+void Sketch::draw_edge_preview() {
+    if (edge_preview == nullptr) return;
+    edge_preview->delete_("edge_preview");
+    try {
+        std::vector<Point> shape = sketch_design::edge_section_thumbnail(edge_style_var.get(), 110, 64, 10);
+        if (shape.size() < 3) return;
+        std::vector<double> coords;
+        for (const auto& p : shape) { coords.push_back(p[0]); coords.push_back(p[1]); }
+        edge_preview->create_polygon(coords, {{"fill", "#e6ddd0"}, {"outline", "#6b5a45"}, {"width", 1.5}, {"tags", "edge_preview"}});
+    } catch (const std::exception&) {
+    }
+}
+
+void Sketch::pattern_selected() {
+    try {
+        const auto& info = sketch_design::pattern_info(pattern_var.get());
+        for (size_t i = 0; i < pattern_rows.size(); ++i) {
+            if (i < info.params.size()) {
+                pattern_labels[i].set(info.params[i].label);
+                pattern_values[i].set(g(info.params[i].def));
+                pattern_rows[i]->pack({{"fill", "x"}, {"pady", 1}});
+            } else {
+                pattern_rows[i]->pack_forget();
+            }
+        }
+        draw_pattern_preview();
+        journal::event(app, "kanty i wzorki", "wybrano wzorek „" + info.name + "” (" + std::to_string(info.params.size()) + " parametrów)");
+    } catch (const std::exception& e) {
+        journal::event(app, "kanty i wzorki", std::string("wybór wzorka odrzucony: ") + e.what());
+    }
+}
+
+void Sketch::draw_pattern_preview() {
+    if (pattern_preview == nullptr) return;
+    pattern_preview->delete_("pattern_preview");
+    try {
+        auto shapes = sketch_design::pattern_thumbnail(pattern_var.get(), 150, 90, 6);
+        for (size_t i = 0; i < shapes.size(); ++i) {
+            std::vector<double> coords;
+            for (const auto& p : shapes[i]) { coords.push_back(p[0]); coords.push_back(p[1]); }
+            if (coords.size() < 6) continue;
+            if (i == 0) pattern_preview->create_polygon(coords, {{"fill", "#e6ddd0"}, {"outline", "#6b5a45"}, {"width", 1.5}, {"tags", "pattern_preview"}});
+            else pattern_preview->create_polygon(coords, {{"fill", "#8a7355"}, {"outline", ""}, {"tags", "pattern_preview"}});
+        }
+    } catch (const std::exception&) {
+    }
+}
+
+void Sketch::refresh_design_note() {
+    std::string text;
+    for (const auto& e : edge_assigns) {
+        if (!text.empty()) text += ", ";
+        text += sketch_design::describe_edge_style(e.style, e.size, 1);
+        text += e.segment < 0 ? " (wszystkie boki)" : std::format(" (bok {})", e.segment + 1);
+    }
+    std::string patterns;
+    for (const auto& p : pattern_assigns) patterns += (patterns.empty() ? "" : ", ") + sketch_design::pattern_info(p.id).name;
+    if (text.empty() && patterns.empty()) design_note.set("Kanty i wzorki: brak");
+    else design_note.set("Kanty: " + (text.empty() ? std::string("brak") : text) + " · Wzorki: " + (patterns.empty() ? std::string("brak") : patterns));
+    draw();
+}
+
+void Sketch::apply_edge_ui() {
+    try {
+        if (!closed) throw ValueError("Najpierw zamknij kontur — kant dotyczy boku gotowej płyty.");
+        const auto& style = sketch_design::edge_style(edge_style_var.get());
+        double size = style.has_size ? number(edge_size) : 0;
+        int segment = -1;
+        if (edge_scope.get() == "Wybrany bok konturu") {
+            auto index = selected_index();
+            if (!index) throw ValueError("Wybierz bok konturu: zaznacz jego pierwszy punkt na liście (boki liczone od zaznaczonego punktu do następnego).");
+            segment = (int)*index;
+        }
+        // próba na kopii, żeby błąd (np. promień większy niż pół grubości) zgłosić od razu, a nie dopiero przy zapisie
+        auto saved = edge_assigns;
+        std::erase_if(edge_assigns, [&](const EdgeAssign& e) { return segment < 0 || e.segment == segment; });
+        edge_assigns.push_back({style.id, size, segment});
+        try {
+            core::Part probe = normalized_part(part, points);
+            probe.t = number(fields.at("t"));
+            apply_design(probe);
+        } catch (...) {
+            edge_assigns = saved;
+            throw;
+        }
+        journal::event(app, "kanty i wzorki", "kant: " + sketch_design::describe_edge_style(style.id, size, segment < 0 ? points.size() * 2 : 2) +
+                                                 (segment < 0 ? " · wszystkie boki konturu" : std::format(" · bok {}", segment + 1)));
+        status.set("Ustawiono kant: " + style.name + (style.has_size ? " " + g(size) + " mm" : std::string()) + ". Zobaczysz go w podglądzie 3D.");
+        refresh_design_note();
+        sketch_live::schedule(this);
+    } catch (const std::invalid_argument& e) {
+        journal::event(app, "kanty i wzorki", std::string("kant odrzucony: ") + e.what());
+        tk::messagebox::showerror("Kant", e.what(), this);
+    }
+}
+
+void Sketch::add_pattern_ui() {
+    try {
+        if (!closed) throw ValueError("Najpierw zamknij kontur — wzorek frezuje się na gotowej płycie.");
+        const auto& info = sketch_design::pattern_info(pattern_var.get());
+        PatternAssign assign{info.id, pattern_face.get() == "Spód (−T)" ? "bottom" : "top", {}};
+        for (size_t i = 0; i < info.params.size(); ++i) assign.params[info.params[i].key] = number(pattern_values[i]);
+        auto saved = pattern_assigns;
+        std::erase_if(pattern_assigns, [&](const PatternAssign& p) { return p.id == info.id; });
+        pattern_assigns.push_back(assign);
+        core::Part probe = normalized_part(part, points);
+        try {
+            probe.t = number(fields.at("t"));
+            apply_design(probe);
+        } catch (...) {
+            pattern_assigns = saved;
+            throw;
+        }
+        const std::string skipped_note = design_skipped ? std::format(" (pominięto {} frezów niemieszczących się w konturze)", design_skipped) : std::string();
+        journal::event(app, "kanty i wzorki", std::format("wzorek „{}” na {}: {} frezów{}", info.name, assign.face == "top" ? "górze" : "spodzie", sketch_design::count_patterns(probe.machining, info.id), skipped_note));
+        status.set(std::format("Dodano wzorek „{}”: {} frezów{}.", info.name, sketch_design::count_patterns(probe.machining, info.id), skipped_note));
+        refresh_design_note();
+        sketch_live::schedule(this);
+    } catch (const std::invalid_argument& e) {
+        journal::event(app, "kanty i wzorki", std::string("wzorek odrzucony: ") + e.what());
+        tk::messagebox::showerror("Wzorek", e.what(), this);
+    }
+}
+
+void Sketch::clear_patterns_ui() {
+    journal::event(app, "kanty i wzorki", std::format("usunięto wzorki ({}) i kanty ({}) ze szkicu", pattern_assigns.size(), edge_assigns.size()));
+    pattern_assigns.clear();
+    edge_assigns.clear();
+    status.set("Usunięto kanty i wzorki ze szkicu.");
+    refresh_design_note();
+    sketch_live::schedule(this);
+}
+
+void Sketch::apply_design(core::Part& q) {
+    design_skipped = 0;
+    if (edge_assigns.empty() && pattern_assigns.empty()) return;
+    try {
+        std::vector<Point> contour = q.points();
+        const bool curved = py::truthy(q.profile) && q.profile.value("kind", std::string("rectangle")) != "rectangle" && q.profile.value("kind", std::string("rectangle")) != "taper";
+        if (curved && !edge_assigns.empty())
+            throw ValueError("Kanty elementu o profilu krzywoliniowym ustaw w edytorze krawędzi CAD (każda krawędź ma tam własny identyfikator).");
+        for (const auto& e : edge_assigns) {
+            std::vector<std::string> ids;
+            if (e.segment < 0) ids = sketch_design::edge_ids_all(contour.size());
+            else if ((size_t)e.segment < contour.size()) ids = sketch_design::edge_ids_for_segment((size_t)e.segment);
+            else throw ValueError(std::format("Kant boku {} nie pasuje do konturu o {} bokach.", e.segment + 1, contour.size()));
+            auto change = sketch_design::apply_edge_style(q.fillets, q.chamfers, e.style, e.size, ids, q.t);
+            q.fillets = change.fillets;
+            q.chamfers = change.chamfers;
+        }
+        for (const auto& p : pattern_assigns) {
+            auto result = sketch_design::generate_pattern(p.id, contour, q.u, q.v, q.t, p.params, p.face);
+            design_skipped += result.skipped;
+            q.machining = sketch_design::merge_pattern(q.machining, p.id, result.cuts);
+        }
+        q.validate();
+    } catch (const std::invalid_argument& e) {
+        throw ValueError(std::string("Kanty lub wzorek: ") + e.what());
+    }
+}
+
+void Sketch::draw_design_overlay() {
+    if (!closed || points.size() < 3 || (edge_assigns.empty() && pattern_assigns.empty())) return;
+    for (const auto& e : edge_assigns) {
+        std::vector<size_t> segments;
+        if (e.segment < 0) for (size_t i = 0; i < points.size(); ++i) segments.push_back(i);
+        else if ((size_t)e.segment < points.size()) segments.push_back((size_t)e.segment);
+        for (size_t i : segments) {
+            auto a = screen(points[i]), b = screen(points[(i + 1) % points.size()]);
+            if (e.style == "prosta") continue;
+            canvas->create_line({a.first, a.second, b.first, b.second}, {{"fill", "#e8872b"}, {"width", 4}});
+            if (segments.size() <= 12)
+                label((a.first + b.first) / 2, (a.second + b.second) / 2 + 12, std::string(e.style == "fazka" ? "C" : "R") + g(e.size), "#b06d27");
+        }
+    }
+    if (pattern_assigns.empty()) return;
+    try {
+        double umin = points[0][0], vmin = points[0][1], umax = umin, vmax = vmin;
+        for (const auto& p : points) { umin = std::min(umin, p[0]); vmin = std::min(vmin, p[1]); umax = std::max(umax, p[0]); vmax = std::max(vmax, p[1]); }
+        std::vector<Point> local;
+        for (const auto& p : points) local.push_back({p[0] - umin, p[1] - vmin});
+        double t = number(fields.at("t"));
+        for (const auto& pattern : pattern_assigns) {
+            auto result = sketch_design::generate_pattern(pattern.id, local, umax - umin, vmax - vmin, t, pattern.params, pattern.face);
+            for (const auto& cut : result.cuts) {
+                std::vector<double> coords;
+                for (const auto& p : sketch_design::cut_outline(cut, 14)) {
+                    auto s = screen({p[0] + umin, p[1] + vmin});
+                    coords.push_back(s.first);
+                    coords.push_back(s.second);
+                }
+                canvas->create_polygon(coords, {{"fill", "#d6c7ad"}, {"outline", "#8a7355"}});
+            }
+        }
+    } catch (const std::exception&) {
+        // wzorek przestał pasować do zmienionego konturu — komunikat pojawi się przy zapisie albo następnym dodaniu
+    }
+}
+
+void Sketch::propagate_design(core::ProjectPtr& project, const std::string& saved_id) {
+    if (!original || (edge_assigns.empty() && pattern_assigns.empty())) return;
+    auto role_of = design_role;
+    if (points != original->points()) {
+        journal::event(app, "kanty i wzorki", "przekazanie pominięte: kontur elementu został zmieniony, więc pasujące elementy nie są już takie same");
+        return;
+    }
+    auto ids = sketch_design::matching_parts(*app->project, *original, role_of);
+    size_t done = 0;
+    for (const auto& sid : ids) {
+        if (sid == saved_id) continue;
+        try {
+            core::Part sibling = find_part(*project, sid);
+            apply_design(sibling);
+            project = features::replace_part(*project, sibling);
+            ++done;
+            journal::event(app, "kanty i wzorki", "przekazano kanty i wzorki elementowi „" + sibling.name + "” (" + sid + ")");
+        } catch (const std::invalid_argument& e) {
+            journal::event(app, "kanty i wzorki", "przekazanie elementowi " + sid + " odrzucone: " + e.what());
+        }
+    }
+    status.set(std::format("Kanty i wzorki przekazano {} z {} pasujących elementów.", done, ids.size()));
+}
+
+void Sketch::refresh_staged_list() {
+    if (staged_list == nullptr) return;
+    staged_list->delete_("0", "end");
+    for (size_t i = 0; i < staged.size(); ++i) {
+        const auto& s = staged[i];
+        staged_list->insert("end", std::format("{}. {} · {} · {} pkt · {} kantów · {} wzorków", i + 1, s.name, s.role, s.points.size(), s.edges.size(), s.patterns.size()));
+    }
+}
+
+bool Sketch::stage_element() {
+    try {
+        if (original) throw ValueError("To okno edytuje istniejący element. Zestaw buduje się z nowych elementów — użyj „Nowy element”.");
+        if (!closed || points.empty()) throw ValueError("Najpierw zamknij kontur, który ma trafić do zestawu.");
+        auto candidate_result = candidate();  // pełne sprawdzenie na bieżącym projekcie (wiązania, okucia, kanty, wzorki)
+        (void)candidate_result;
+        Staged item;
+        item.name = fields.at("name").get();
+        item.group = fields.at("group").get();
+        item.thickness = fields.at("t").get();
+        item.role = role.get();
+        item.plane = plane.get();
+        item.level = level.get();
+        item.hinge_side = hinge_side.get();
+        item.automatic = automatic.get();
+        item.points = points;
+        item.part = part;
+        item.material_index = material->current();
+        item.edges = edge_assigns;
+        item.patterns = pattern_assigns;
+        staged.push_back(item);
+        journal::event(app, "kanty i wzorki", std::format("do zestawu dodano element „{}” ({}), w zestawie: {}", item.name, item.role, staged.size()));
+        refresh_staged_list();
+        new_element(true);
+        status.set(std::format("Dodano do zestawu ({}). Rysuj kolejny element albo zapisz cały mebel.", staged.size()));
+        return true;
+    } catch (const std::invalid_argument& e) {
+        journal::event(app, "kanty i wzorki", std::string("dodanie do zestawu odrzucone: ") + e.what());
+        tk::messagebox::showerror("Zestaw elementów", e.what(), this);
+        return false;
+    }
+}
+
+void Sketch::unstage_selected() {
+    auto selection = staged_list->curselection();
+    if (selection.empty()) {
+        journal::event(app, "kanty i wzorki", "usunięcie z zestawu odrzucone: nie wybrano elementu");
+        status.set("Wybierz element zestawu na liście, aby go usunąć.");
+        return;
+    }
+    size_t index = (size_t)selection[0];
+    if (index >= staged.size()) return;
+    journal::event(app, "kanty i wzorki", "usunięto z zestawu element „" + staged[index].name + "”");
+    staged.erase(staged.begin() + (long)index);
+    refresh_staged_list();
+}
+
+void Sketch::load_staged(const Staged& item) {
+    original.reset();
+    part = item.part;
+    points = item.points;
+    closed = true;
+    fields.at("name").set(item.name);
+    fields.at("group").set(item.group);
+    fields.at("t").set(item.thickness);
+    role.set(item.role);
+    plane.set(item.plane);
+    level.set(item.level);
+    hinge_side.set(item.hinge_side);
+    automatic.set(item.automatic);
+    material->current(item.material_index);
+    edge_assigns = item.edges;
+    pattern_assigns = item.patterns;
+}
+
+bool Sketch::save_all() {
+    if (!ensure_current_project()) return false;
+    core::ProjectPtr before = app->project;
+    try {
+        if (closed && !points.empty() && !original && !stage_element()) return false;
+        if (staged.empty()) throw ValueError("Zestaw jest pusty — narysuj kontur i dodaj element do zestawu.");
+        core::ProjectPtr working = before;
+        std::string last_id;
+        std::vector<std::string> names;
+        for (const auto& item : staged) {
+            load_staged(item);
+            app->project = working;
+            auto [temp, id] = candidate();
+            temp->validate();
+            working = temp;
+            last_id = id;
+            names.push_back(item.name);
+        }
+        app->project = before;
+        app->snapshot();
+        app->project = working;
+        app->selected = last_id;
+        std::string joined;
+        for (size_t i = 0; i < names.size(); ++i) joined += (i ? ", " : "") + names[i];
+        journal::event(app, "kanty i wzorki", std::format("zapisano cały mebel z szkicu: {} elementów ({})", names.size(), joined));
+        staged.clear();
+        app->refresh();
+        app->fit();
+        app->status.set(std::format("Zapisano mebel z szkicu: {} elementów, jedno cofnięcie.", names.size()));
+        destroy();
+        return true;
+    } catch (const std::invalid_argument& e) {
+        app->project = before;
+        journal::event(app, "kanty i wzorki", std::string("zapis całego mebla odrzucony (nic nie zapisano): ") + e.what());
+        tk::messagebox::showerror("Zapis całego mebla", e.what(), this);
+        return false;
+    } catch (const std::out_of_range& e) {
+        app->project = before;
+        journal::event(app, "kanty i wzorki", std::string("zapis całego mebla odrzucony (nic nie zapisano): ") + e.what());
+        tk::messagebox::showerror("Zapis całego mebla", e.what(), this);
+        return false;
+    }
+}
+
 bool Sketch::save(bool keep_open) {
     if (!ensure_current_project()) return false;
     try {
         auto [temp, id] = candidate();
+        if (propagate.get()) propagate_design(temp, id);
         temp->validate();
         app->snapshot();
         app->project = temp;

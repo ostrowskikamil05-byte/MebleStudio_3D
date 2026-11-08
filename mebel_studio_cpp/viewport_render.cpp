@@ -1,5 +1,7 @@
 // Tłumaczenie 1:1 viewport_render.py (patrz viewport_render.h).
 #include "viewport_render.h"
+#include "render_style.h"
+#include "view_style.h"
 
 #include <algorithm>
 #include <cmath>
@@ -765,6 +767,42 @@ std::vector<std::string> lit_colors(const std::string& color, const std::vector<
     return out;
 }
 
+std::vector<std::string> lit_colors_realistic(const std::string& color, const std::vector<Point3>& normals, const std::vector<Point3>& centers,
+                                               const json& lights, double brightness, const std::string& room, bool emissive) {
+    size_t count = normals.size();
+    if (emissive) return std::vector<std::string>(count, color);
+    std::vector<std::string> out;
+    out.reserve(count);
+    auto base = rgb(color);
+    double ambient = room == "light" || room == "bright" ? .96 : room == "dark" ? .32 : .82;
+    for (size_t r = 0; r < count; ++r) {
+        render_style::Shading shading = render_style::shade_face(render_style::Mode::Realistic, {normals[r][0], normals[r][1], normals[r][2]}, brightness, ambient);
+        auto shaded = render_style::apply_shading({base[0], base[1], base[2]}, shading);
+        std::vector<double> result = {(double)shaded[0], (double)shaded[1], (double)shaded[2]};
+        for (const auto& light : lights) {
+            Point3 position = point_of(light.at("position"));
+            double delta[3], distance2 = 0;
+            for (size_t i = 0; i < 3; ++i) { delta[i] = position[i] - centers[r][i]; distance2 += delta[i] * delta[i]; }
+            double distance = std::sqrt(distance2), radius = num(py::get(light, "radius", 650));
+            if (distance >= radius) continue;
+            json direction = py::get(light, "direction");
+            if (py::truthy(direction)) {
+                double along = 0;
+                for (size_t i = 0; i < 3; ++i) along += delta[i] * num(direction.at(i));
+                if (along > radius * .025) continue;
+            }
+            double dot = 0;
+            for (size_t i = 0; i < 3; ++i) dot += normals[r][i] * delta[i];
+            double incidence = .28 + .72 * std::fabs(dot / std::max(1.0, distance));
+            double power = std::min(.8, std::pow(1 - distance / radius, 2.0) * num(py::get(light, "intensity", 1)) * incidence);
+            auto lamp = rgb(py::get(light, "color", "#fff3bf").get<std::string>());
+            for (size_t i = 0; i < 3; ++i) result[i] += base[i] * power * (lamp[i] / 255.0) * .7;
+        }
+        out.push_back(color_hex(result));
+    }
+    return out;
+}
+
 json furniture_lights(const Project& project, const std::map<std::string, const Part*>& owners) {
     json lights = json::array();
     if (!py::truthy(py::get(project.scene, "led_enabled", true))) return lights;
@@ -931,6 +969,8 @@ std::vector<RecordPtr> Context::records(bool interactive) {
 const std::vector<std::string>& Context::face_colors(const Record& record) const {
     // An integer id can be recycled when cold preview is replaced by full
     // LOD. Cache on the actual object, so geometry and colors live together.
+    const int wanted_mode = view_style::realistic() ? 1 : 0;
+    if (record.lit_mode != wanted_mode) { record.lit_colors.reset(); record.lit_mode = wanted_mode; }
     if (!record.lit_colors) {
         json lighting = py::get(scene, "ambient", "neutral");
         std::string room_name = py::str(py::get(scene, "lighting", lighting));
@@ -957,6 +997,7 @@ const std::vector<std::string>& Context::face_colors(const Record& record) const
                     FSum total;
                     for (size_t i = 0; i < 3; ++i) total.add(n[i] * sun[i]);
                     double factor = .74 + .26 * std::fabs(total.result());
+                    if (wanted_mode == 1) factor = render_style::shade_face(render_style::Mode::Realistic, {n[0], n[1], n[2]}, 1.0, .82).factor;
                     std::vector<double> values;
                     for (int v : channels) values.push_back(v * factor);
                     colors.push_back(color_hex(values));
@@ -964,7 +1005,9 @@ const std::vector<std::string>& Context::face_colors(const Record& record) const
                 record.lit_colors = std::move(colors);
             }
         } else {
-            record.lit_colors = lit_colors(record.color, record.normals, record.centers, lights, brightness, room_name, record.emissive);
+            record.lit_colors = wanted_mode == 1
+                ? lit_colors_realistic(record.color, record.normals, record.centers, lights, brightness, room_name, record.emissive)
+                : lit_colors(record.color, record.normals, record.centers, lights, brightness, room_name, record.emissive);
         }
     }
     if (!(record.indices.size() == record.normals.size() && record.normals.size() == record.centers.size() &&

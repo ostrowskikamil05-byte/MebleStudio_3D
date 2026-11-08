@@ -79,6 +79,7 @@ struct Record {
     bool mesh = false, fitting = false, scene_object = false, emissive = false, architecture = false;
     int sign = 1;
     mutable std::optional<std::vector<std::string>> lit_colors;
+    mutable int lit_mode = 0;  // tryb grafiki, dla którego policzono lit_colors (0 klasyczny, 1 realistyczny)
 
     explicit Record(std::shared_ptr<const Mesh> g)
         : geometry(std::move(g)), vertices(geometry->vertices), indices(geometry->indices),
@@ -88,7 +89,7 @@ struct Record {
         : geometry(o.geometry), vertices(geometry->vertices), indices(geometry->indices),
           normals(geometry->normals), centers(geometry->centers), owner(o.owner), color(o.color), mesh(o.mesh),
           fitting(o.fitting), scene_object(o.scene_object), emissive(o.emissive), architecture(o.architecture),
-          sign(o.sign), lit_colors(o.lit_colors) {}
+          sign(o.sign), lit_colors(o.lit_colors), lit_mode(o.lit_mode) {}
     Record& operator=(const Record&) = delete;
 };
 using RecordPtr = std::shared_ptr<const Record>;
@@ -128,6 +129,10 @@ std::array<int, 3> rgb(const std::string& color);
 std::string color_hex(const std::vector<double>& values);
 std::string lit_color(const std::string& color, const Point3& normal, const Point3& center, const json& lights,
                       double brightness = 1, const std::string& room = "neutral", bool emissive = false);
+// Tryb realistyczny: półkulowe światło otoczenia + światło główne i wypełniające + światła LED (bez zmian względem klasycznego).
+std::vector<std::string> lit_colors_realistic(const std::string& color, const std::vector<Point3>& normals,
+                                              const std::vector<Point3>& centers, const json& lights, double brightness,
+                                              const std::string& room, bool emissive);
 std::vector<std::string> lit_colors(const std::string& color, const std::vector<Point3>& normals,
                                     const std::vector<Point3>& centers, const json& lights, double brightness = 1,
                                     const std::string& room = "neutral", bool emissive = false);
@@ -176,6 +181,9 @@ struct Context {
     std::vector<RecordPtr> fitting_previews;
     // paint_background dopisuje dynamiczny atrybut context.shadow_hulls
     std::map<bool, std::vector<std::pair<double, std::vector<std::array<double, 2>>>>> shadow_hulls;
+    // Tryb realistyczny: obwiednia stóp, dolna i górna krawędź każdej grupy mebli (do cienia rzucanego).
+    struct CastHull { double bottom, top; std::vector<std::array<double, 2>> hull; };
+    std::map<bool, std::vector<CastHull>> cast_hulls;
 };
 
 struct RenderedFaces { core::json faces = core::json::array(); core::json stats = core::json::object(); };
