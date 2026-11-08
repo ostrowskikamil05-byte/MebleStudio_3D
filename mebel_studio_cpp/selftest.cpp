@@ -2818,7 +2818,10 @@ public:
                 need(has_text(text, "tryb szkicu ołówkiem: silnik auto → cpu"), "zamiana silnika na CPU w trybie szkicu nie jest opisana w dzienniku");
                 need(app->canvas->_active_renderer != "native", "szkic ołówkiem nie może być rysowany silnikiem natywnym");
                 const json pencil = app->canvas->_render_diagnostics.value("pencil", json());
-                if (pencil.is_object()) need(pencil.value("edge_pixels", 0) > 30, "filtr ołówka nie narysował obrysu mebla");
+                if (pencil.is_object()) {
+                    need(pencil.value("edge_pixels", 0) > 30, "filtr ołówka nie narysował obrysu mebla");
+                    need(has_text(log_since(from), "[operacja:render] CPU: szkic ołówkiem (CPU):"), "działanie filtra ołówka nie zostało zapisane w dzienniku [render]");
+                }
                 else ctx.warn("brak wpisu pencil w diagnostyce — widok nie przeszedł przez raster CPU (aktywny renderer: " + app->canvas->_active_renderer + ")");
                 restore();
                 ctx.note(std::format("obrys {} px, kreski {} px", pencil.value("edge_pixels", 0), pencil.value("hatch_pixels", 0)));
@@ -2994,6 +2997,60 @@ public:
                 ctx.note("2D: okrąg, prostokąt, łuk z pociągnięcia; 3D: okrąg R150 i obrys z ołówka → płyty");
             } catch (...) { cleanup(); app->project = fresh(); app->refresh(); throw; }
             cleanup();
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "tryb realistyczny GPU: drewno z ziarnem na płytę — partie z shaderem, wpisy w dzienniku (usłojenie, SSAO), wyłączenie shadera nie ukrywa elementów", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            const Mode original_mode = view_style::state.mode;
+            const std::string original_engine = app->viewport_engine;
+            auto restore = [&] {
+                gpu_viewport::set_wood_shader_enabled(true);
+                gpu_viewport::set_note_sink([this](const std::string& text) { journal::event(app, "render", "GPU: " + text); });
+                gpu_viewport::close_gpu(app->canvas); app->viewport_engine = original_engine;
+                graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie");
+            };
+            try {
+                auto [project, group] = furniture_library::create_furniture(Project(), 0);
+                auto shared = project;
+                for (auto& material : shared->materials) { material.name = "Dąb naturalny"; material.kind = "drewno"; }
+                graphics_mode_ui::set_mode(app, Mode::Realistic, "test — drewno GPU");
+                app->update();
+                const double w = std::max(300, app->canvas->winfo_width()), h = std::max(300, app->canvas->winfo_height());
+                std::vector<std::string> heard;
+                auto from = log_mark();
+                gpu_viewport::set_note_sink([&](const std::string& text) { heard.push_back(text); journal::event(app, "render", "GPU: " + text); });
+                gpu_viewport::set_wood_shader_enabled(true);
+                gpu_viewport::Request request;
+                request.project = shared; request.camera = core::Camera(-38, 24, 0.3); request.size = {w, h}; request.quality = "balanced";
+                auto first = gpu_viewport::paint_gpu(app->canvas, request);
+                if (!first.ok) {
+                    ctx.warn("silnik GPU (VTK/OpenGL) jest niedostępny w tym środowisku — pominięto sprawdzenie drewna: " + first.error.value_or("brak opisu"));
+                    restore();
+                    return;
+                }
+                json diagnostics = app->canvas->_render_diagnostics;
+                need(diagnostics.value("wood_batches", 0) > 0, "meble z drewna nie mają partii z shaderem usłojenia (wood_batches = 0)");
+                need(!diagnostics.contains("wood_shader_error"), "shader usłojenia zgłosił błąd: " + diagnostics.value("wood_shader_error", std::string()));
+                auto heard_text = [&](const std::string& part) { return std::any_of(heard.begin(), heard.end(), [&](const std::string& t) { return t.find(part) != std::string::npos; }); };
+                need(heard_text("usłojenie drewna (GPU):") && heard_text("SSAO"), "render GPU nie zgłosił usłojenia drewna i SSAO do odbiornika zdarzeń");
+                need(has_text(log_since(from), "[operacja:render] GPU: usłojenie drewna (GPU):") && has_text(log_since(from), "[operacja:render] GPU: SSAO"), "usłojenie drewna i SSAO nie trafiły do dziennika [render]");
+                const double radius = diagnostics.value("ssao_radius", 0.0);
+                need(radius >= 35 && radius <= 160, std::format("promień SSAO {} poza zakresem 35…160 mm", radius));
+                const size_t first_notes = heard.size();
+                gpu_viewport::paint_gpu(app->canvas, request);
+                need(heard.size() == first_notes, "identyczna klatka nie powinna dopisywać kolejnych zdarzeń do dziennika");
+                // wyłączony shader (tak działa automatyczna reakcja na błąd kompilacji): elementy nadal widoczne, wpis o wyłączeniu
+                gpu_viewport::set_wood_shader_enabled(false);
+                gpu_viewport::close_gpu(app->canvas);
+                heard.clear();
+                auto plain = gpu_viewport::paint_gpu(app->canvas, request);
+                need(plain.ok && !app->canvas->find_withtag("viewport.gpu_model").empty(), "bez shadera drewna elementy nie zostały narysowane");
+                need(app->canvas->_render_diagnostics.value("wood_batches", -1) == 0 && !app->canvas->_render_diagnostics.value("wood_shader_enabled", true), "diagnostyka nie pokazuje wyłączonego shadera drewna");
+                need(heard_text("shader wyłączony"), "wyłączenie shadera drewna nie zostało zapisane w dzienniku");
+                ctx.note(std::format("partii drewna {}, promień SSAO {:.0f} mm", diagnostics.value("wood_batches", 0), radius));
+            } catch (...) { restore(); throw; }
+            restore();
             app->project = fresh(); app->refresh();
         });
 

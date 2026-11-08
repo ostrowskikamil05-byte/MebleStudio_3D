@@ -3,6 +3,7 @@
 #include "view_style.h"
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <cstring>
@@ -24,6 +25,8 @@
 #include <vtkIdTypeArray.h>
 #include <vtkLight.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
+#include <vtkOutputWindow.h>
 #include <vtkOpenGLPolyDataMapper.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
@@ -47,12 +50,33 @@ using gpu_scene::MeshGroupPtr;
 namespace {
 double perf_counter() { return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 
+NoteSink& note_sink() { static NoteSink sink; return sink; }
+bool& wood_enabled_flag() { static bool enabled = true; return enabled; }
+
 [[maybe_unused]] std::array<double, 3> rgb_unit(const std::string& color) {
     return {static_cast<double>(py::int16(color.substr(1, 2))) / 255, static_cast<double>(py::int16(color.substr(3, 2))) / 255, static_cast<double>(py::int16(color.substr(5, 2))) / 255};
 }
 }  // namespace
 
+void set_note_sink(NoteSink sink) { note_sink() = std::move(sink); }
+bool wood_shader_enabled() { return wood_enabled_flag(); }
+void set_wood_shader_enabled(bool enabled) { wood_enabled_flag() = enabled; }
+
 #ifdef MEBEL_HAVE_VTK
+
+namespace {
+// Zbiera komunikaty błędów VTK (kompilacja i linkowanie shaderów trafiają tu zamiast do konsoli, której użytkownik nie widzi).
+class ErrorCapture : public vtkOutputWindow {
+public:
+    static ErrorCapture* New();
+    vtkTypeMacro(ErrorCapture, vtkOutputWindow);
+    void DisplayText(const char*) override {}
+    void DisplayErrorText(const char* text) override { if (text) captured += text; }
+    void DisplayWarningText(const char*) override {}
+    std::string captured;
+};
+vtkStandardNewMacro(ErrorCapture);
+}  // namespace
 
 struct ActorMesh {
     MeshGroupPtr group;
@@ -76,7 +100,7 @@ struct ActorMesh {
         for (size_t i = 0; i < group->connectivity.size(); ++i) connectivity->SetValue(static_cast<vtkIdType>(i), static_cast<vtkIdType>(group->connectivity[i]));
         auto cells = vtkSmartPointer<vtkCellArray>::New(); cells->SetData(offsets, connectivity);
         auto source = vtkSmartPointer<vtkPolyData>::New(); source->SetPoints(points); source->SetPolys(cells);
-        wood = gpu_scene::material_style(project, *group->source_groups.front()).wood;
+        wood = wood_shader_enabled() && gpu_scene::material_style(project, *group->source_groups.front()).wood;
         if (wood) {
             // Każda płyta ma własne ziarno usłojenia: oś pnia, pochylenie, szerokość słojów, odcień i kierunek włókien z ustawień elementu.
             static const char* names[4] = {"GrainSeed", "GrainDir", "GrainOrg", "GrainExtra"};
@@ -177,6 +201,40 @@ GPUViewport::GPUViewport() {
 }
 
 GPUViewport::~GPUViewport() { close(); }
+
+void GPUViewport::note(const std::string& text) {
+    notes.push_back(text);
+    if (note_sink()) {
+        try { note_sink()(text); } catch (...) {}
+    }
+}
+
+std::string GPUViewport::render_window() {
+#ifdef MEBEL_HAVE_VTK
+    vtkSmartPointer<vtkOutputWindow> previous = vtkOutputWindow::GetInstance();
+    vtkSmartPointer<ErrorCapture> capture = vtkSmartPointer<ErrorCapture>::New();
+    vtkOutputWindow::SetInstance(capture);
+    try {
+        backend->window->Render();
+    } catch (...) {
+        vtkOutputWindow::SetInstance(previous);
+        throw;
+    }
+    vtkOutputWindow::SetInstance(previous);
+    return capture->captured;
+#else
+    return {};
+#endif
+}
+
+void GPUViewport::drop_meshes() {
+#ifdef MEBEL_HAVE_VTK
+    for (auto& mesh : current) {
+        backend->renderer->RemoveActor(mesh->actor); backend->renderer->RemoveActor(mesh->id_actor);
+    }
+#endif
+    meshes.clear(); current.clear(); signature.reset(); have_cache = false; wood_noted = -1;
+}
 
 void GPUViewport::close() {
     if (closed) return;
@@ -381,12 +439,18 @@ void GPUViewport::quality_pass(const std::string& quality_, bool interactive) {
         }
         const double radius = diagonal > 1 ? std::min(160.0, std::max(35.0, diagonal * 0.045)) : 70.0;
         backend->ssao->SetRadius(radius); backend->ssao->SetBias(radius * 0.02);
+        ssao_radius = radius;
+        if (ssao_noted < 0 || std::fabs(radius - ssao_noted) > 0.05 * ssao_noted) {
+            ssao_noted = radius;
+            note(std::format("SSAO (zasłanianie otoczenia): promień {:.0f} mm dla sceny o przekątnej {:.0f} mm", radius, diagonal));
+        }
         if (view_style::realistic()) { backend->ssao->SetIntensityScale(.42); backend->ssao->SetIntensityShift(.58); }
         else { backend->ssao->SetIntensityScale(.35); backend->ssao->SetIntensityShift(.65); }
         backend->ssao->SetKernelSize(quality_ == "high" ? 12 : 8);  // mniej próbek = szybsza klatka bez widocznej różnicy w cieniowaniu narożników
         backend->renderer->SetPass(backend->ssao);
     } else {
         backend->renderer->SetPass(nullptr);
+        ssao_radius = 0;
     }
 #else
     (void)use_ssao;
@@ -522,6 +586,7 @@ std::pair<Buffer2D<int32_t>, Buffer2D<float>> GPUViewport::ghost_fallback(Buffer
 Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera_, std::pair<double, double> size_, const FrameOptions& options) {
     if (closed) throw GPUUnavailable("Kontekst OpenGL jest zamknięty.");
     double start = perf_counter();
+    notes.clear();
     std::set<std::string> ghosts = gpu_scene::ghost_ids(project, options.xray, options.xray_ids);
     std::set<std::string> selection = options.selected_ids;
     if (options.selected) selection.insert(*options.selected);
@@ -547,9 +612,26 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
     std::set<std::string> visible = gpu_scene::visible_architecture(project, camera_);
     material_pass(project, visible);
     quality_pass(options.quality, options.interactive); double configured = perf_counter();
-#ifdef MEBEL_HAVE_VTK
-    backend->window->Render();
-#endif
+    const int wood_batches = static_cast<int>(std::count_if(current.begin(), current.end(), [](const std::shared_ptr<ActorMesh>& mesh) { return mesh->wood; }));
+    const std::string vtk_errors = render_window();
+    if (!vtk_errors.empty()) {
+        std::string lowered = vtk_errors;
+        std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        const bool shader_problem = lowered.find("shader") != std::string::npos || lowered.find("glsl") != std::string::npos || lowered.find("link") != std::string::npos;
+        std::string shortened = vtk_errors.substr(0, 300);
+        if (vtk_errors_noted.insert(shortened).second)
+            note(std::string(shader_problem ? "BŁĄD shadera OpenGL" : "błąd VTK") + ": " + shortened + (wood_batches > 0 && shader_problem ? " — shader usłojenia drewna wyłączony, drewno rysowane jednolicie" : ""));
+        if (shader_problem && wood_batches > 0 && wood_shader_enabled()) {
+            set_wood_shader_enabled(false);
+            drop_meshes();
+            std::vector<std::string> kept = notes;
+            Rgba retried = frame(project, camera_, size_, options);   // ten sam obraz, tym razem bez shadera drewna
+            notes.insert(notes.begin(), kept.begin(), kept.end());
+            diagnostics["notes"] = notes;
+            diagnostics["wood_shader_error"] = shortened;
+            return retried;
+        }
+    }
     double rendered = perf_counter(); Rgba color = read_rgba(); double colored = perf_counter();
     double beauty = perf_counter();
     // Podczas obracania (klatka interaktywna) przy niezmienionej bryle zostawiamy bufory identyfikatorów i głębi z poprzedniej klatki:
@@ -597,7 +679,15 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
                    {"actors", current.size()}, {"faces", face_count}, {"geometry_ms", (prepared - start) * 1000}, {"beauty_ms", (beauty - prepared) * 1000},
                    {"configure_ms", (configured - prepared) * 1000}, {"render_ms", (rendered - configured) * 1000}, {"rgba_read_ms", (colored - rendered) * 1000},
                    {"depth_read_ms", (beauty - colored) * 1000}, {"owner_pass_ms", (finished - beauty) * 1000}, {"total_ms", (finished - start) * 1000}, {"reused", false}, {"ids_reused", ids_reused},
-                   {"wood_batches", std::count_if(current.begin(), current.end(), [](const std::shared_ptr<ActorMesh>& mesh) { return mesh->wood; })}};
+                   {"wood_batches", wood_batches}, {"wood_shader_enabled", wood_shader_enabled()}, {"ssao_radius", ssao_radius}};
+    if (wood_batches != wood_noted) {
+        wood_noted = wood_batches;
+        std::set<std::string> wooden;
+        for (auto& mesh : current) if (mesh->wood) for (auto& source : mesh->group->source_groups) wooden.insert(source->owner);
+        note(wood_batches > 0 ? std::format("usłojenie drewna (GPU): {} partii z shaderem, {} elementów, własne ziarno słojów na każdy element", wood_batches, wooden.size())
+                              : std::string(wood_shader_enabled() ? "usłojenie drewna (GPU): brak drewnianych elementów w scenie" : "usłojenie drewna (GPU): shader wyłączony po błędzie — drewno bez słojów"));
+    }
+    diagnostics["notes"] = notes;
     viewport_render::RenderedFaces cheap = gpu_scene::cheap_drawn(*context, groups, camera_, size_, selection, options.explode, visible);
     drawn = cheap.faces;
     output_roi = {std::max(0, static_cast<int>(std::floor(static_cast<double>(roi[0]) * output_size.first / size.first))),

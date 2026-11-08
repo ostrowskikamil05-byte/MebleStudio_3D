@@ -663,6 +663,7 @@ public:
                 }
             };
             try {
+                gpu_viewport::set_note_sink([this](const std::string& text) { journal::event(this, "render", "GPU: " + text); });
                 gpu_result = gpu_viewport::paint_gpu(c, {.project = display, .camera = camera, .size = {w, h}, .interactive = interactive, .selected_ids = layout_ids,
                     .selected = identity, .explode = explode.get() ? .22 : 0, .xray = xray.get(), .xray_ids = xray_ids, .quality = viewport_quality});
                 if (!gpu_result->ok && log) {
@@ -688,7 +689,17 @@ public:
         } else {
             c->_active_renderer = "cpu";
             drawn = render_faces(*display, camera, w, h, identity, explode.get() ? 0.22 : 0, interactive);
-            viewport_scene::paint_faces(c, drawn, display, {.selected_ids = layout_ids, .camera = camera, .size = {w, h}, .xray = xray.get(), .explode = explode.get() ? .22 : 0, .interactive = interactive, .xray_ids = xray_ids, .stats = viewport_render::last_stats()});
+            json cpu_result = viewport_scene::paint_faces(c, drawn, display, {.selected_ids = layout_ids, .camera = camera, .size = {w, h}, .xray = xray.get(), .explode = explode.get() ? .22 : 0, .interactive = interactive, .xray_ids = xray_ids, .stats = viewport_render::last_stats()});
+            // Dziennik: co renderer CPU dołożył do obrazu (szkic ołówkiem, słoje) — raz na zmianę, nie co klatkę.
+            static std::string last_cpu_effect;
+            std::string effect;
+            const json pencil = c->_render_diagnostics.value("pencil", json());
+            if (pencil.is_object()) effect = std::string("szkic ołówkiem (CPU): ") + (interactive ? "tylko obrys (klatka interaktywna)" : "obrys + kreskowanie cieni");
+            else if (cpu_result.is_object() && cpu_result.value("grain", 0) > 0) effect = "usłojenie drewna (CPU): linie słojów z własnym ziarnem na element";
+            if (effect != last_cpu_effect) {
+                last_cpu_effect = effect;
+                if (!effect.empty()) journal::event(this, "render", "CPU: " + effect + (pencil.is_object() ? std::format(" — obrys {} px, kreski {} px", pencil.value("edge_pixels", 0), pencil.value("hatch_pixels", 0)) : std::string()));
+            }
         }
         Part* p = nullptr; for (auto& q : display->parts) if (selected && q.id == *selected) { p = &q; break; }
         double factor = explode.get() ? .22 : 0;
