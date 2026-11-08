@@ -110,6 +110,11 @@ public:
     size_t design_skipped = 0;                    // frezy wzorków pominięte przy ostatnim nałożeniu (nie mieszczą się w konturze)
     std::vector<PatternAssign> pattern_assigns;
     std::vector<Staged> staged;                   // elementy odłożone do zestawu (zapisywane razem jednym krokiem)
+    bool preview_building = false;                // trwa składanie podglądu zestawu: zmiany pól nie planują kolejnego podglądu
+    Staged capture_current();                     // bieżący stan okna jako element zestawu (bez walidacji)
+    // Cały mebel w podglądzie: projekt z wszystkimi elementami zestawu (kolejno, jak przy zapisie) + element rysowany teraz.
+    // Zwraca projekt, identyfikator elementu do zaznaczenia (pusty, gdy nie ma otwartego konturu) i liczbę elementów zestawu, które się nie złożyły.
+    std::tuple<core::ProjectPtr, std::string, size_t> preview_candidate();
     tk::StringVar edge_style_var, edge_size, edge_scope, pattern_var, pattern_face, design_note;
     tk::BooleanVar propagate;                     // przekaż kanty i wzorki pasującym elementom mebla
     std::vector<tk::StringVar> pattern_labels, pattern_values;

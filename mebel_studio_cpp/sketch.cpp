@@ -2054,20 +2054,7 @@ bool Sketch::stage_element() {
         if (!closed || points.empty()) throw ValueError("Najpierw zamknij kontur, który ma trafić do zestawu.");
         auto candidate_result = candidate();  // pełne sprawdzenie na bieżącym projekcie (wiązania, okucia, kanty, wzorki)
         (void)candidate_result;
-        Staged item;
-        item.name = fields.at("name").get();
-        item.group = fields.at("group").get();
-        item.thickness = fields.at("t").get();
-        item.role = role.get();
-        item.plane = plane.get();
-        item.level = level.get();
-        item.hinge_side = hinge_side.get();
-        item.automatic = automatic.get();
-        item.points = points;
-        item.part = part;
-        item.material_index = material->current();
-        item.edges = edge_assigns;
-        item.patterns = pattern_assigns;
+        Staged item = capture_current();
         staged.push_back(item);
         journal::event(app, "kanty i wzorki", std::format("do zestawu dodano element „{}” ({}), w zestawie: {}", item.name, item.role, staged.size()));
         refresh_staged_list();
@@ -2095,6 +2082,83 @@ void Sketch::unstage_selected() {
     refresh_staged_list();
 }
 
+Sketch::Staged Sketch::capture_current() {
+    Staged item;
+    item.name = fields.at("name").get();
+    item.group = fields.at("group").get();
+    item.thickness = fields.at("t").get();
+    item.role = role.get();
+    item.plane = plane.get();
+    item.level = level.get();
+    item.hinge_side = hinge_side.get();
+    item.automatic = automatic.get();
+    item.points = points;
+    item.part = part;
+    item.material_index = material->current();
+    item.edges = edge_assigns;
+    item.patterns = pattern_assigns;
+    return item;
+}
+
+std::tuple<core::ProjectPtr, std::string, size_t> Sketch::preview_candidate() {
+    if (staged.empty()) {
+        auto [temp, id] = candidate();
+        return {temp, id, 0};
+    }
+    // Składanie przechodzi przez pola okna (load_staged), więc stan rysowanego elementu zapamiętujemy i przywracamy,
+    // a zmiany pól w tym czasie nie mogą planować kolejnego podglądu (inaczej pętla).
+    struct Guard {
+        Sketch* s;
+        explicit Guard(Sketch* sk) : s(sk) { s->preview_building = true; }
+        ~Guard() { s->preview_building = false; }
+    } guard(this);
+    const Staged current = capture_current();
+    const bool was_closed = closed;
+    const auto was_original = original;
+    const std::string was_target = target.get();
+    core::ProjectPtr before = app->project, working = before;
+    size_t failed = 0;
+    std::string last_id;
+    try {
+        for (const auto& item : staged) {
+            try {
+                load_staged(item);
+                app->project = working;
+                auto [temp, id] = candidate();
+                working = temp;
+                last_id = id;
+            } catch (const std::invalid_argument& e) {
+                ++failed;
+                journal::event(app, "kanty i wzorki", "podgląd zestawu: element „" + item.name + "” pominięty — " + e.what());
+            } catch (const std::out_of_range& e) {
+                ++failed;
+                journal::event(app, "kanty i wzorki", "podgląd zestawu: element „" + item.name + "” pominięty — " + e.what());
+            }
+        }
+    } catch (...) {
+        app->project = before;
+        load_staged(current);
+        closed = was_closed; original = was_original; target.set(was_target);
+        throw;
+    }
+    load_staged(current);
+    closed = was_closed; original = was_original; target.set(was_target);
+    std::string id = last_id;
+    if (closed) {
+        app->project = working;
+        try {
+            auto [temp, current_id] = candidate();
+            working = temp;
+            id = current_id;
+        } catch (...) {
+            app->project = before;
+            throw;
+        }
+    }
+    app->project = before;
+    return {working, id, failed};
+}
+
 void Sketch::load_staged(const Staged& item) {
     original.reset();
     part = item.part;
@@ -2104,6 +2168,7 @@ void Sketch::load_staged(const Staged& item) {
     fields.at("group").set(item.group);
     fields.at("t").set(item.thickness);
     role.set(item.role);
+    if (role_value(item.role) != "other") target.set(item.group);  // candidate() bierze grupę z „target”, więc każdy element zestawu trafia do swojego mebla
     plane.set(item.plane);
     level.set(item.level);
     hinge_side.set(item.hinge_side);

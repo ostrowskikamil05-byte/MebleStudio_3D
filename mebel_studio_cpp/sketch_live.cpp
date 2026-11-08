@@ -7,6 +7,10 @@
 #include "app.h"
 #include "core.h"
 #include "gpu_viewport.h"
+#include "journal.h"
+#include "view_style.h"
+#include "viewport_render.h"
+#include "viewport_scene.h"
 #include "graphics_mode_ui.h"
 #include "native_viewport.h"
 #include "pyutil.h"
@@ -125,7 +129,7 @@ void apply_sizes(Sketch* s) {
 }
 
 void schedule(Sketch* s) {
-    if (s->live_canvas == nullptr) return;
+    if (s->live_canvas == nullptr || s->preview_building) return;
     if (s->preview_job) {
         try {
             s->after_cancel(*s->preview_job);
@@ -141,7 +145,7 @@ void preview(Sketch* s, bool force_cpu) {
     c->delete_("all");
     int w = c->winfo_width(), h = c->winfo_height();
     if (w < 10) return;
-    if (!s->closed) {
+    if (!s->closed && s->staged.empty()) {
         native_viewport::close_native(c);
         gpu_viewport::close_gpu(c);
         s->live_note.set("Narysuj prostokąt lub zamknij wielokąt. Podgląd przeliczy położenie, wymiary i okucia.");
@@ -154,16 +158,19 @@ void preview(Sketch* s, bool force_cpu) {
         c->create_text(w / 2.0, h / 2.0, {{"text", "Sprawdź dopasowanie\ni parametry montażu"}, {"fill", "#a2542c"}, {"justify", "center"}});
     };
     try {
-        auto [project, id] = s->candidate();
-        const core::Part& p = sketch::find_part(*project, id);
+        // Podgląd pokazuje cały mebel: elementy odłożone do zestawu + element rysowany teraz (jeśli kontur jest zamknięty).
+        auto [project, id, skipped] = s->preview_candidate();
+        std::optional<std::string> highlighted;
+        if (!id.empty()) highlighted = id;
         core::Camera camera;
         camera.fit(*project, w, h);
-        std::string engine = force_cpu ? "cpu" : s->app->viewport_engine;
+        const bool realistic = view_style::realistic();
+        std::string engine = force_cpu ? "cpu" : view_style::effective_engine(s->app->viewport_engine);
         std::string quality = s->app->viewport_quality;
         std::optional<native_viewport::ViewportResult> result;
         if (engine == "auto" || engine == "d3d11" || engine == "d3d12" || engine == "vulkan") {
             result = native_viewport::paint_native(c, {.project = project, .backend = engine, .camera = camera, .size = {w, h}, .interactive = false,
-                                                       .selected_ids = {}, .selected = p.id, .explode = 0, .xray = false, .xray_ids = {}, .quality = quality});
+                                                       .selected_ids = {}, .selected = highlighted, .explode = 0, .xray = false, .xray_ids = {}, .quality = quality});
             if (result->ok) gpu_viewport::close_gpu(c);
         } else native_viewport::close_native(c);
         if ((engine == "auto" || engine == "gpu") && !(result && result->ok)) {
@@ -173,7 +180,7 @@ void preview(Sketch* s, bool force_cpu) {
             };
             try {
                 result = gpu_viewport::paint_gpu(c, {.project = project, .camera = camera, .size = {w, h}, .interactive = false,
-                                                     .selected_ids = {}, .selected = p.id, .explode = 0, .xray = false, .xray_ids = {}, .quality = quality});
+                                                     .selected_ids = {}, .selected = highlighted, .explode = 0, .xray = false, .xray_ids = {}, .quality = quality});
             } catch (const std::runtime_error& error) { failed(error); }  // ImportError, RuntimeError, OSError
             catch (const ValueError& error) { failed(error); }
         }
@@ -184,7 +191,14 @@ void preview(Sketch* s, bool force_cpu) {
             native_viewport::close_native(c);
             gpu_viewport::close_gpu(c);
             c->_active_renderer = "cpu";
-            core::Drawn faces = core::render_faces(*project, camera, w, h, p.id);
+            core::Drawn faces = core::render_faces(*project, camera, w, h, highlighted);
+            if (realistic) {
+                // Tryb realistyczny bez GPU: ta sama ścieżka co widok główny (podłoga z płytkami, cienie rzucane, światło), a nie gołe wielokąty.
+                viewport_scene::paint_background(c, camera, project, {w, h}, false);
+                viewport_scene::paint_faces(c, faces, project, {.selected_ids = {}, .camera = camera, .size = {w, h}, .xray = false, .explode = 0, .interactive = false,
+                                                              .xray_ids = {}, .stats = viewport_render::last_stats()});
+                faces.clear();
+            }
             for (auto& face : faces) {
                 std::vector<double> flat;
                 for (auto& point : face.at("points")) {
@@ -197,15 +211,27 @@ void preview(Sketch* s, bool force_cpu) {
                 c->create_polygon(flat, {{"fill", color}, {"outline", outline}, {"width", mesh ? 0 : 1}});
             }
         }
-        std::vector<std::string> hardware;
-        for (auto& x : project->hardware)
-            if (py::get(x, "owner_id") == p.id) hardware.push_back(g(x.at("qty").get<double>()) + " × " + py::str(x.at("name")));
-        std::string text = std::format("{} × {} × {} mm\n", g(p.u), g(p.v), g(p.t));
-        if (!hardware.empty()) {
-            text += "Okucia: ";
-            for (size_t i = 0; i < hardware.size(); ++i) text += (i ? ", " : "") + hardware[i];
-        } else text += "Element bez automatycznych okuć.";
+        std::string text;
+        if (!id.empty()) {
+            const core::Part& p = sketch::find_part(*project, id);
+            std::vector<std::string> hardware;
+            for (auto& x : project->hardware)
+                if (py::get(x, "owner_id") == p.id) hardware.push_back(g(x.at("qty").get<double>()) + " × " + py::str(x.at("name")));
+            text = std::format("{} × {} × {} mm\n", g(p.u), g(p.v), g(p.t));
+            if (!hardware.empty()) {
+                text += "Okucia: ";
+                for (size_t i = 0; i < hardware.size(); ++i) text += (i ? ", " : "") + hardware[i];
+            } else text += "Element bez automatycznych okuć.";
+        } else text = "Kontur nie jest zamknięty — widać tylko elementy zestawu.";
+        if (!s->staged.empty()) text += std::format("\nW podglądzie: cały mebel — {} elementów zestawu{}.", s->staged.size(), id.empty() ? "" : " + rysowany teraz");
+        if (skipped > 0) text += std::format("\nUwaga: {} elementów zestawu nie złożyło się w podglądzie (szczegóły w dzienniku).", skipped);
         text += "\nZmiany zapiszesz przyciskiem Dodaj / zapisz.";
+        {
+            static std::string last_summary;  // podgląd przerysowuje się często — do dziennika trafia tylko zmiana
+            std::string summary = std::format("podgląd szkicu: {} elementów w widoku ({} z zestawu), tryb {}, silnik {}", project->parts.size(), s->staged.size(),
+                                              render_style::info(view_style::state.mode).id, engine);
+            if (summary != last_summary) { last_summary = summary; journal::event(s->app, "grafika", summary); }
+        }
         s->live_note.set(text);
     } catch (const std::invalid_argument& e) {  // ValueError
         invalid(e);

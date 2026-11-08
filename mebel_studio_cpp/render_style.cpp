@@ -39,7 +39,7 @@ std::array<int, 3> parse_hex(const std::string& color) {
 const std::vector<ModeInfo>& modes() {
     static const std::vector<ModeInfo> list = {
         {Mode::Classic, "classic", "Klasyczna", "Lekkie, płaskie cieniowanie i cienie kontaktowe — najszybsze, czytelne przy pracy nad konstrukcją."},
-        {Mode::Realistic, "realistic", "Realistyczna", "Głębsze cieniowanie ścianek, miękkie cienie rzucane przez mebel i płytki na podłodze — jak na wizualizacji."},
+        {Mode::Realistic, "realistic", "Realistyczna", "Głębsze cieniowanie ścianek, miękkie cienie rzucane przez mebel i płytki na podłodze — jak na wizualizacji. Rysuje go silnik GPU lub CPU (natywna biblioteka ma stałe cieniowanie)."},
     };
     return list;
 }

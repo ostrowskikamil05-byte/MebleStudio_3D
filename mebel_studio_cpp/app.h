@@ -630,11 +630,21 @@ public:
         if (edit_mode.get() == "layout" || edit_mode.get() == "furniture" || inspector_tabs->index(inspector_tabs->select()) == 0)
             for (auto& q : project->parts) if (selected_part_ && q.group == selected_part_->group) layout_ids.insert(q.id);
         std::optional<ViewportResult> gpu_result;
-        if (native_viewport::NATIVE_ENGINES.contains(viewport_engine)) {
-            gpu_result = native_viewport::paint_native(c, {.project = display, .backend = viewport_engine, .camera = camera, .size = {w, h},
+        const std::string engine = view_style::effective_engine(viewport_engine);
+        {
+            static std::string last_switch;  // dziennik: raz na zmianę, a nie przy każdym przerysowaniu
+            std::string note = engine != viewport_engine ? viewport_engine + " → " + engine : std::string();
+            if (note != last_switch) {
+                last_switch = note;
+                if (!note.empty()) journal::event(this, "grafika", "tryb realistyczny: silnik " + note + " (natywna biblioteka ma stałe cieniowanie; GPU/CPU pokazują realistyczne światło, cienie i płytki)");
+                else journal::event(this, "grafika", "silnik rysowania wrócił do ustawienia użytkownika: " + viewport_engine);
+            }
+        }
+        if (native_viewport::NATIVE_ENGINES.contains(engine)) {
+            gpu_result = native_viewport::paint_native(c, {.project = display, .backend = engine, .camera = camera, .size = {w, h},
                 .interactive = interactive, .selected_ids = layout_ids, .selected = identity,
                 .explode = explode.get() ? .22 : 0, .xray = xray.get(), .xray_ids = xray_ids, .quality = viewport_quality});
-            if (gpu_result->ok || viewport_engine != "auto") {
+            if (gpu_result->ok || engine != "auto") {
                 gpu_viewport::close_gpu(c);
             }
             std::optional<std::string> warning = (gpu_result->warning && !gpu_result->warning->empty()) ? gpu_result->warning : gpu_result->error;
@@ -644,7 +654,7 @@ public:
         } else {
             native_viewport::close_native(c);
         }
-        if (viewport_engine == "gpu" || (viewport_engine == "auto" && !(gpu_result && gpu_result->ok))) {
+        if (engine == "gpu" || (engine == "auto" && !(gpu_result && gpu_result->ok))) {
             auto on_error = [&](const std::exception& error) {
                 if (_gpu_warning != std::string(error.what()) && log) {
                     _gpu_warning = error.what(); log->warning(std::format("Silnik 3D: użyto renderera CPU: {}", error.what()));

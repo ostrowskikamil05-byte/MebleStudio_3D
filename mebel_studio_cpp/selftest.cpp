@@ -64,6 +64,7 @@
 #include "sketch_inference.h"
 #include "sketch_shapes.h"
 #include "sketch_design.h"
+#include "sketch_live.h"
 #include "render_style.h"
 #include "graphics_mode_ui.h"
 #include "view_style.h"
@@ -2628,6 +2629,92 @@ public:
                 restore();
                 throw;
             }
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "tryb realistyczny: silnik natywny (DLL ze stałym cieniowaniem) jest zastępowany przez GPU/CPU, a dziennik to opisuje", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            // logika czysta
+            const Mode original_mode = view_style::state.mode;
+            const std::string original_engine = app->viewport_engine;
+            auto restore = [&] { app->viewport_engine = original_engine; graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie"); };
+            try {
+                view_style::state.mode = Mode::Classic;
+                for (const char* name : {"auto", "d3d11", "d3d12", "vulkan", "gpu", "cpu"})
+                    need(view_style::effective_engine(name) == name, std::string("tryb klasyczny nie może zmieniać silnika: ") + name);
+                view_style::state.mode = Mode::Realistic;
+                for (const char* name : {"auto", "d3d11", "d3d12", "vulkan"})
+                    need(view_style::effective_engine(name) == "gpu", std::string("tryb realistyczny powinien omijać silnik natywny: ") + name);
+                need(view_style::effective_engine("cpu") == "cpu" && view_style::effective_engine("gpu") == "gpu", "silniki cpu i gpu nie mają być zmieniane");
+                // widok główny: zamiana silnika w dzienniku, wynik rysowania nie jest „native”
+                graphics_mode_ui::set_mode(app, Mode::Classic, "test — start");
+                app->viewport_engine = "auto";
+                app->draw(); app->update();
+                auto from = log_mark();
+                graphics_mode_ui::set_mode(app, Mode::Realistic, "test");
+                app->draw(); app->update();
+                need(app->canvas->_active_renderer != "native", "w trybie realistycznym widok nadal jest rysowany silnikiem natywnym (jego cieniowania nie da się zmienić)");
+                std::string text = log_since(from);
+                need(has_text(text, "[operacja:grafika] tryb realistyczny: silnik auto → gpu"), "zamiana silnika nie jest opisana w dzienniku");
+                from = log_mark();
+                graphics_mode_ui::set_mode(app, Mode::Classic, "test — powrót");
+                app->draw(); app->update();
+                need(has_text(log_since(from), "silnik rysowania wrócił do ustawienia użytkownika: auto"), "powrót do silnika użytkownika nie jest opisany w dzienniku");
+                ctx.note(std::format("renderer po zamianie: {}", app->canvas->_active_renderer));
+                restore();
+            } catch (...) {
+                restore();
+                throw;
+            }
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "szkicownik: podgląd 3D pokazuje cały mebel (zestaw + rysowany element), nie psuje stanu okna i działa w obu trybach grafiki", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            const Mode original_mode = view_style::state.mode;
+            auto* sk = open_sketch();
+            try {
+                size_t before = app->project->parts.size();
+                sk->fields.at("name").set("Bok A");
+                sk->set_sketch_points({{0, 0}, {300, 0}, {300, 600}, {0, 600}});
+                sk->close_contour();
+                sk->fields.at("t").set("18");
+                need(sk->stage_element(), "pierwszy element nie trafił do zestawu");
+                // kontur niezamknięty, ale zestaw nie jest pusty: widać odłożone elementy
+                auto [only_staged, staged_id, skipped0] = sk->preview_candidate();
+                need(only_staged->parts.size() == before + 1 && !staged_id.empty() && skipped0 == 0,
+                     std::format("podgląd samego zestawu: {} elementów (oczekiwano {}), id „{}”", only_staged->parts.size(), before + 1, staged_id));
+                sk->fields.at("name").set("Półka B");
+                sk->set_sketch_points({{0, 0}, {500, 0}, {500, 250}, {0, 250}});
+                sk->close_contour();
+                sk->fields.at("t").set("18");
+                const size_t points_before = sk->points.size();
+                auto [whole, id, skipped] = sk->preview_candidate();
+                need(whole->parts.size() == before + 2 && skipped == 0, std::format("podgląd całego mebla: {} elementów (oczekiwano {})", whole->parts.size(), before + 2));
+                need(!id.empty() && sketch::find_part(*whole, id).name == "Półka B", "zaznaczony ma być element rysowany teraz");
+                need(app->project->parts.size() == before, "podgląd zmienił projekt programu");
+                need(sk->staged.size() == 1 && sk->points.size() == points_before && sk->closed && !sk->preview_building, "podgląd zestawu zmienił stan okna szkicu");
+                need(sk->fields.at("name").get() == "Półka B", "podgląd zestawu nadpisał nazwę rysowanego elementu");
+                // rysowanie podglądu w obu trybach, na rendererze CPU (jest dostępny wszędzie)
+                for (Mode mode : {Mode::Classic, Mode::Realistic}) {
+                    graphics_mode_ui::set_mode(app, mode, "test — podgląd szkicu");
+                    auto from = log_mark();
+                    sketch_live::preview(sk, true);
+                    app->update();
+                    need(!sk->live_canvas->find_all().empty(), std::string("podgląd szkicu nic nie narysował w trybie ") + render_style::info(mode).id);
+                    bool floor_drawn = !sk->live_canvas->find_withtag("viewport.floor").empty();
+                    need(floor_drawn == (mode == Mode::Realistic), std::format("podłoga w podglądzie szkicu: {} (tryb {})", floor_drawn, render_style::info(mode).id));
+                    need(has_text(sk->live_note.get(), "cały mebel — 1 elementów zestawu"), "opis pod podglądem nie mówi, że to cały mebel");
+                    need(has_text(log_since(from), "[operacja:grafika] podgląd szkicu:"), "podgląd szkicu nie zapisał się w dzienniku");
+                }
+                ctx.note("2 elementy w podglądzie, oba tryby");
+            } catch (...) {
+                graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie");
+                close_sketch(sk);
+                throw;
+            }
+            graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie");
+            close_sketch(sk);
             app->project = fresh(); app->refresh();
         });
 

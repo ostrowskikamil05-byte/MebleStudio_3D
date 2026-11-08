@@ -10,6 +10,7 @@
 #include <stdexcept>
 
 #include "app.h"
+#include "view_style.h"
 #include "gpu_viewport.h"
 #include "native_viewport.h"
 #include "quick_studio_ui.h"
@@ -1041,7 +1042,7 @@ void VisualizationDocument::draw(bool force_cpu) {
     double factor = explode.get() ? .22 : 0;
     bool interactive = _interactive;
     viewport_scene::paint_background(c, camera, project_, {w, h}, interactive);
-    std::string engine = force_cpu ? "cpu" : app->viewport_engine;
+    std::string engine = force_cpu ? "cpu" : view_style::effective_engine(app->viewport_engine);
     std::string quality = app->viewport_quality;
     auto xray_ids = viewport_modes::xray_part_ids(project_, xray.get(), app->xray_scope.get(), selected_);
     std::optional<native_viewport::ViewportResult> result;
