@@ -2115,7 +2115,11 @@ public:
             // stare rzeczy z paczki Pythona nie mają wracać do głównego katalogu (kopia: gałąź archiwum-python-0.15)
             std::string intruders;
             for (const char* old : {"_internal", "runtime", "ZRODLA_PROGRAMU", "PRZYKLADY", "MebelStudio3D.exe", "MANIFEST_SHA256.json", "SPRAWDZENIE_ETAP3", "dokumentacja", "LICENCJE"})
-                if (fs::exists(data_root / old, ec)) intruders += (intruders.empty() ? "" : ", ") + std::string(old);
+            {
+                // Windows nie rozróżnia wielkości liter: „PRZYKLADY” istniałoby przez „przyklady”, więc porównujemy nazwy z katalogu co do litery.
+                for (const auto& entry : fs::directory_iterator(data_root, ec))
+                    if (entry.path().filename().string() == old) intruders += (intruders.empty() ? "" : ", ") + std::string(old);
+            }
             need(intruders.empty(), "w głównym katalogu wróciły stare elementy paczki Pythona: " + intruders);
             ctx.note(std::format("{} katalogów na miejscu, {} projektów w przyklady/", std::size(required_dirs), examples));
         });
@@ -2567,7 +2571,8 @@ public:
                 graphics_mode_ui::set_mode(app, Mode::Classic, "test — start");
                 auto [p, g] = cabinet(Project());
                 app->project = p; app->refresh(); app->update();
-                core::Camera camera = app->camera;
+                core::Camera camera(-38, 24, 0.4);  // stały widok z góry-ukosu: kamera aplikacji może stać w widoku z przodu (bez widocznej podłogi)
+                size_t last_total = 0;
                 auto count_tags = [&](Mode mode, const char* tag) {
                     view_style::state.mode = mode;
                     auto* canvas = new tk::Canvas(app, {{"width", 700}, {"height", 450}});
@@ -2575,13 +2580,17 @@ public:
                     options.grid = false;
                     viewport_scene::paint_background(canvas, camera, p, {700, 450}, options);
                     size_t n = canvas->find_withtag(tag).size();
+                    last_total = canvas->find_all().size();
                     canvas->destroy();
                     return n;
                 };
                 size_t classic_tiles = count_tags(Mode::Classic, "viewport.tiles"), real_tiles = count_tags(Mode::Realistic, "viewport.tiles");
                 size_t classic_shadow = count_tags(Mode::Classic, "viewport.shadow"), real_shadow = count_tags(Mode::Realistic, "viewport.shadow");
                 view_style::state.mode = Mode::Classic;
-                need(classic_tiles == 0 && real_tiles > 10, std::format("płytki podłogi: klasyczny {}, realistyczny {} (oczekiwano 0 i > 10)", classic_tiles, real_tiles));
+                const size_t expected_lines = render_style::floor_tile_lines(0, 0, 1500, 600, 0, 16).size();
+                need(expected_lines > 10, std::format("funkcja linii płytek zwróciła tylko {} linii", expected_lines));
+                need(classic_tiles == 0 && real_tiles > 10, std::format("płytki podłogi: klasyczny {}, realistyczny {} (oczekiwano 0 i > 10; pitch kamery {}, elementów na płótnie {}, tryb po rysowaniu {})",
+                                                                      classic_tiles, real_tiles, camera.pitch, last_total, (int)view_style::state.mode));
                 need(real_shadow > classic_shadow, std::format("tryb realistyczny ma mieć więcej warstw cienia niż klasyczny ({} vs {})", real_shadow, classic_shadow));
                 // kolory ścianek zmieniają się razem z trybem (pamięć podręczna kolorów rozróżnia tryb)
                 auto context = viewport_render::prepare_scene(*p);
