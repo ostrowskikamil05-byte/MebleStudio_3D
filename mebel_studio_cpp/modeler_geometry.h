@@ -133,4 +133,25 @@ std::string suggest_name(const core::Part& part, const std::vector<std::string>&
 // Opis do dziennika, np. „płyta 18 × 560 × 720 mm (YZ) w (0, 0, 0)”.
 std::string describe(const core::Part& part);
 
+// ------------------------------------------------------------------ profile 2D (CAD) → płyty
+// Wycięcie przelotowe w płycie opisane we współrzędnych płaszczyzny rysowania (a wzdłuż u, b wzdłuż v).
+struct Cutout {
+    std::string shape;   // „circle” (width = średnica), „rect” (length wzdłuż u, width wzdłuż v), „slot” (length = całkowita długość, kąt w płaszczyźnie)
+    Point center{0, 0};
+    double length = 0, width = 0, angle = 0;   // kąt w stopniach (tylko szczelina)
+};
+// Płyta o dowolnym konturze (np. z łukami przybliżonymi odcinkami) z wycięciami przelotowymi (otwory, prostokąty, szczeliny).
+core::Part board_from_profile(const Plane& plane, const std::vector<Vec3>& outer, const std::vector<Cutout>& cutouts, double thickness, const std::string& name,
+                              const std::string& group, const std::string& material);
+// Płyta po zmianie obrysu i wycięć: zachowuje wszystko poza konturem (nazwa, materiał, grupa, okucia, pozostała obróbka); początek płyty jest
+// przesuwany, a otwory, obróbka i operacje przeliczane. Kanty (zaokrąglenia/fazy) są zerowane, bo numery krawędzi przestają pasować.
+// `outer` leży na górnej ścianie płyty (płaszczyzna `top_plane` z part_faces, id „top”).
+core::Part reshape_part(const core::Part& part, const Plane& top_plane, const std::vector<Vec3>& outer, const std::vector<Cutout>& cutouts);
+// Wycięcia przelotowe płyty (obróbka typu „cutout”) jako kształty we współrzędnych `top_plane` — do wczytania w edytorze 2D.
+std::vector<Cutout> cutouts_of(const core::Part& part, const Plane& top_plane);
+// Kąty kamery (yaw, pitch) dla widoku wprost na płaszczyznę z tej strony, z której oś u biegnie w prawo, a v w górę ekranu (bez odbicia lustrzanego).
+std::pair<double, double> camera_angles_for_plane(const Plane& plane);
+// Płaszczyzna górnej lub dolnej ściany płyty (id „top” / „bottom”).
+Plane face_plane(const core::Part& part, const std::string& face);
+
 }  // namespace modeler_geometry

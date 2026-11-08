@@ -77,6 +77,9 @@ public:
     std::array<int, 4> roi{0, 0, 0, 0};
     std::array<int, 4> output_roi{0, 0, 0, 0};
     std::string quality = "balanced";
+    bool reused = false;           // ostatnia klatka została oddana z pamięci (nic się nie zmieniło) — bez ponownego renderu OpenGL
+    bool ids_reused = false;       // bufory identyfikatorów/głębi pochodzą z poprzedniej klatki (klatka interaktywna, ten sam układ brył)
+    std::string frame_key;
 
     GPUViewport();
     ~GPUViewport();
@@ -108,6 +111,8 @@ private:
     std::string light_key;
     bool has_light_key = false;
     std::optional<gpu_scene::CameraSpec> spec;
+    Rgba cached_color;
+    bool have_cache = false;
 };
 
 // Draw GPU image and publish existing depth/ID buffers; controlled fallback.

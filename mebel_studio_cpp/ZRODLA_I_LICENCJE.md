@@ -27,6 +27,10 @@ To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem p
   wyłącznie ogólne, niechronione pomysły użytkowe: rysowanie prostokąta na płaszczyźnie, wyciąganie ściany, przyciąganie do punktów i osi, wpisywanie wymiarów
   z klawiatury. Nie używamy cudzego kodu, bibliotek modelowania, ikon, nazw poleceń ani plików; rzut ekranu → promień, wybór ściany, przyciąganie
   i zamiana bryły na płytę to własna matematyka na kamerze programu. Katalog frezów (prosty, kulowy, V, zaokrąglający, fazujący) to powszechnie znane rodzaje narzędzi CNC.
+- Tryb 2D CAD Pracowni (`cad2d`, `modeler_cad`, rozszerzenia `modeler_geometry`) — napisany od zera. Łuki zapisane jako wierzchołki z „wybrzuszeniem” (bulge) to powszechnie
+  znany, matematyczny sposób opisu łuku w łamanej (wzór tan(kąt/4)); nie używamy żadnego cudzego kodu ani bibliotek CAD. Z programów CAD przejęto wyłącznie ogólne idee
+  użytkowe: linia/łuk 3-punktowy/łuk styczny, zaokrąglenie i ścięcie narożnika, okrąg, szczelina, przyciąganie do końców/środków/kwadrantów, wpisywanie długości i kąta
+  z klawiatury, siatka, zmiana płaszczyzny rysunku. Nazwy poleceń i interfejs są własne.
 
 ## Czego jeszcze brakuje
 - Zbiorczego pliku z pełnymi tekstami licencji dla wersji C++ (OpenCASCADE, Tcl/Tk, VTK) w paczce wydawniczej.

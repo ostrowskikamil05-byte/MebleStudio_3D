@@ -472,4 +472,151 @@ std::string describe(const core::Part& part) {
     return std::format("płyta {} × {} × {} mm ({}) w ({}, {}, {})", num(part.u), num(part.v), num(part.t), part.plane, num(part.x), num(part.y), num(part.z));
 }
 
+// ------------------------------------------------------------------ profile 2D (CAD) → płyty
+
+namespace {
+// Wycięcie przelotowe jako wpis obróbki płyty (współrzędne lokalne płyty wyznaczone z jej położenia w świecie).
+core::json cutout_json(const core::Part& part, const Plane& plane, const Cutout& cutout) {
+    Vec3 origin = core::world(part, 0, 0, 0);
+    Vec3 axis_u = unit(sub(core::world(part, 1, 0, 0), origin)), axis_v = unit(sub(core::world(part, 0, 1, 0), origin));
+    Vec3 center = from_plane(plane, cutout.center[0], cutout.center[1]);
+    double u = dot(sub(center, origin), axis_u), v = dot(sub(center, origin), axis_v);
+    double length = cutout.length, width = cutout.width, angle = 0;
+    if (cutout.shape == "circle") {
+        if (!(cutout.width >= .5)) fail(std::format("Średnica otworu {} mm jest za mała (minimum 0,5 mm).", num(cutout.width)));
+        length = width = cutout.width;
+    } else if (cutout.shape == "rect") {
+        if (!(cutout.length >= .5) || !(cutout.width >= .5)) fail(std::format("Wycięcie {} × {} mm jest za małe (minimum 0,5 mm).", num(cutout.length), num(cutout.width)));
+        // osie płaszczyzny rysowania są osiami świata, więc prostokąt zostaje równoległy do osi płyty — zamieniają się najwyżej długość z szerokością
+        double lu = std::fabs(dot(plane.u, axis_u)) * cutout.length + std::fabs(dot(plane.v, axis_u)) * cutout.width;
+        double lv = std::fabs(dot(plane.u, axis_v)) * cutout.length + std::fabs(dot(plane.v, axis_v)) * cutout.width;
+        length = lu; width = lv;
+    } else if (cutout.shape == "slot") {
+        if (!(cutout.width >= .5) || !(cutout.length >= cutout.width)) fail(std::format("Szczelina {} × {} mm jest nieprawidłowa (długość nie może być mniejsza od szerokości).", num(cutout.length), num(cutout.width)));
+        double a = cutout.angle * PI / 180;
+        Vec3 d = add(scale(plane.u, std::cos(a)), scale(plane.v, std::sin(a)));
+        angle = std::atan2(dot(d, axis_v), dot(d, axis_u)) * 180 / PI;
+        if (angle > 360) angle -= 360;
+    } else {
+        fail("Nieznany rodzaj wycięcia „" + cutout.shape + "”.");
+    }
+    return core::json{{"type", "cutout"}, {"shape", cutout.shape}, {"face", "top"}, {"u", u}, {"v", v}, {"length", length}, {"width", width}, {"depth", part.t},
+                      {"angle", angle}, {"purpose", "wycięcie z rysunku 2D"}};
+}
+}  // namespace
+
+core::Part board_from_profile(const Plane& plane, const std::vector<Vec3>& outer, const std::vector<Cutout>& cutouts, double thickness, const std::string& name,
+                              const std::string& group, const std::string& material) {
+    core::Part part = board_from_polygon(plane, outer, thickness, name, group, material);
+    for (const auto& cutout : cutouts) part.machining.push_back(cutout_json(part, plane, cutout));
+    return part;
+}
+
+Plane face_plane(const core::Part& part, const std::string& face) {
+    for (const auto& f : part_faces(part))
+        if (f.id == face) return f.plane;
+    fail("Płyta „" + part.name + "” nie ma ściany „" + face + "”.");
+}
+
+std::vector<Cutout> cutouts_of(const core::Part& part, const Plane& top_plane) {
+    std::vector<Cutout> out;
+    if (!part.machining.is_array()) return out;
+    Vec3 origin = core::world(part, 0, 0, 0);
+    Vec3 axis_u = unit(sub(core::world(part, 1, 0, 0), origin)), axis_v = unit(sub(core::world(part, 0, 1, 0), origin));
+    for (const auto& cut : part.machining) {
+        if (cut.value("type", "") != "cutout") continue;
+        double u = cut.at("u").get<double>(), v = cut.at("v").get<double>();
+        Vec3 world_center = add(origin, add(scale(axis_u, u), scale(axis_v, v)));
+        Cutout c;
+        c.shape = cut.value("shape", "rect");
+        c.center = to_plane(top_plane, world_center);
+        double length = cut.value("length", 0.0), width = cut.value("width", 0.0), angle = cut.value("angle", 0.0);
+        if (c.shape == "circle") { c.width = width; c.length = width; }
+        else if (c.shape == "rect") {
+            if (std::fabs(angle) > 1e-6) continue;  // obrócony prostokąt nie ma odpowiednika w edytorze — zostaje w obróbce płyty
+            // długość wzdłuż lokalnego u: przeliczenie na osie płaszczyzny rysowania
+            double lp = std::fabs(dot(top_plane.u, axis_u)) * length + std::fabs(dot(top_plane.u, axis_v)) * width;
+            double wp = std::fabs(dot(top_plane.v, axis_u)) * length + std::fabs(dot(top_plane.v, axis_v)) * width;
+            c.length = lp; c.width = wp;
+        } else {
+            Vec3 d = add(scale(axis_u, std::cos(angle * PI / 180)), scale(axis_v, std::sin(angle * PI / 180)));
+            c.length = length; c.width = width;
+            c.angle = std::atan2(dot(d, top_plane.v), dot(d, top_plane.u)) * 180 / PI;
+        }
+        out.push_back(c);
+    }
+    return out;
+}
+
+core::Part reshape_part(const core::Part& part, const Plane& top_plane, const std::vector<Vec3>& outer, const std::vector<Cutout>& cutouts) {
+    if (!axis_aligned(part)) fail("Płyta „" + part.name + "” jest obrócona — kontur można zmieniać tylko w płytach równoległych do osi. Ustaw obrót w inspektorze.");
+    if (part.profile.is_object() && !part.profile.empty()) fail("Płyta „" + part.name + "” ma kształt parametryczny (" + part.profile.value("kind", std::string("profil")) + ") — zmień go w oknie kształtów, a nie rysunkiem.");
+    if (outer.size() < 3) fail("Kontur wymaga przynajmniej trzech punktów.");
+    Vec3 origin = core::world(part, 0, 0, 0);
+    Vec3 axis_u = unit(sub(core::world(part, 1, 0, 0), origin)), axis_v = unit(sub(core::world(part, 0, 1, 0), origin));
+    std::vector<Point> local;
+    double min_u = 1e18, min_v = 1e18, max_u = -1e18, max_v = -1e18;
+    for (const auto& p : outer) {
+        Point l{dot(sub(p, origin), axis_u), dot(sub(p, origin), axis_v)};
+        local.push_back(l);
+        min_u = std::min(min_u, l[0]); min_v = std::min(min_v, l[1]); max_u = std::max(max_u, l[0]); max_v = std::max(max_v, l[1]);
+    }
+    core::Part result = part;
+    Vec3 shift = add(scale(axis_u, min_u), scale(axis_v, min_v));
+    result.x += shift[0]; result.y += shift[1]; result.z += shift[2];
+    std::vector<std::vector<double>> contour;
+    for (const auto& l : local) contour.push_back({l[0] - min_u, l[1] - min_v});
+    bool rectangle = contour.size() == 4;
+    if (rectangle)
+        for (const auto& p : contour) {
+            bool ox = std::fabs(p[0]) < 1e-6 || std::fabs(p[0] - (max_u - min_u)) < 1e-6, oy = std::fabs(p[1]) < 1e-6 || std::fabs(p[1] - (max_v - min_v)) < 1e-6;
+            if (!ox || !oy) rectangle = false;
+        }
+    core::validate_polygon(contour);  // samoprzecięcia i zerowe pole zgłaszane z powodem
+    result.u = max_u - min_u; result.v = max_v - min_v;
+    if (rectangle) result.contour.clear();
+    else {
+        result.contour = contour;
+        std::fill(result.edges.begin(), result.edges.end(), false);   // obrzeża tylko dla prostokąta
+        result.contour_edge = false;
+    }
+    result.fillets = core::json::array();
+    result.chamfers = core::json::array();
+    auto move_uv = [&](core::json& item) {
+        if (item.is_object() && item.contains("u") && item.contains("v") && item["u"].is_number() && item["v"].is_number()) {
+            item["u"] = item["u"].get<double>() - min_u;
+            item["v"] = item["v"].get<double>() - min_v;
+        }
+    };
+    core::json machining = core::json::array();
+    if (part.machining.is_array())
+        for (auto cut : part.machining) {
+            if (cut.value("type", "") == "cutout" && (cut.value("shape", "") != "rect" || std::fabs(cut.value("angle", 0.0)) < 1e-6)) continue;   // wycięcia przejmują kształty z edytora
+            move_uv(cut);
+            machining.push_back(cut);
+        }
+    for (auto& hole : result.holes) { if (hole.size() >= 2) { hole[0] -= min_u; hole[1] -= min_v; } }
+    if (result.operations.is_array()) for (auto& op : result.operations) move_uv(op);
+    result.machining = machining;
+    for (const auto& cutout : cutouts) result.machining.push_back(cutout_json(result, top_plane, cutout));
+    return result;
+}
+
+std::pair<double, double> camera_angles_for_plane(const Plane& plane) {
+    double best_score = -1e18;
+    std::pair<double, double> best{0, 90};
+    for (double pitch : {90.0, -90.0, 0.0})
+        for (double yaw : {0.0, 90.0, 180.0, -90.0}) {
+            core::Camera camera(yaw, pitch, 1);
+            Ray ray = unproject(camera, 100, 100, 200, 200);
+            if (std::fabs(dot(ray.dir, plane.n)) < 0.99) continue;   // kamera patrzy wprost na płaszczyznę (z którejkolwiek strony)
+            core::Point3 o = camera.project(plane.origin, 200, 200);
+            core::Point3 pu = camera.project(add(plane.origin, plane.u), 200, 200);
+            core::Point3 pv = camera.project(add(plane.origin, plane.v), 200, 200);
+            double score = (pu[0] - o[0]) - (pv[1] - o[1]);   // u w prawo, v w górę (y ekranu rośnie w dół)
+            if (score > best_score + 1e-9) { best_score = score; best = {yaw, pitch}; }
+        }
+    return best;
+}
+
 }  // namespace modeler_geometry

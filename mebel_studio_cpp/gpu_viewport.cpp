@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <format>
 #include <limits>
 
 #include "pyutil.h"
@@ -179,6 +180,7 @@ void GPUViewport::close() {
     depth_buffer.reset(); id_buffer.reset(); kind_buffer.reset();
     surface_owner.clear(); surface_kind.clear();
     camera.reset(); signature.reset(); diagnostics = json::object();
+    have_cache = false; cached_color = Rgba{}; frame_key.clear(); reused = false; ids_reused = false;
 }
 
 bool GPUViewport::sync(const core::Project& project, bool interactive, const std::set<std::string>& selection, const std::set<std::string>& ghosts, double explode,
@@ -349,6 +351,7 @@ void GPUViewport::quality_pass(const std::string& quality_, bool interactive) {
             backend->ssao->SetIntensityScale(.35); backend->ssao->SetIntensityShift(.65);
             backend->ssao->BlurOn();
         }
+        backend->ssao->SetKernelSize(quality_ == "high" ? 12 : 8);  // mniej próbek = szybsza klatka bez widocznej różnicy w cieniowaniu narożników
         backend->renderer->SetPass(backend->ssao);
     } else {
         backend->renderer->SetPass(nullptr);
@@ -491,6 +494,17 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
     std::set<std::string> selection = options.selected_ids;
     if (options.selected) selection.insert(*options.selected);
     bool changed = sync(project, options.interactive, selection, ghosts, options.explode, camera_);
+    // Nic się nie zmieniło (ta sama bryła, kamera, rozmiar, zaznaczenie i tryb): oddajemy poprzedni obraz zamiast renderować od nowa.
+    // To najczęstszy przypadek przy najechaniu myszą, odświeżaniu okna i przełączaniu zakładek.
+    const std::string key = std::format("{}|{:.8g},{:.8g},{:.10g},{:.8g},{:.8g},{:.8g},{:.8g},{:.8g}|{}x{}|{}|{}|{}|{}", signature.value_or(""), camera_.yaw, camera_.pitch, camera_.scale,
+                                        camera_.center[0], camera_.center[1], camera_.center[2], camera_.pan[0], camera_.pan[1], size_.first, size_.second, options.quality,
+                                        view_style::realistic() ? "R" : "C", options.xray ? "x" : "-", view_style::state.lighting ? "l" : "-");
+    if (!changed && have_cache && key == frame_key && !closed) {
+        reused = true;
+        diagnostics["reused"] = true;
+        return cached_color;
+    }
+    reused = false;
     double prepared = perf_counter();
     double scale;
     if (options.interactive) scale = options.quality == "draft" ? .45 : options.quality == "balanced" ? .55 : options.quality == "high" ? .75 : .55;
@@ -506,21 +520,31 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
 #endif
     double rendered = perf_counter(); Rgba color = read_rgba(); double colored = perf_counter();
     double beauty = perf_counter();
-    Buffer2D<int32_t> owner = owner_pass();
-    // The ID pass defines picking and annotation occlusion. Ghost surfaces
-    // deliberately expose interior ownership, so use its matching depth.
-    Buffer2D<float> depth = read_depth();
-    std::tie(owner, depth) = ghost_fallback(std::move(owner), std::move(depth));
+    // Podczas obracania (klatka interaktywna) przy niezmienionej bryle zostawiamy bufory identyfikatorów i głębi z poprzedniej klatki:
+    // drugi render OpenGL z odczytem pikseli i głębi kosztuje tyle, co pierwszy, a wskazywanie myszą w trakcie przeciągania nie jest potrzebne.
+    // Pełny przebieg wraca w pierwszej klatce nieinteraktywnej po puszczeniu przycisku.
+    ids_reused = options.interactive && !changed && id_buffer && depth_buffer && kind_buffer && id_buffer->rows == output_size.second && id_buffer->cols == output_size.first;
+    Buffer2D<int32_t> owner;
+    Buffer2D<float> depth;
+    if (!ids_reused) {
+        owner = owner_pass();
+        // The ID pass defines picking and annotation occlusion. Ghost surfaces
+        // deliberately expose interior ownership, so use its matching depth.
+        depth = read_depth();
+        std::tie(owner, depth) = ghost_fallback(std::move(owner), std::move(depth));
+    }
     if (size != output_size) {
         // Same nearest pixel-centre mapping as Pillow and the CPU renderer.
         std::vector<int> xs(output_size.first), ys(output_size.second);
         for (int i = 0; i < output_size.first; ++i) xs[i] = std::min(size.first - 1, static_cast<int>(std::floor((i + .5) * size.first / output_size.first)));
         for (int i = 0; i < output_size.second; ++i) ys[i] = std::min(size.second - 1, static_cast<int>(std::floor((i + .5) * size.second / output_size.second)));
-        Buffer2D<float> depth2(output_size.second, output_size.first, 0); Buffer2D<int32_t> owner2(output_size.second, output_size.first, 0); Buffer2D<uint8_t> kind2(output_size.second, output_size.first, 0);
-        for (int y = 0; y < output_size.second; ++y) for (int x = 0; x < output_size.first; ++x) {
-            depth2.at(y, x) = depth.at(ys[y], xs[x]); owner2.at(y, x) = owner.at(ys[y], xs[x]); kind2.at(y, x) = kind_buffer->at(ys[y], xs[x]);
+        if (!ids_reused) {
+            Buffer2D<float> depth2(output_size.second, output_size.first, 0); Buffer2D<int32_t> owner2(output_size.second, output_size.first, 0); Buffer2D<uint8_t> kind2(output_size.second, output_size.first, 0);
+            for (int y = 0; y < output_size.second; ++y) for (int x = 0; x < output_size.first; ++x) {
+                depth2.at(y, x) = depth.at(ys[y], xs[x]); owner2.at(y, x) = owner.at(ys[y], xs[x]); kind2.at(y, x) = kind_buffer->at(ys[y], xs[x]);
+            }
+            depth = std::move(depth2); owner = std::move(owner2); kind_buffer = std::move(kind2);
         }
-        depth = std::move(depth2); owner = std::move(owner2); kind_buffer = std::move(kind2);
         // Image.resize(NEAREST): ImagingTransform ze współczynnikiem a0 = in/out i przesunięciem 0.5*a0.
         Rgba resized; resized.rows = output_size.second; resized.cols = output_size.first; resized.data.resize(static_cast<size_t>(resized.rows) * resized.cols * 4);
         double a0x = static_cast<double>(color.cols) / output_size.first, a0y = static_cast<double>(color.rows) / output_size.second;
@@ -533,20 +557,21 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
         }
         color = std::move(resized);
     }
-    depth_buffer = depth; id_buffer = owner;
+    if (!ids_reused) { depth_buffer = std::move(depth); id_buffer = std::move(owner); }
     material_pass(project, visible);
     long long face_count = 0; for (auto& g : groups) face_count += static_cast<long long>(g->offsets.size()) - 1;
     double finished = perf_counter();
     diagnostics = {{"engine", "vtk-opengl"}, {"geometry_changed", changed}, {"interactive", options.interactive}, {"quality", options.quality}, {"sample_scale", sample_scale},
                    {"actors", current.size()}, {"faces", face_count}, {"geometry_ms", (prepared - start) * 1000}, {"beauty_ms", (beauty - prepared) * 1000},
                    {"configure_ms", (configured - prepared) * 1000}, {"render_ms", (rendered - configured) * 1000}, {"rgba_read_ms", (colored - rendered) * 1000},
-                   {"depth_read_ms", (beauty - colored) * 1000}, {"owner_pass_ms", (finished - beauty) * 1000}, {"total_ms", (finished - start) * 1000}};
+                   {"depth_read_ms", (beauty - colored) * 1000}, {"owner_pass_ms", (finished - beauty) * 1000}, {"total_ms", (finished - start) * 1000}, {"reused", false}, {"ids_reused", ids_reused}};
     viewport_render::RenderedFaces cheap = gpu_scene::cheap_drawn(*context, groups, camera_, size_, selection, options.explode, visible);
     drawn = cheap.faces;
     output_roi = {std::max(0, static_cast<int>(std::floor(static_cast<double>(roi[0]) * output_size.first / size.first))),
                   std::max(0, static_cast<int>(std::floor(static_cast<double>(roi[1]) * output_size.second / size.second))),
                   std::min(output_size.first - 1, static_cast<int>(std::ceil(static_cast<double>(roi[2] + 1) * output_size.first / size.first))),
                   std::min(output_size.second - 1, static_cast<int>(std::ceil(static_cast<double>(roi[3] + 1) * output_size.second / size.second)))};
+    frame_key = key; cached_color = color; have_cache = true;
     return color;
 }
 
@@ -585,9 +610,11 @@ native_viewport::ViewportResult paint_gpu(tk::Canvas* canvas, const Request& req
         state_target->_render_diagnostics = viewport.diagnostics;
         auto [x0, y0, x1, y1] = viewport.output_roi;
         int cols = x1 - x0 + 1, rows = y1 - y0 + 1;
-        std::vector<uint8_t> crop(static_cast<size_t>(rows) * cols * 4);
-        for (int r = 0; r < rows; ++r) std::memcpy(&crop[static_cast<size_t>(r) * cols * 4], &rgba.data[(static_cast<size_t>(y0 + r) * rgba.cols + x0) * 4], static_cast<size_t>(cols) * 4);
-        state.photo = std::make_unique<tk::PhotoImage>(canvas, cols, rows, crop);
+        if (!(viewport.reused && state.photo)) {  // obraz bez zmian: zostaje ten sam obiekt zdjęcia Tk, tylko dokładamy go ponownie na płótno
+            std::vector<uint8_t> crop(static_cast<size_t>(rows) * cols * 4);
+            for (int r = 0; r < rows; ++r) std::memcpy(&crop[static_cast<size_t>(r) * cols * 4], &rgba.data[(static_cast<size_t>(y0 + r) * rgba.cols + x0) * 4], static_cast<size_t>(cols) * 4);
+            state.photo = std::make_unique<tk::PhotoImage>(canvas, cols, rows, crop);
+        }
         canvas->create_image(x0, y0, {{"anchor", "nw"}, {"image", *state.photo}, {"tags", "viewport.gpu_model"}});
         state_target->_gpu_error.reset();
         native_viewport::ViewportResult result; result.ok = true; result.engine = "vtk-opengl"; result.drawn = viewport.drawn; result.diagnostics = viewport.diagnostics;

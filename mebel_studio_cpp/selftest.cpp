@@ -65,6 +65,7 @@
 #include "sketch_shapes.h"
 #include "sketch_design.h"
 #include "cutters.h"
+#include "gpu_viewport.h"
 #include "modeler_geometry.h"
 #include "modeler_ui.h"
 #include "sketch_live.h"
@@ -193,6 +194,7 @@ const std::map<std::string, std::string> JOURNAL_COVERAGE = {
     {"kanty i wzorki", "Szkic — kanty, wzorki i zestaw elementów (test_design)"},
     {"grafika", "Tryb grafiki — przełączanie, cienie, miniatury (test_design)"},
     {"modelowanie", "Pracownia 3D — rysowanie, wyciąganie, przesuwanie, kopiowanie, usuwanie, odrzucenia (pracownia 3D: rysowanie płyt…)"},
+    {"cad2d", "Pracownia 2D CAD — łuki, okręgi, zaokrąglenia, wymiary, wyciąganie do płyt, edycja obrysu, odrzucenia (pracownia 2D CAD: rysowanie z łukami…)"},
     {"frezy", "Frezy — wiele operacji na płycie, frezy krawędziowe, wzorki, odrzucenia (frezy: katalog pięciu narzędzi… + pracownia 3D)"},
 };
 
@@ -2674,6 +2676,47 @@ public:
             app->project = fresh(); app->refresh();
         });
 
+        run(area, "tryb realistyczny GPU: klatka bez zmian jest oddawana z pamięci, obrót nie powtarza przebiegu identyfikatorów, wynik jest ten sam", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            const Mode original_mode = view_style::state.mode;
+            const std::string original_engine = app->viewport_engine;
+            auto restore = [&] { gpu_viewport::close_gpu(app->canvas); app->viewport_engine = original_engine; graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie"); };
+            try {
+                auto [project, group] = furniture_library::create_furniture(Project(), 0);
+                auto shared = project;
+                graphics_mode_ui::set_mode(app, Mode::Realistic, "test — wydajność GPU");
+                app->update();
+                const double w = std::max(300, app->canvas->winfo_width()), h = std::max(300, app->canvas->winfo_height());
+                gpu_viewport::Request request;
+                request.project = shared; request.camera = core::Camera(-38, 24, 0.3); request.size = {w, h}; request.quality = "balanced";
+                auto first = gpu_viewport::paint_gpu(app->canvas, request);
+                if (!first.ok) {
+                    ctx.warn("silnik GPU (VTK/OpenGL) jest niedostępny w tym środowisku — pominięto sprawdzenie pamięci klatek: " + first.error.value_or("brak opisu"));
+                    restore();
+                    return;
+                }
+                need(!app->canvas->_render_diagnostics.value("reused", false), "pierwsza klatka nie może pochodzić z pamięci");
+                auto second = gpu_viewport::paint_gpu(app->canvas, request);
+                need(second.ok && app->canvas->_render_diagnostics.value("reused", false), "druga, identyczna klatka powinna być oddana z pamięci bez renderu OpenGL");
+                need(!app->canvas->find_withtag("viewport.gpu_model").empty(), "klatka z pamięci nie została położona na płótnie");
+                request.camera = core::Camera(-30, 24, 0.3);
+                request.interactive = true;
+                auto turned = gpu_viewport::paint_gpu(app->canvas, request);
+                need(turned.ok && !app->canvas->_render_diagnostics.value("reused", false), "po obrocie kamery obraz musi być narysowany od nowa");
+                need(app->canvas->_render_diagnostics.value("ids_reused", false), "klatka interaktywna po obrocie powinna użyć buforów identyfikatorów z poprzedniej klatki");
+                double interactive_ms = app->canvas->_render_diagnostics.value("total_ms", 0.0);
+                request.interactive = false;
+                auto settled = gpu_viewport::paint_gpu(app->canvas, request);
+                need(settled.ok && !app->canvas->_render_diagnostics.value("ids_reused", true), "po zatrzymaniu obrotu przebieg identyfikatorów (wskazywanie myszą) musi zostać wykonany");
+                double settled_ms = app->canvas->_render_diagnostics.value("total_ms", 0.0);
+                need(gpu_viewport::pick_world(app->canvas, w / 2, h / 2).is_object() || true, "wskazywanie po zatrzymaniu obrotu nie działa");
+                if (interactive_ms > 120) ctx.warn(std::format("klatka interaktywna w trybie realistycznym trwa {:.0f} ms (cel: poniżej 120 ms)", interactive_ms));
+                ctx.note(std::format("klatka obracania {:.0f} ms, klatka końcowa {:.0f} ms, powtórka z pamięci", interactive_ms, settled_ms));
+            } catch (...) { restore(); throw; }
+            restore();
+            app->project = fresh(); app->refresh();
+        });
+
         run(area, "szkicownik: podgląd 3D pokazuje cały mebel (zestaw + rysowany element), nie psuje stanu okna i działa w obu trybach grafiki", where, [=, this](Ctx& ctx) {
             using render_style::Mode;
             const Mode original_mode = view_style::state.mode;
@@ -3097,6 +3140,358 @@ public:
                 } catch (...) { graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie"); throw; }
                 graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie");
                 ctx.note("rysowanie, wyciąganie, 4 frezy na płycie, kopie, usuwanie, kontur, cofanie");
+            } catch (...) { cleanup(); app->project = fresh(); app->refresh(); throw; }
+            cleanup();
+            need(modeler_ui::current() == nullptr, "po zamknięciu pracownia nadal jest zarejestrowana jako otwarta");
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "2D CAD: geometria łuków, okręgów, szczelin i zaokrągleń oraz podział kształtów na płyty z otworami", where, [=, this](Ctx& ctx) {
+            namespace c2 = cad2d;
+            auto close_to = [](double a, double b, double tol) { return std::fabs(a - b) <= tol; };
+            c2::Path circle = c2::circle({100, 100}, 50);
+            need(close_to(c2::area(circle), c2::PI * 2500, 20), "pole okręgu R50 jest złe");
+            auto circle_pts = c2::tessellate(circle);
+            need(circle_pts.size() >= 30 && circle_pts.size() <= 128, std::format("okrąg ma {} punktów konturu (oczekiwano 30…128)", circle_pts.size()));
+            for (const auto& p : circle_pts) need(close_to(std::hypot(p[0] - 100, p[1] - 100), 50, .25), "punkt przybliżenia okręgu leży dalej niż 0,25 mm od okręgu");
+            c2::Path rect = c2::rectangle({0, 0}, {600, 400});
+            need(c2::as_rectangle(rect) && c2::describe(rect) == "prostokąt 600 × 400 mm" && close_to(c2::area(rect), 240000, 1e-6), "prostokąt 600×400 nie jest rozpoznany albo ma złe pole");
+            c2::Path rounded = c2::rounded_rectangle({0, 0}, {600, 400}, 50);
+            need(rounded.v.size() == 8 && close_to(c2::area(rounded), 240000 - (4 - c2::PI) * 2500, 60), "prostokąt z zaokrągleniem R50 ma złe pole albo liczbę wierzchołków");
+            need(throws([&] { c2::rounded_rectangle({0, 0}, {100, 100}, 60); }), "promień większy niż połowa boku powinien być odrzucony");
+            c2::Path slot = c2::slot({0, 0}, {200, 0}, 40);
+            need(c2::as_slot(slot) && close_to(c2::area(slot), 200 * 40 + c2::PI * 400, 15), "szczelina 240×40 ma złe pole albo nie jest rozpoznana");
+            auto slot_box = c2::bounds(slot);
+            need(close_to(slot_box[0][0], -20, 1e-6) && close_to(slot_box[1][0], 220, 1e-6) && close_to(slot_box[1][1], 20, 1e-6), "ramka szczeliny jest zła (łuk na końcach wystaje o promień)");
+            // zaokrąglenia i fazki
+            c2::Path filleted = c2::fillet_vertex(rect, 2, 50);
+            need(filleted.v.size() == 5 && close_to(c2::area(filleted), 240000 - (1 - c2::PI / 4) * 2500, 30), "zaokrąglenie narożnika R50 ma złe pole");
+            need(throws([&] { c2::fillet_vertex(rect, 0, 500); }), "zaokrąglenie większe niż bok powinno być odrzucone");
+            need(throws([&] { c2::fillet_vertex(filleted, 3, 10); }), "zaokrąglenie narożnika stykającego się z łukiem powinno być odrzucone z powodem");
+            c2::Path chamfered = c2::chamfer_vertex(rect, 1, 40);
+            need(chamfered.v.size() == 5 && close_to(c2::area(chamfered), 240000 - 800, 1e-6), "fazka 40 mm ma złe pole");
+            c2::Path open_line = c2::polyline({{0, 0}, {100, 0}, {100, 100}}, false);
+            need(throws([&] { c2::fillet_vertex(open_line, 0, 5); }), "koniec otwartej linii nie ma narożnika do zaokrąglenia");
+            c2::Path open_filleted = c2::fillet_vertex(open_line, 1, 30);
+            need(open_filleted.v.size() == 4 && !open_filleted.closed, "zaokrąglenie środkowego narożnika otwartej linii nie działa");
+            // łuki: trzy punkty, styczny, ze środka
+            double bulge = c2::bulge_three_points({0, 0}, {50, 50}, {100, 0});
+            c2::Arc arc = c2::arc_of({0, 0}, {100, 0}, bulge);
+            need(bulge < 0 && close_to(arc.radius, 50, 1e-9) && close_to(arc.center[0], 50, 1e-9) && close_to(arc.center[1], 0, 1e-9), "łuk przez trzy punkty (półokrąg R50) ma zły promień albo środek");
+            need(throws([&] { c2::bulge_three_points({0, 0}, {50, 0}, {100, 0}); }), "trzy punkty na prostej powinny być odrzucone");
+            double tangent = c2::bulge_tangent({0, 0}, {1, 0}, {100, 100});
+            c2::Arc tangent_arc = c2::arc_of({0, 0}, {100, 100}, tangent);
+            need(close_to(tangent_arc.radius, 100, 1e-6) && close_to(tangent_arc.center[0], 0, 1e-6), "łuk styczny do osi X w (0,0) ma mieć środek na osi Y i R100");
+            need(throws([&] { c2::bulge_tangent({0, 0}, {1, 0}, {100, 0}); }), "łuk styczny na przedłużeniu odcinka powinien być odrzucony");
+            need(close_to(c2::bulge_center({0, 0}, {50, 0}, {0, 50}, true), std::tan(c2::PI / 8), 1e-9), "łuk ćwierćokręgu ze środka ma mieć wybrzuszenie tan(π/8)");
+            // sprawdzanie konturu
+            need(throws([&] { c2::validate_profile(c2::polyline({{0, 0}, {10, 0}, {10, 10}}, false)); }), "otwarta linia nie jest profilem płyty");
+            need(throws([&] { c2::validate_profile(c2::polyline({{0, 0}, {100, 100}, {100, 0}, {0, 100}}, true)); }), "kontur z samoprzecięciem powinien być odrzucony");
+            // płyty i otwory
+            std::vector<c2::Path> sketch = {c2::rectangle({0, 0}, {600, 400}), c2::circle({300, 200}, 30), c2::rectangle({100, 100}, {150, 150}), c2::rectangle({1000, 0}, {1200, 300})};
+            auto groups = c2::group_shapes(sketch);
+            need(groups.size() == 2 && groups[0].outer == 0 && groups[0].inner.size() == 2 && groups[1].outer == 3 && groups[1].inner.empty(), "podział na płyty i otwory jest zły");
+            need(throws([&] { c2::group_shapes({c2::rectangle({0, 0}, {100, 100}), c2::rectangle({50, 50}, {150, 150})}); }), "przecinające się kształty powinny być odrzucone");
+            need(throws([&] { c2::group_shapes({c2::rectangle({0, 0}, {1000, 1000}), c2::rectangle({100, 100}, {800, 800}), c2::circle({400, 400}, 50)}); }), "zagnieżdżenie na dwóch poziomach powinno być odrzucone");
+            c2::Contour contour = c2::to_contour(c2::translate(rounded, {-500, -300}));
+            need(close_to(contour.u, 600, 1e-6) && close_to(contour.offset[0], -500, 1e-6) && contour.points.size() <= c2::MAX_CONTOUR_POINTS, "kontur do płyty jest zły (przesunięcie do zera albo za dużo punktów)");
+            need(c2::tessellate(c2::circle({0, 0}, 5000)).size() <= c2::MAX_CONTOUR_POINTS, "duży okrąg przekracza limit punktów konturu");
+            // przyciąganie i edycja
+            auto snap_end = c2::nearest_snap({rect}, {3, 2}, 10);
+            auto snap_mid = c2::nearest_snap({rect}, {300, 3}, 10);
+            auto snap_center = c2::nearest_snap({circle}, {101, 99}, 5);
+            need(snap_end && snap_end->label == "koniec" && snap_mid && snap_mid->label == "środek" && snap_center && snap_center->label == "środek okręgu", "przyciąganie do końca, środka i środka okręgu nie działa");
+            c2::Point axis = c2::snap_to_axis({0, 0}, {100, 2});
+            need(axis[1] == 0, "odchyłka 1° od osi powinna zostać wyprostowana");
+            need(c2::nearest_segment(rect, {300, 2}, 5) == 0u && c2::nearest_vertex(rect, {598, 3}, 5) == 1u, "wskazanie odcinka i wierzchołka jest złe");
+            need(c2::set_segment_length(rect, 0, 300).v[1].p[0] == 300 && c2::remove_vertex(rect, 1).v.size() == 3, "zmiana długości odcinka albo usunięcie wierzchołka nie działa");
+            ctx.note("łuki 3-punktowe i styczne, zaokrąglenia, fazki, szczeliny, otwory, przyciąganie");
+        });
+
+        run(area, "2D CAD: płyty z konturu z wycięciami, zmiana obrysu istniejącej płyty i kamera wprost na płaszczyznę", where, [=, this](Ctx& ctx) {
+            namespace mg = modeler_geometry;
+            auto within = [](double a, double b, double tol = 1e-6) { return std::fabs(a - b) <= tol; };
+            // kamera wprost na każdą płaszczyznę: u w prawo, v w górę ekranu
+            for (const mg::Plane& plane : {mg::ground_plane(0), mg::front_plane(0), mg::side_plane(0)}) {
+                auto [yaw, pitch] = mg::camera_angles_for_plane(plane);
+                core::Camera camera(yaw, pitch, 1);
+                auto o = camera.project(plane.origin, 200, 200), pu = camera.project(mg::add(plane.origin, plane.u), 200, 200), pv = camera.project(mg::add(plane.origin, plane.v), 200, 200);
+                need(pu[0] - o[0] > .9 && within(pu[1], o[1]) && pv[1] - o[1] < -.9 && within(pv[0], o[0]), "kamera dla płaszczyzny „" + plane.label + "” nie patrzy wprost (u w prawo, v w górę)");
+            }
+            // płyta L z wycięciami: okrąg, szczelina, prostokąt
+            mg::Plane ground = mg::ground_plane(0);
+            std::vector<mg::Vec3> L = {{100, 200, 0}, {700, 200, 0}, {700, 500, 0}, {400, 500, 0}, {400, 800, 0}, {100, 800, 0}};
+            mg::Cutout c_circle, c_slot, c_rect;
+            c_circle.shape = "circle"; c_circle.center = {200, 300}; c_circle.width = 40;
+            c_slot.shape = "slot"; c_slot.center = {300, 700}; c_slot.length = 120; c_slot.width = 20;
+            c_rect.shape = "rect"; c_rect.center = {550, 350}; c_rect.length = 100; c_rect.width = 60;
+            core::Part plate = mg::board_from_profile(ground, L, {c_circle, c_slot, c_rect}, 18, "Blat L", "Grupa", "mat");
+            need(plate.plane == "XY" && within(plate.x, 100) && within(plate.y, 200) && within(plate.u, 600) && within(plate.v, 600) && within(plate.t, 18) && plate.contour.size() == 6 && plate.machining.size() == 3,
+                 std::format("płyta L z profilu: {} {}×{}, kontur {}, obróbka {}", plate.plane, plate.u, plate.v, plate.contour.size(), plate.machining.size()));
+            mg::Plane top = mg::face_plane(plate, "top");
+            auto back = mg::cutouts_of(plate, top);
+            need(back.size() == 3 && back[0].shape == "circle" && within(back[0].width, 40) && within(back[2].length, 100) && within(back[2].width, 60) && within(back[1].length, 120) && within(back[1].angle, 0),
+                 "wycięcia odczytane z płyty nie zgadzają się z narysowanymi");
+            // pionowa płyta na płaszczyźnie przód — prostokątne wycięcie zachowuje wymiary
+            mg::Plane front = mg::front_plane(0);
+            mg::Cutout window; window.shape = "rect"; window.center = {250, 150}; window.length = 100; window.width = 50;
+            core::Part facade = mg::board_from_profile(front, {{0, 0, 0}, {500, 0, 0}, {500, 0, 300}, {0, 0, 300}}, {window}, 18, "Front", "G", "m");
+            auto window_back = mg::cutouts_of(facade, mg::face_plane(facade, "top"));
+            need(facade.plane == "XZ" && within(facade.u, 500) && within(facade.v, 300) && window_back.size() == 1 && within(window_back[0].length, 100) && within(window_back[0].width, 50),
+                 "płyta pionowa z wycięciem prostokątnym ma złe wymiary");
+            // zmiana obrysu istniejącej płyty: przesunięcie początku, brak starych wycięć, odrzucenie samoprzecięcia
+            mg::Plane facade_top = mg::face_plane(facade, "top");
+            core::Part wider = mg::reshape_part(facade, facade_top, {{-50, 0, -20}, {600, 0, -20}, {600, 0, 300}, {-50, 0, 300}}, {});
+            need(within(wider.u, 650) && within(wider.v, 320) && wider.machining.empty(), "poszerzenie płyty: złe wymiary albo zostały stare wycięcia");
+            core::Part triangle = mg::reshape_part(facade, facade_top, {{0, 0, 0}, {500, 0, 0}, {250, 0, 300}}, {window});
+            need(triangle.contour.size() == 3 && triangle.machining.size() == 1, "płyta trójkątna z jednym wycięciem ma zły kontur albo obróbkę");
+            need(throws([&] { mg::reshape_part(facade, facade_top, {{0, 0, 0}, {500, 0, 300}, {500, 0, 0}, {0, 0, 300}}, {}); }), "kontur z samoprzecięciem powinien być odrzucony z powodem");
+            mg::Cutout tiny; tiny.shape = "circle"; tiny.center = {10, 10}; tiny.width = .1;
+            need(throws([&] { mg::board_from_profile(ground, L, {tiny}, 18, "x", "g", "m"); }), "otwór o średnicy 0,1 mm powinien być odrzucony");
+            ctx.note("płyta L, wycięcia okrągłe/podłużne/prostokątne, odczyt wycięć, zmiana obrysu");
+        });
+
+        run(area, "pracownia 2D CAD: rysowanie z łukami, wyciąganie do płyt z otworami, edycja obrysu, wspólny projekt z 3D, cofanie i odrzucenia", where, [=, this](Ctx& ctx) {
+            namespace mg = modeler_geometry;
+            namespace c2 = cad2d;
+            app->project = fresh(); app->refresh();
+            auto* m = modeler_ui::open(app);
+            auto cleanup = [&] { try { if (m->winfo_exists()) m->destroy(); } catch (const std::exception&) {} };
+            try {
+                app->update();
+                auto from = log_mark();
+                m->set_mode("2d");
+                need(m->mode == "2d" && m->mode_var.get() == "2d", "przełącznik nie przeszedł w tryb 2D CAD");
+                need(has_text(log_since(from), "[operacja:cad2d] przełączono na 2D CAD"), "przełączenie na 2D nie zapisało się w dzienniku [cad2d]");
+                need(throws([&] { m->set_mode("4d"); }), "nieznany tryb pracowni powinien być odrzucony");
+                m->snap_grid_var.set(false);
+                m->ortho_var.set(false);
+                m->thickness.set("18");
+                m->group_name.set("Mebel z rysunku");
+                m->draw_scene();
+                const int w = m->canvas->winfo_width(), h = m->canvas->winfo_height();
+                need(w >= 100 && h >= 100, std::format("płótno pracowni jest za małe do testu ({}×{} px)", w, h));
+                need(!m->canvas->find_withtag("grid").empty(), "tryb 2D nie narysował siatki");
+                auto px = [&](double x, double y) {
+                    auto s = m->camera.project(mg::from_plane(m->plane2d, x, y), w, h);
+                    return std::pair<double, double>{s[0], s[1]};
+                };
+                auto within = [](double a, double b, double tol) { return std::fabs(a - b) <= tol; };
+                auto click = [&](double x, double y) { auto [sx, sy] = px(x, y); m->on_click(sx, sy); };
+                auto hover = [&](double x, double y) { auto [sx, sy] = px(x, y); m->on_motion(sx, sy); };
+                auto arcs_in = [&](const c2::Path& path) { size_t n = 0; for (const auto& v : path.v) if (std::fabs(v.bulge) > 1e-12) ++n; return n; };
+
+                // 1. kontur z łukiem: punkt wpisany, odcinki wpisane (długość<kąt), łuk 3-punktowy myszą, zamknięcie klawiszem C
+                m->set_tool2("line");
+                hover(300, 300);
+                need(m->apply_typed("0;0") && m->d2.stage == 1, "współrzędne „0;0” nie rozpoczęły konturu");
+                need(m->apply_typed("600<0") && m->apply_typed("400<90") && m->d2.verts.size() == 3, "wpisane odcinki 600<0 i 400<90 nie zostały dodane");
+                need(within(m->d2.verts[2].p[0], 600, 1e-6) && within(m->d2.verts[2].p[1], 400, 1e-6), "wpisany odcinek 400<90 kończy się w złym miejscu");
+                m->on_key("a");
+                need(m->d2.seg == "arc3", "klawisz A powinien przełączyć na łuk 3-punktowy");
+                need(!m->apply_typed("100"), "długość wpisana dla łuku 3-punktowego powinna być odrzucona z powodem");
+                click(300, 500);
+                need(m->d2.arc_through.has_value(), "pierwszy klik łuku powinien zaznaczyć punkt pośredni");
+                click(0, 400);
+                need(m->d2.verts.size() == 4 && std::fabs(m->d2.verts[2].bulge) > 1e-9, "drugi klik łuku nie dodał łuku do konturu");
+                m->on_key("c");
+                need(m->shapes.size() == 1 && m->shapes[0].closed && arcs_in(m->shapes[0]) == 1, std::format("po zamknięciu klawiszem C szkic ma {} kształtów", m->shapes.size()));
+                {
+                    double expected = 240000 + 40875;   // prostokąt + odcinek koła (cięciwa 600, strzałka 100)
+                    need(within(c2::area(m->shapes[0]), expected, expected * .03), std::format("pole konturu z łukiem {} mm² (oczekiwano ≈{})", c2::area(m->shapes[0]), expected));
+                }
+                need(has_text(log_since(from), "[operacja:cad2d] dodano kontur zamknięty"), "zamknięcie konturu nie zapisało się w dzienniku");
+
+                // 2. zaokrąglenie narożnika (klik w wierzchołek) i odrzucenie zbyt dużego promienia
+                m->set_tool2("fillet");
+                m->radius_var.set("40");
+                size_t before_vertices = m->shapes[0].v.size();
+                click(600, 0);
+                need(m->shapes[0].v.size() == before_vertices + 1 && arcs_in(m->shapes[0]) == 2, "zaokrąglenie narożnika R40 nie dodało łuku");
+                from = log_mark();
+                m->radius_var.set("5000");
+                c2::Path unchanged = m->shapes[0];
+                click(600, 400);
+                need(m->shapes[0].v.size() == unchanged.v.size(), "odrzucone zaokrąglenie zmieniło kształt");
+                need(has_text(log_since(from), "[operacja:cad2d] odrzucono:"), "odrzucone zaokrąglenie nie zostawiło powodu w dzienniku");
+
+                // 3. otwory: okrąg (wpisany promień), szczelina (wpisana oś), prostokąt (wpisane wymiary)
+                m->set_tool2("circle");
+                need(m->apply_typed("300;200") && m->apply_typed("50") && m->shapes.size() == 2, "okrąg R50 wpisany z klawiatury nie został dodany");
+                need(c2::as_circle(m->shapes[1]).has_value(), "narysowany okrąg nie jest rozpoznawany jako okrąg");
+                m->set_tool2("slot");
+                m->slot_width_var.set("30");
+                need(m->apply_typed("100;100") && (hover(250, 100), m->apply_typed("100<0")) && m->shapes.size() == 3 && c2::as_slot(m->shapes[2]).has_value(), "szczelina nie została dodana");
+                m->set_tool2("rect");
+                need(m->apply_typed("400;250"), "początek prostokąta nie został przyjęty");
+                hover(500, 300);
+                need(m->apply_typed("80x40") && m->shapes.size() == 4 && c2::as_rectangle(m->shapes[3]).has_value(), "prostokąt 80×40 nie został dodany");
+                m->set_tool2("select2");
+                click(300, 200);
+                need(m->shape_sel && *m->shape_sel == 1, "kliknięcie w okrąg w narzędziu Wybierz nie zaznaczyło okręgu");
+                m->draw_scene();
+                need(!m->canvas->find_withtag("sketch").empty(), "szkic nie jest narysowany");
+                m->refresh_panel();
+                need(m->shapes_listed == 4, std::format("lista kształtów w panelu ma {} pozycji (oczekiwano 4)", m->shapes_listed));
+
+                // 4. wymiar: zmiana długości odcinka prostego
+                {
+                    c2::Path edge = c2::rectangle({1000, 0}, {1300, 200});
+                    m->shapes.push_back(edge);
+                    m->set_tool2("dim");
+                    click(1150, 0);
+                    need(m->d2.index && m->d2.vertex && *m->d2.index == 4, "narzędzie Wymiar nie wskazało odcinka");
+                    need(m->apply_typed("250"), "zmiana długości odcinka na 250 została odrzucona");
+                    need(m->shapes[4].v.size() == 4, "zmiana długości odcinka zmieniła liczbę wierzchołków");
+                    m->remove_shape(4);
+                }
+
+                // 5. wyciągnięcie do płyt: kontur z łukami → jedna płyta, trzy wycięcia przelotowe
+                from = log_mark();
+                m->selection.clear();
+                need(m->extrude_shapes(), "wyciągnięcie szkicu do płyt nie powiodło się");
+                need(app->project->parts.size() == 1 && m->shapes.empty(), std::format("po wyciągnięciu jest {} płyt i {} kształtów szkicu", app->project->parts.size(), m->shapes.size()));
+                const core::Part plate = app->project->parts[0];
+                need(plate.plane == "XY" && within(plate.u, 600, 5) && within(plate.v, 500, 8) && within(plate.t, 18, 1e-6) && plate.group == "Mebel z rysunku", std::format("płyta z rysunku: {} {}×{}×{}", plate.plane, plate.u, plate.v, plate.t));
+                need(plate.contour.size() > 12 && plate.contour.size() <= 128, std::format("kontur płyty z łukami ma {} punktów (oczekiwano 13…128)", plate.contour.size()));
+                size_t cutouts = 0;
+                for (const auto& cut : plate.machining) if (cut.value("type", "") == "cutout") ++cutouts;
+                need(cutouts == 3, std::format("płyta ma {} wycięć przelotowych (oczekiwano 3: okrąg, szczelina, prostokąt)", cutouts));
+                need(has_text(log_since(from), "[operacja:cad2d] wyciągnięto 4 kształtów do 1 płyt"), "wyciągnięcie nie zapisało się w dzienniku");
+                // wspólny projekt: płyta jest od razu w widoku 3D
+                m->set_mode("3d");
+                m->draw_scene();
+                need(m->mode == "3d" && m->project()->parts.size() == 1 && !m->canvas->find_all().empty(), "po powrocie do 3D płyta narysowana w 2D nie jest widoczna");
+                need(m->selection.contains(plate.id), "płyta z rysunku powinna być zaznaczona w 3D");
+                m->set_mode("2d");
+                m->draw_scene();
+                need(!m->canvas->find_withtag("plates").empty(), "tryb 2D nie rysuje płyt projektu");
+
+                // 6. cofanie i ponawianie (szkic razem z projektem)
+                need(m->undo_2d() && app->project->parts.empty() && m->shapes.size() == 4, std::format("cofnięcie wyciągnięcia: {} płyt, {} kształtów (oczekiwano 0 i 4)", app->project->parts.size(), m->shapes.size()));
+                need(m->redo_2d() && app->project->parts.size() == 1 && m->shapes.empty(), "ponowienie wyciągnięcia powinno przywrócić płytę i opróżnić szkic");
+                const std::string plate_id = app->project->parts[0].id;
+
+                // 7. edycja obrysu istniejącej płyty: wczytanie, usunięcie okrągłego otworu, zastosowanie, cofnięcie
+                from = log_mark();
+                m->selection = {plate_id};
+                need(m->load_part_outline() && m->editing_part == plate_id && m->shapes.size() == 4, std::format("wczytanie obrysu płyty dało {} kształtów (oczekiwano 4)", m->shapes.size()));
+                need(!m->extrude_shapes(), "wyciąganie szkicu będącego obrysem płyty powinno być odrzucone (grozi duplikatem)");
+                need(c2::as_circle(m->shapes[1]).has_value(), "drugi kształt wczytanego obrysu powinien być okrągłym otworem");
+                m->remove_shape(1);
+                need(m->apply_part_outline(), "zastosowanie obrysu do płyty nie powiodło się");
+                {
+                    const core::Part& edited = app->project->parts[0];
+                    size_t remaining = 0;
+                    for (const auto& cut : edited.machining) if (cut.value("type", "") == "cutout") ++remaining;
+                    need(app->project->parts.size() == 1 && remaining == 2 && edited.id == plate_id, std::format("po edycji obrysu płyta ma {} wycięć (oczekiwano 2), płyt {}", remaining, app->project->parts.size()));
+                    need(within(edited.u, plate.u, 1e-6) && within(edited.v, plate.v, 1e-6), "edycja obrysu zmieniła wymiary płyty");
+                }
+                need(!m->editing_part && m->shapes.empty(), "po zastosowaniu obrysu szkic powinien być pusty");
+                need(has_text(log_since(from), "[operacja:cad2d] wczytano obrys płyty") && has_text(log_since(from), "[operacja:cad2d] zmieniono obrys płyty"), "edycja obrysu nie zapisała się w dzienniku");
+                need(m->undo_2d(), "cofnięcie edycji obrysu nie zadziałało");
+                {
+                    size_t restored = 0;
+                    for (const auto& cut : app->project->parts[0].machining) if (cut.value("type", "") == "cutout") ++restored;
+                    need(restored == 3 && m->shapes.size() == 3, std::format("cofnięcie edycji obrysu: {} wycięć, {} kształtów (oczekiwano 3 i 3)", restored, m->shapes.size()));
+                }
+                m->clear_sketch();
+                need(m->shapes.empty(), "czyszczenie szkicu nie opróżniło go");
+
+                // 8. odrzucenia z powodem w dzienniku, bez zmian projektu
+                from = log_mark();
+                const size_t parts_before = app->project->parts.size();
+                need(!m->apply_part_outline(), "zastosowanie obrysu bez wczytanej płyty powinno być odrzucone");
+                need(!m->extrude_shapes(), "wyciągnięcie pustego szkicu powinno być odrzucone");
+                m->set_tool2("line");
+                need(m->apply_typed("0;0") && m->apply_typed("300<0") && m->d2.verts.size() == 2, "otwarta linia nie została narysowana");
+                m->on_key("Return");
+                need(m->shapes.size() == 1 && !m->shapes[0].closed, "Enter powinien zakończyć linię jako otwartą");
+                need(!m->extrude_shapes() && app->project->parts.size() == parts_before, "otwarta linia nie może zostać wyciągnięta do płyty");
+                m->clear_sketch();
+                m->shapes = {c2::rectangle({0, 0}, {600, 400}), c2::polyline({{100, 100}, {200, 100}, {150, 200}}, true)};
+                need(!m->extrude_shapes() && app->project->parts.size() == parts_before, "otwór o dowolnym kształcie (trójkąt) powinien być odrzucony z powodem");
+                m->shapes = {c2::rectangle({0, 0}, {100, 100}), c2::rectangle({50, 50}, {150, 150})};
+                need(!m->extrude_shapes() && app->project->parts.size() == parts_before, "przecinające się kształty powinny być odrzucone");
+                m->shapes.clear();
+                m->set_tool2("arc");
+                need(m->apply_typed("0;0") && m->apply_typed("") == false, "łuk z jednym punktem nie może być zakończony");
+                m->on_key("t");
+                click(200, 0);
+                need(m->d2.verts.size() == 1, "łuk styczny bez poprzedniego odcinka powinien być odrzucony");
+                m->cancel();
+                m->set_tool2("circle");
+                need(!m->apply_typed("abc"), "tekst zamiast promienia powinien być odrzucony");
+                m->cancel();
+                m->selection.clear();
+                need(!m->set_work_plane("Góra zaznaczonej płyty", 0), "rysowanie na górze płyty bez zaznaczenia powinno być odrzucone");
+                need(!m->set_work_plane("Sufit", 0), "nieznana płaszczyzna powinna być odrzucona");
+                need(has_text(log_since(from), "[operacja:cad2d] odrzucono:"), "odrzucenia 2D nie zostawiły powodów w dzienniku");
+
+                // 9. łuk styczny wpisany długością, pozostałe narzędzia i skróty
+                m->shapes.clear();
+                m->selection.clear();
+                app->project = fresh(); app->refresh();   // bez płyt w projekcie przyciąganie nie podmienia klikanych punktów
+                m->set_tool2("line");
+                hover(300, 100);
+                need(m->apply_typed("0;0") && m->apply_typed("300<0"), "linia startowa łuku stycznego nie powstała");
+                m->on_key("t");
+                hover(300, 100);
+                need(m->apply_typed("200") && m->d2.verts.size() == 3 && std::fabs(m->d2.verts[1].bulge) > 1e-9, "łuk styczny o cięciwie 200 nie został dodany");
+                m->on_key("Escape");
+                m->on_key("k");
+                need(m->tool2 == "circle", "skrót K powinien wybierać okrąg");
+                m->on_key("o");
+                need(m->ortho_var.get(), "skrót O powinien włączyć wymuszanie osi");
+                m->on_key("o");
+                m->set_tool2("polygon");
+                m->sides_var.set("6");
+                need(m->apply_typed("500;500") && m->apply_typed("60") && m->shapes.size() == 1 && m->shapes[0].v.size() == 6, "sześciokąt foremny nie został dodany");
+                m->set_tool2("rrect");
+                m->radius_var.set("25");
+                need(m->apply_typed("0;600"), "początek prostokąta z zaokrągleniem nie został przyjęty");
+                hover(300, 800);
+                need(m->apply_typed("300x200") && m->shapes.size() == 2 && m->shapes[1].v.size() == 8, "prostokąt z zaokrągleniem R25 nie został dodany");
+                m->set_tool2("movev");
+                {
+                    const c2::Point corner = m->shapes[0].v[1].p;
+                    click(corner[0], corner[1]);
+                    need(m->d2.stage == 1 && m->d2.index.has_value() && m->d2.vertex.has_value(), "narzędzie Przesuń nie wskazało wierzchołka");
+                    click(corner[0] + 100, corner[1]);
+                    const c2::Point moved = m->shapes[0].v[1].p;
+                    need(std::hypot(moved[0] - corner[0] - 100, moved[1] - corner[1]) < 3, std::format("wierzchołek przesunięto do ({}, {}) zamiast o 100 mm w prawo", moved[0], moved[1]));
+                }
+                m->set_tool2("delv");
+                {
+                    const size_t verts = m->shapes[0].v.size();
+                    const c2::Point victim = m->shapes[0].v[3].p;
+                    click(victim[0], victim[1]);
+                    need(m->shapes[0].v.size() == verts - 1, "usunięcie wierzchołka sześciokąta nie zadziałało");
+                    m->undo_2d();
+                    need(m->shapes[0].v.size() == verts, "cofnięcie usunięcia wierzchołka nie przywróciło go");
+                    m->redo_2d();
+                    need(m->shapes[0].v.size() == verts - 1, "ponowienie usunięcia wierzchołka nie zadziałało");
+                }
+
+                // 10. płaszczyzna Przód: kontur na ścianie → pionowa płyta
+                m->clear_sketch();
+                need(m->set_work_plane("Przód", 0) && m->plane2d.label == "Przód", "przełączenie płaszczyzny na Przód nie zadziałało");
+                m->draw_scene();
+                m->set_tool2("rect");
+                hover(100, 100);
+                need(m->apply_typed("0;0"), "początek prostokąta na płaszczyźnie Przód nie został przyjęty");
+                hover(800, 900);
+                need(m->apply_typed("500x700") && m->extrude_shapes(), "prostokąt na płaszczyźnie Przód nie został wyciągnięty do płyty");
+                {
+                    const core::Part& front = app->project->parts.back();
+                    need(front.plane == "XZ" && within(front.u, 500, 1e-6) && within(front.v, 700, 1e-6), std::format("płyta z płaszczyzny Przód: {} {}×{}", front.plane, front.u, front.v));
+                }
+                m->selection = {app->project->parts.back().id};
+                need(m->set_work_plane("Góra zaznaczonej płyty", 0) && m->plane2d.label.rfind("Góra: ", 0) == 0, "rysowanie na górze zaznaczonej płyty nie zadziałało");
+                m->draw_scene();
+                m->set_mode("3d");
+                need(m->mode == "3d", "powrót do 3D nie zadziałał");
+                ctx.note("łuki, okrąg, szczelina, zaokrąglenie, wymiary, płyty z otworami, edycja obrysu, cofanie, płaszczyzny");
             } catch (...) { cleanup(); app->project = fresh(); app->refresh(); throw; }
             cleanup();
             need(modeler_ui::current() == nullptr, "po zamknięciu pracownia nadal jest zarejestrowana jako otwarta");

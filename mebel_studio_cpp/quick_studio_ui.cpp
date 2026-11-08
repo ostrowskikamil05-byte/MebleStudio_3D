@@ -103,7 +103,7 @@ std::optional<std::string> label_of(const json& choices, const json& value) {
 // Ikona z lewej strony wiersza listy poleceń (jak na makiecie); przyciski akcentowane jej nie mają.
 std::string row_label(const std::string& label) {
     static const std::map<std::string, std::string> glyphs = {
-        {"Pracownia 3D", "⬚"}, {"Rysuj", "✚"}, {"Edytuj szkic", "✎"}, {"Dopasuj element", "⚙"}, {"Zaokrąglenia", "◠"}, {"Dopasuj 3D", "⛶"},
+        {"Pracownia 3D", "⬚"}, {"Rysuj", "✚"}, {"Szkic klasyczny", "✎"}, {"Edytuj szkic", "✎"}, {"Dopasuj element", "⚙"}, {"Zaokrąglenia", "◠"}, {"Dopasuj 3D", "⛶"},
         {"Biblioteka wszystkich mebli", "▦"}, {"Kształty i style", "◇"}, {"Kolory", "◐"}, {"Fronty / uchwyty", "▭"}, {"Zawiasy / prowadnice", "⚙"},
         {"Nóżki / blat", "⊓"}, {"Materiały", "▤"}, {"LED", "✦"}, {"Okucia elementu…", "⚙"}, {"−90°", "↶"}, {"+90°", "↷"},
         {"Łączenie i pozycja…", "⊞"}, {"Narożnik…", "⌐"}, {"Wspólny blat…", "▬"}, {"Drukuj komplet…", "⎙"}, {"Eksport CAD / CNC", "⇪"},
@@ -1572,7 +1572,9 @@ void build(App* app) {
     // Zakładka „CAD": szkic, element, tryb pracy myszą.
     make_group(pages["Szkic / CAD"], "SZKIC");
     make_button(pages["Szkic / CAD"], "Pracownia 3D", [app] { modeler_ui::open(app); });
-    make_button(pages["Szkic / CAD"], "Rysuj", [app] { new Sketch(app, nullptr); });
+    // „Rysuj” = tryb 2D CAD tej samej Pracowni (wspólny projekt, przełącznik 3D | 2D CAD); dawny szkicownik zostaje jako „Szkic klasyczny”.
+    make_button(pages["Szkic / CAD"], "Rysuj", [app] { modeler_ui::open(app)->set_mode("2d"); });
+    make_button(pages["Szkic / CAD"], "Szkic klasyczny", [app] { new Sketch(app, nullptr); });
     make_button(pages["Szkic / CAD"], "Edytuj szkic", [app] { app->edit_sketch(); });
     make_group(pages["Szkic / CAD"], "ELEMENT");
     make_button(pages["Szkic / CAD"], "Dopasuj element", [app] { if (app->fit_selected) app->fit_selected(); });

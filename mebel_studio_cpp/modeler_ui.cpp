@@ -105,19 +105,48 @@ Modeler::Modeler(App* app_) : dock_workspace::DockDocument(app_), camera(-38, 24
     edge_scope = tk::StringVar("Wszystkie krawędzie");
     pattern_var = tk::StringVar(sketch_design::pattern_catalog()[0].name);
 
+    mode_var = tk::StringVar("3d");
+    tool2_var = tk::StringVar("line");
+    plane2_var = tk::StringVar("Podłoga");
+    level2_var = tk::StringVar("0");
+    grid_var = tk::StringVar("0");
+    radius_var = tk::StringVar("20");
+    sides_var = tk::StringVar("6");
+    slot_width_var = tk::StringVar("20");
+    shapes_text = tk::StringVar("Szkic jest pusty.");
+    snap_grid_var = tk::BooleanVar(true);
+    ortho_var = tk::BooleanVar(true);
+
     auto* toolbar = new ttk::Frame(this, {{"padding", 6}});
     toolbar->pack({{"fill", "x"}});
-    for (const auto& t : tools()) {
-        std::string id = t.id;
-        (new ttk::Radiobutton(toolbar, {{"text", std::string(t.label) + " (" + t.key + ")"}, {"variable", tool_var}, {"value", id}, {"style", "Toolbutton"},
-                                        {"command", Cmd([this] { set_tool(tool_var.get()); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    for (auto& [label, value] : std::vector<std::pair<std::string, std::string>>{{"3D", "3d"}, {"2D CAD", "2d"}}) {
+        std::string id = value;
+        (new ttk::Radiobutton(toolbar, {{"text", label}, {"variable", mode_var}, {"value", id}, {"style", "Toolbutton"},
+                                        {"command", Cmd([this] { set_mode(mode_var.get()); })}}))->pack({{"side", "left"}, {"padx", 2}});
     }
     (new ttk::Separator(toolbar, {{"orient", "vertical"}}))->pack({{"side", "left"}, {"fill", "y"}, {"padx", 6}});
+    auto* tool_area = new ttk::Frame(toolbar);
+    tool_area->pack({{"side", "left"}});
+    tools3d_frame = new ttk::Frame(tool_area);
+    tools3d_frame->pack({{"side", "left"}});
+    tools2d_frame = new ttk::Frame(tool_area);
+    for (const auto& t : tools()) {
+        std::string id = t.id;
+        (new ttk::Radiobutton(tools3d_frame, {{"text", std::string(t.label) + " (" + t.key + ")"}, {"variable", tool_var}, {"value", id}, {"style", "Toolbutton"},
+                                              {"command", Cmd([this] { set_tool(tool_var.get()); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    }
+    (new ttk::Separator(tools3d_frame, {{"orient", "vertical"}}))->pack({{"side", "left"}, {"fill", "y"}, {"padx", 6}});
     for (auto& [label, angles] : std::vector<std::pair<std::string, std::pair<double, double>>>{{"3D", {-38, 24}}, {"Przód", {0, 0}}, {"Bok", {-90, 0}}, {"Góra", {0, 90}}}) {
         auto a = angles;
-        (new ttk::Button(toolbar, {{"text", label}, {"command", Cmd([this, a] { view(a.first, a.second); })}}))->pack({{"side", "left"}, {"padx", 2}});
+        (new ttk::Button(tools3d_frame, {{"text", label}, {"command", Cmd([this, a] { view(a.first, a.second); })}}))->pack({{"side", "left"}, {"padx", 2}});
     }
-    (new ttk::Button(toolbar, {{"text", "Dopasuj"}, {"command", Cmd([this] { fit(); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    (new ttk::Button(tools3d_frame, {{"text", "Dopasuj"}, {"command", Cmd([this] { fit(); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    for (const auto& t : tools2d()) {
+        std::string id = t.id;
+        (new ttk::Radiobutton(tools2d_frame, {{"text", std::string(t.label) + " (" + t.key + ")"}, {"variable", tool2_var}, {"value", id}, {"style", "Toolbutton"},
+                                              {"command", Cmd([this] { set_tool2(tool2_var.get()); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    }
+    (new ttk::Button(tools2d_frame, {{"text", "Dopasuj"}, {"command", Cmd([this] { fit(); })}}))->pack({{"side", "left"}, {"padx", 2}});
     (new ttk::Separator(toolbar, {{"orient", "vertical"}}))->pack({{"side", "left"}, {"fill", "y"}, {"padx", 6}});
     (new ttk::Button(toolbar, {{"text", "Cofnij"}, {"command", Cmd([this] { app->undo(); request_scene(); refresh_panel(); })}}))->pack({{"side", "left"}, {"padx", 2}});
     (new ttk::Button(toolbar, {{"text", "Ponów"}, {"command", Cmd([this] { app->redo(); request_scene(); refresh_panel(); })}}))->pack({{"side", "left"}, {"padx", 2}});
@@ -142,21 +171,23 @@ Modeler::Modeler(App* app_) : dock_workspace::DockDocument(app_), camera(-38, 24
     canvas->bind("<ButtonPress-1>", handler([this](tk::Event& e) {
         canvas->focus_set();
         anchor_px = {e.x, e.y};
-        if (tool != "orbit") on_click(e.x, e.y, e.state);
+        if (mode == "2d") on_click_2d(e.x, e.y, e.state);
+        else if (tool != "orbit") on_click(e.x, e.y, e.state);
     }));
     canvas->bind("<B1-Motion>", handler([this](tk::Event& e) {
-        if (tool == "orbit") orbit(e);
+        if (mode == "3d" && tool == "orbit") orbit(e);
         else on_motion(e.x, e.y);
     }));
     canvas->bind("<ButtonRelease-1>", handler([this](tk::Event&) { if (tool == "orbit") finish_view(); }));
     canvas->bind("<ButtonPress-2>", handler([this](tk::Event& e) { anchor_px = {e.x, e.y}; }));
-    canvas->bind("<B2-Motion>", handler([this](tk::Event& e) { orbit(e); }));
+    canvas->bind("<B2-Motion>", handler([this](tk::Event& e) { if (mode == "2d") pan(e); else orbit(e); }));
     canvas->bind("<ButtonRelease-2>", handler([this](tk::Event&) { finish_view(); }));
     canvas->bind("<ButtonPress-3>", handler([this](tk::Event& e) { anchor_px = {e.x, e.y}; }));
     canvas->bind("<B3-Motion>", handler([this](tk::Event& e) { pan(e); }));
     canvas->bind("<ButtonRelease-3>", handler([this](tk::Event&) { finish_view(); }));
     canvas->bind("<MouseWheel>", handler([this](tk::Event& e) { zoom(e); }));
     canvas->bind("<Key>", handler([this](tk::Event& e) { on_key(e.keysym, e.state); }));
+    canvas->bind("<Double-Button-1>", handler([this](tk::Event&) { if (mode == "2d" && d2.stage > 0 && d2.verts.size() >= 2) finish_polyline(false); }));
 
     graphics_mode_ui::add_listener([this] {
         try {
@@ -173,7 +204,10 @@ Modeler::Modeler(App* app_) : dock_workspace::DockDocument(app_), camera(-38, 24
     request_scene();
 }
 
-void Modeler::build_panel(tk::Widget* parent) {
+void Modeler::build_panel(tk::Widget* parent_in) {
+    panel3d_frame = new ttk::Frame(parent_in);
+    panel3d_frame->pack({{"fill", "x"}});
+    tk::Widget* parent = panel3d_frame;
     auto section = [&](const std::string& text) { (new ttk::Label(parent, {{"text", text}, {"style", "Title.TLabel"}}))->pack({{"anchor", "w"}, {"pady", "10 2"}}); };
     auto row = [&](const std::string& label, tk::StringVar& var, int width = 8) {
         auto* frame = new ttk::Frame(parent);
@@ -277,6 +311,7 @@ void Modeler::build_panel(tk::Widget* parent) {
     draw_cutter_preview();
     draw_edge_preview();
     draw_pattern_preview();
+    build_panel_2d(parent_in);
 }
 
 void Modeler::destroy() {
@@ -369,6 +404,20 @@ void Modeler::pan(tk::Event& e) {
 }
 
 void Modeler::zoom(tk::Event& e) {
+    if (mode == "2d" && canvas != nullptr) {
+        // powiększenie wokół kursora: punkt rysunku pod myszą zostaje pod myszą
+        int w = canvas->winfo_width(), h = canvas->winfo_height();
+        mg::Ray ray = mg::unproject(camera, e.x, e.y, w, h);
+        auto t = mg::ray_plane(ray, plane2d);
+        camera.scale = std::min(40.0, std::max(.01, camera.scale * (e.delta > 0 ? 1.15 : 1 / 1.15)));
+        if (t) {
+            Vec3 s = camera.project(mg::at(ray, *t), w, h);
+            camera.pan = {camera.pan[0] + e.x - s[0], camera.pan[1] + e.y - s[1]};
+        }
+        interactive = false;
+        request_scene();
+        return;
+    }
     camera.scale = std::min(40.0, std::max(.01, camera.scale * (e.delta > 0 ? 1.12 : 1 / 1.12)));
     interactive = false;
     request_scene();
@@ -397,6 +446,7 @@ void Modeler::live_refresh() {
 
 void Modeler::draw_scene() {
     if (canvas == nullptr || !winfo_exists()) return;
+    if (mode == "2d") { draw_scene_2d(); return; }
     int w = canvas->winfo_width(), h = canvas->winfo_height();
     if (w < 10 || h < 10) return;
     canvas->delete_("all");
@@ -482,6 +532,7 @@ void polygon_outline(tk::Canvas* canvas, const core::Camera& camera, const std::
 
 void Modeler::draw_overlay() {
     if (canvas == nullptr || !winfo_exists()) return;
+    if (mode == "2d") { draw_overlay_2d(); return; }
     canvas->delete_("overlay");
     int w = canvas->winfo_width(), h = canvas->winfo_height();
     if (w < 10 || h < 10) return;
@@ -633,6 +684,7 @@ void Modeler::set_tool(const std::string& name) {
 }
 
 void Modeler::cancel() {
+    if (mode == "2d") { on_key_2d("Escape"); return; }
     if (draft.stage != 0 || !typed.get().empty()) note("modelowanie", std::format("anulowano rysowanie ({}, etap {})", tool_info(tool).label, draft.stage));
     draft = Draft();
     typed.set("");
@@ -641,6 +693,7 @@ void Modeler::cancel() {
 }
 
 void Modeler::on_motion(double sx, double sy) {
+    if (mode == "2d") { on_motion_2d(sx, sy); return; }
     mouse = {sx, sy};
     if (canvas == nullptr) return;
     cursor = resolve_cursor(sx, sy);
@@ -697,6 +750,7 @@ void Modeler::select_at(double sx, double sy, bool add) {
 }
 
 void Modeler::on_click(double sx, double sy, int state) {
+    if (mode == "2d") { on_click_2d(sx, sy, state); return; }
     mouse = {sx, sy};
     const bool shift = (state & 1) != 0, ctrl = (state & 4) != 0;
     try {
@@ -851,6 +905,7 @@ void Modeler::finish_draft_with_depth(double depth) {
 }
 
 bool Modeler::apply_typed(const std::string& text_in) {
+    if (mode == "2d") return apply_typed_2d(text_in);
     std::string text = text_in;
     try {
         if (tool == "rect" || tool == "polygon") {
@@ -968,6 +1023,7 @@ bool Modeler::apply_typed(const std::string& text_in) {
 }
 
 void Modeler::on_key(const std::string& keysym, int state) {
+    if (mode == "2d") { on_key_2d(keysym, state); return; }
     const bool ctrl = (state & 4) != 0;
     static const std::vector<std::pair<std::string, char>> chars = {{"period", '.'}, {"comma", ','}, {"semicolon", ';'}, {"asterisk", '*'}, {"minus", '-'}, {"KP_Decimal", '.'}};
     if (keysym == "Escape") { cancel(); return; }
@@ -1274,6 +1330,15 @@ void Modeler::refresh_panel() {
                                         g(part->u), g(part->v), g(part->t), part->group,
                                         part->machining.empty() && part->fillets.empty() && part->chamfers.empty() ? std::string() : " · z obróbką"));
     update_op_list();
+    if (mode == "2d" || shapes_list != nullptr) {
+        shapes_list->delete_("0", "end");
+        shapes_listed = 0;
+        for (const auto& s : shapes) {
+            shapes_list->insert("end", cad2d::describe(s));
+            ++shapes_listed;
+        }
+        shapes_text.set(shapes.empty() ? "Szkic jest pusty." : std::format("Kształtów w szkicu: {}{}", shapes.size(), editing_part ? " · edytujesz obrys płyty" : ""));
+    }
 }
 
 namespace {

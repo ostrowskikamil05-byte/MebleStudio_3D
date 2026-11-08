@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "cad2d.h"
 #include "cutters.h"
 #include "dock_workspace.h"
 #include "modeler_geometry.h"
@@ -22,6 +23,15 @@
 class App;
 
 namespace modeler_ui {
+
+struct Tool2dInfo {
+    const char* id;
+    const char* label;
+    const char* key;
+    const char* hint;
+};
+// Narzędzia trybu 2D CAD (do paska i testów).
+const std::vector<Tool2dInfo>& tools2d();
 
 class Modeler : public dock_workspace::DockDocument {
 public:
@@ -83,6 +93,56 @@ public:
     bool add_pattern_ui();
     bool clear_patterns_ui();
 
+    // ---- tryb 2D CAD (ten sam projekt co w 3D: płyty dodane tu są widoczne w 3D i odwrotnie)
+    // Szkic to lista konturów z prawdziwymi łukami we współrzędnych płaszczyzny rysunku. „Wyciągnij” zamienia zamknięte kontury w płyty
+    // (kształty wewnątrz są otworami przelotowymi), „Wczytaj obrys” zabiera do edycji kontur istniejącej płyty.
+    std::string mode = "3d";                       // „3d” albo „2d”
+    std::string tool2 = "line";
+    tk::StringVar mode_var, tool2_var, plane2_var, level2_var, grid_var, radius_var, sides_var, slot_width_var, shapes_text;
+    tk::BooleanVar snap_grid_var, ortho_var;
+    std::vector<cad2d::Path> shapes;
+    std::optional<size_t> shape_sel;
+    std::optional<std::string> editing_part;       // identyfikator płyty, której obrys jest w szkicu
+    modeler_geometry::Plane plane2d = modeler_geometry::ground_plane(0);
+    tk::Listbox* shapes_list = nullptr;
+    size_t shapes_listed = 0;
+    struct Draft2D {
+        int stage = 0;
+        std::vector<cad2d::Vertex> verts;          // kontur w trakcie rysowania (łuki jako wybrzuszenia)
+        std::string seg = "line";                  // rodzaj kolejnego odcinka: line, arc3, tangent
+        std::optional<cad2d::Point> arc_through;   // łuk 3 punktowe: zaznaczony punkt pośredni
+        std::optional<cad2d::Point> first;         // pierwszy punkt narzędzi dwupunktowych
+        std::optional<size_t> index;               // wskazany kształt
+        std::optional<size_t> vertex;              // wskazany wierzchołek albo odcinek kształtu
+        cad2d::Point base{0, 0};
+    } d2;
+    struct SketchStep { std::vector<cad2d::Path> shapes; bool project_step = false; };
+    std::vector<SketchStep> sketch_undo, sketch_redo;
+    void set_mode(const std::string& name);
+    void set_tool2(const std::string& name);
+    void on_motion_2d(double sx, double sy);
+    void on_click_2d(double sx, double sy, int state = 0);
+    void on_key_2d(const std::string& keysym, int state = 0);
+    bool apply_typed_2d(const std::string& text);
+    bool set_work_plane(const std::string& name, double level);
+    bool add_shape(const cad2d::Path& path, const std::string& what);
+    bool replace_shape(size_t index, const cad2d::Path& path, const std::string& what);
+    bool remove_shape(size_t index);
+    void clear_sketch();
+    bool extrude_shapes();
+    bool load_part_outline();
+    bool apply_part_outline();
+    bool undo_2d();
+    bool redo_2d();
+    void draw_scene_2d();
+    void draw_overlay_2d();
+    cad2d::Point cursor_2d() const { return cursor2; }
+    double grid_step() const;
+    void handle_point_2d(const cad2d::Point& p, bool shift = false);   // kliknięcie albo wpisany punkt (rzuca std::invalid_argument z powodem)
+    void reject_2d(const std::string& what, const std::string& reason);
+    void reset_draft_2d();
+    std::optional<std::string> pick_part_2d(const cad2d::Point& p) const;
+
     // ---- widok
     void fit();
     void view(double yaw, double pitch);
@@ -129,6 +189,21 @@ private:
     void zoom(tk::Event& e);
     void finish_view();
     void select_at(double sx, double sy, bool add);
+    cad2d::Point cursor2{0, 0};
+    core::Camera saved_camera3d{-38, 24, .35, {300, 280, 300}};
+    std::string cursor2_label;
+    std::vector<cad2d::Path> ref_paths;            // obrysy płyt rzutowane na płaszczyznę rysunku (cel przyciągania)
+    std::string ref_key;
+    void rebuild_refs();
+    cad2d::Point resolve_2d(double sx, double sy);
+    void build_panel_2d(tk::Widget* parent);
+    void push_sketch_step(bool project_step = false);
+    void finish_polyline(bool close);
+    void add_draft_segment(const cad2d::Point& end, const cad2d::Point& through, bool tangent);
+    ttk::Frame* tools3d_frame = nullptr;
+    ttk::Frame* tools2d_frame = nullptr;
+    ttk::Frame* panel3d_frame = nullptr;
+    ttk::Frame* panel2d_frame = nullptr;
     void update_op_list();
     bool replace_part(const core::Part& part, const std::string& what, const std::string& category);
 };
