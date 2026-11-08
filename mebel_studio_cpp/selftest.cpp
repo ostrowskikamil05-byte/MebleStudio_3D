@@ -70,6 +70,8 @@
 #include "modeler_ui.h"
 #include "sketch_live.h"
 #include "render_style.h"
+#include "wood_grain.h"
+#include "pencil_filter.h"
 #include "graphics_mode_ui.h"
 #include "view_style.h"
 #include "viewport_scene.h"
@@ -192,8 +194,8 @@ const std::map<std::string, std::string> JOURNAL_COVERAGE = {
     {"kształty", "Dziennik zdarzeń · okno kształtów (zatwierdzenie / odrzucenie)"},
     {"projekt z opisu", "Dziennik zdarzeń · projekt z opisu zdaniem"},
     {"kanty i wzorki", "Szkic — kanty, wzorki i zestaw elementów (test_design)"},
-    {"grafika", "Tryb grafiki — przełączanie, cienie, miniatury (test_design)"},
-    {"modelowanie", "Pracownia 3D — rysowanie, wyciąganie, przesuwanie, kopiowanie, usuwanie, odrzucenia (pracownia 3D: rysowanie płyt…)"},
+    {"grafika", "Tryb grafiki — przełączanie, cienie, miniatury, szkic ołówkiem, usłojenie drewna (test_design + szkic ołówkiem: tryb grafiki…)"},
+    {"modelowanie", "Pracownia 3D — rysowanie, wyciąganie, przesuwanie, kopiowanie, usuwanie, odrzucenia, okrąg i ołówek (pracownia 3D: rysowanie płyt… + pracownia: ołówek i okrąg…)"},
     {"cad2d", "Pracownia 2D CAD — łuki, okręgi, zaokrąglenia, wymiary, wyciąganie do płyt, edycja obrysu, odrzucenia (pracownia 2D CAD: rysowanie z łukami…)"},
     {"frezy", "Frezy — wiele operacji na płycie, frezy krawędziowe, wzorki, odrzucenia (frezy: katalog pięciu narzędzi… + pracownia 3D)"},
 };
@@ -2546,7 +2548,7 @@ public:
 
         run(area, "tryb grafiki: cieniowanie, miękkie cienie rzucane, płytki i miniatury — logika", where, [=, this](Ctx& ctx) {
             using render_style::Mode;
-            need(render_style::modes().size() == 2 && render_style::mode_from("Realistyczna") == Mode::Realistic && render_style::mode_from("classic") == Mode::Classic, "katalog trybów grafiki jest błędny");
+            need(render_style::modes().size() == 3 && render_style::mode_from("sketch") == Mode::Sketch && render_style::mode_from("Realistyczna") == Mode::Realistic && render_style::mode_from("classic") == Mode::Classic, "katalog trybów grafiki jest błędny");
             need(throws([] { render_style::mode_from("fotorealizm"); }), "nieznany tryb grafiki powinien być odrzucony");
             auto top = render_style::shade_face(Mode::Realistic, {0, 0, 1}, 1, .82), side = render_style::shade_face(Mode::Realistic, {0, -1, 0}, 1, .82);
             auto ctop = render_style::shade_face(Mode::Classic, {0, 0, 1}, 1, .82), cside = render_style::shade_face(Mode::Classic, {0, -1, 0}, 1, .82);
@@ -2676,6 +2678,325 @@ public:
             app->project = fresh(); app->refresh();
         });
 
+        run(area, "usłojenie drewna: ziarno na płytę (losowe, powtarzalne), kierunek włókien z elementu, kod shadera i linie słojów CPU", where, [=, this](Ctx& ctx) {
+            // parametry: powtarzalne, ograniczone i różne dla różnych płyt
+            std::set<std::string> distinct;
+            double tone_sum = 0;
+            for (int i = 0; i < 200; ++i) {
+                const std::string id = "plyta-" + std::to_string(i);
+                const auto p = wood_grain::params_for(id), again = wood_grain::params_for(id);
+                need(p.axis_across == again.axis_across && p.tone == again.tone && p.ring_width == again.ring_width, "ziarno usłojenia nie jest powtarzalne dla tej samej płyty");
+                need(p.axis_across >= -260 && p.axis_across <= 260 && p.axis_depth >= 14 && p.axis_depth <= 140 && std::fabs(p.tilt) <= .09 && p.ring_width >= 7 && p.ring_width <= 18 &&
+                     p.tone >= -1 && p.tone <= 1 && p.warm >= -1 && p.warm <= 1 && p.contrast >= .55 && p.contrast <= 1.35 && p.fibre >= .5 && p.fibre <= 1.4, "parametry usłojenia wyszły poza dozwolone granice: " + id);
+                distinct.insert(std::format("{:.4f}/{:.4f}/{:.4f}", p.axis_across, p.ring_width, p.tone));
+                tone_sum += p.tone;
+            }
+            need(distinct.size() >= 195, std::format("płyty mają zbyt podobne usłojenie: tylko {} różnych z 200", distinct.size()));
+            need(std::fabs(tone_sum / 200) < .25, "odcień płyt jest przesunięty w jedną stronę (średnia nie jest bliska zera)");
+            // kierunek włókien: wzdłuż U albo V elementu, jednostkowy; podłoga (bez elementu) wzdłuż X
+            core::Part along_u; along_u.id = "u"; along_u.u = 800; along_u.v = 300; along_u.grain = true; along_u.grain_v = false;
+            core::Part along_v = along_u; along_v.id = "v"; along_v.grain_v = true;
+            const auto du = wood_grain::grain_direction(along_u), dv = wood_grain::grain_direction(along_v);
+            const double dot = du[0] * dv[0] + du[1] * dv[1] + du[2] * dv[2];
+            need(std::fabs(std::sqrt(du[0] * du[0] + du[1] * du[1] + du[2] * du[2]) - 1) < 1e-9 && std::fabs(dot) < 1e-9, "kierunki włókien U i V powinny być jednostkowe i prostopadłe");
+            const auto vd_part = wood_grain::vertex_data(&along_v, "v"), vd_floor = wood_grain::vertex_data(nullptr, "podloga");
+            need(std::fabs(vd_part.dir[0] - dv[0]) < 1e-5 && vd_floor.dir[0] == 1.f && vd_floor.origin[0] == 0.f, "dane wierzchołków mają zły kierunek włókien");
+            for (float value : vd_part.seed) need(value >= 0.f && value < 1.f, "ziarno dla shadera poza zakresem 0…1");
+            // shader: komplet deklaracji i zrównoważone nawiasy; każda płyta ma dostęp do ziarna przez atrybuty
+            const auto code = wood_grain::shader_code();
+            for (const std::string* part : {&code.vertex_declarations, &code.vertex_code, &code.fragment_declarations, &code.fragment_code}) {
+                int balance = 0;
+                for (char c : *part) { if (c == '{') ++balance; if (c == '}') --balance; need(balance >= 0, "niezrównoważone nawiasy w kodzie shadera"); }
+                need(balance == 0 && part->find("//VTK::") == 0, "kod shadera powinien zaczynać się od znacznika VTK i mieć zrównoważone nawiasy");
+            }
+            for (const char* name : {"grainSeedMC", "grainDirMC", "grainOrgMC", "grainExtraMC"}) need(code.vertex_declarations.find(name) != std::string::npos, std::string("brak atrybutu ") + name + " w shaderze");
+            need(code.fragment_code.find("gl_FragData[0].rgb *=") != std::string::npos && code.fragment_code.find("fwidth") != std::string::npos, "shader usłojenia nie mnoży koloru albo nie wygasza drobnych słojów z daleka");
+            // linie słojów dla renderera CPU
+            const auto a = wood_grain::line_fractions("A", 6), b = wood_grain::line_fractions("B", 6);
+            need(a.size() == 6 && a != b && wood_grain::line_fractions("A", 6) == a, "rozkład linii słojów ma być różny dla płyt i powtarzalny");
+            for (size_t i = 0; i < a.size(); ++i) need(a[i] > .03 && a[i] < .97 && (i == 0 || a[i] > a[i - 1]), "linie słojów mają być rosnące w przedziale (0,1)");
+            need(wood_grain::line_fractions("A", 0).empty(), "zero linii powinno dać pustą listę");
+            std::set<int> counts; std::set<std::string> mixes;
+            for (int i = 0; i < 60; ++i) {
+                const std::string id = "x" + std::to_string(i);
+                const int n = wood_grain::line_count(id); const double mix = wood_grain::line_mix(id);
+                need(n >= 4 && n <= 8 && mix >= .08 && mix <= .19, "liczba lub siła linii słojów poza granicami");
+                counts.insert(n); mixes.insert(std::format("{:.3f}", mix));
+            }
+            need(counts.size() >= 3 && mixes.size() >= 30, "płyty powinny mieć różną liczbę i siłę linii słojów");
+            // kontur: te same punkty, inne ziarno → inne odcinki; puste ziarno = dawny równy rozkład
+            const std::vector<viewport_scene::Point2> rect = {{0, 0}, {400, 0}, {400, 200}, {0, 200}};
+            const auto plain = viewport_scene::grain_segments(rect, {1, 0}, 5), seeded_a = viewport_scene::grain_segments(rect, {1, 0}, 5, "A"), seeded_b = viewport_scene::grain_segments(rect, {1, 0}, 5, "B");
+            need(plain.size() == 5 && seeded_a.size() == 5 && seeded_b.size() == 5, "każda linia słojów powinna dać jeden odcinek na prostokącie");
+            need(plain != seeded_a && seeded_a != seeded_b, "linie słojów z ziarnem powinny różnić się między płytami i od równego rozkładu");
+            ctx.note(std::format("{} różnych płyt z 200, shader {} znaków", distinct.size(), code.fragment_code.size()));
+        });
+
+        run(area, "szkic ołówkiem: filtr obrazu — obrys z drżeniem, kreskowanie cieni, papier; tło bez zmian i powtarzalność", where, [=, this](Ctx& ctx) {
+            const int W = 80, H = 60;
+            std::vector<uint8_t> rgba(W * H * 4, 0);
+            std::vector<int32_t> owner(W * H, -1);
+            std::vector<float> depth(W * H, -1e30f);
+            for (int y = 15; y < 45; ++y)
+                for (int x = 20; x < 60; ++x) {
+                    const size_t i = (size_t)y * W + x;
+                    owner[i] = x < 40 ? 0 : 1; depth[i] = x < 40 ? 10.f : 15.f;
+                    const int v = x < 40 ? 200 : 225;
+                    rgba[i * 4] = (uint8_t)v; rgba[i * 4 + 1] = (uint8_t)v; rgba[i * 4 + 2] = (uint8_t)(v - 10); rgba[i * 4 + 3] = 255;
+                }
+            auto first = rgba;
+            const auto stats = pencil_filter::apply(W, H, first, owner, depth);
+            need(stats.covered == 30 * 40 && stats.edge_pixels > 60 && stats.hatch_pixels > 30, std::format("filtr ołówka: bryła {}, obrys {}, kreski {} px", stats.covered, stats.edge_pixels, stats.hatch_pixels));
+            auto second = rgba; pencil_filter::apply(W, H, second, owner, depth);
+            need(first == second, "filtr ołówka nie jest powtarzalny (klatka by migotała)");
+            need(first[(2 * W + 2) * 4 + 3] == 0 && first[(2 * W + 2) * 4] == 0, "filtr ołówka zmienił puste tło");
+            pencil_filter::Settings flat; flat.hatching = false;
+            auto no_hatch = rgba; const auto flat_stats = pencil_filter::apply(W, H, no_hatch, owner, depth, flat);
+            need(flat_stats.hatch_pixels == 0 && flat_stats.edge_pixels > 40, "bez kreskowania filtr powinien rysować sam obrys (tryb interaktywny)");
+            pencil_filter::Settings other; other.seed = 99;
+            auto reseeded = rgba; pencil_filter::apply(W, H, reseeded, owner, depth, other);
+            need(reseeded != first, "inne ziarno powinno dać inne drżenie linii");
+            pencil_filter::Settings ruler; ruler.wobble = 0; ruler.hatching = false;
+            auto straight = rgba; pencil_filter::apply(W, H, straight, owner, depth, ruler);
+            auto count_dark = [&](const std::vector<uint8_t>& image) { size_t n = 0; for (size_t i = 0; i < (size_t)W * H; ++i) if (owner[i] >= 0 && image[i * 4] < 140) ++n; return n; };
+            need(count_dark(first) > 0 && count_dark(straight) > 0, "obrys ołówka powinien być ciemny (grafit)");
+            // granica elementów w środku sylwetki (x = 40) też dostaje kreskę
+            size_t on_border = 0;
+            for (int y = 20; y < 40; ++y) if (first[((size_t)y * W + 39) * 4] < 150 || first[((size_t)y * W + 40) * 4] < 150) ++on_border;
+            need(on_border >= 10, "granica dwóch elementów nie jest obrysowana");
+            need(throws([&] { std::vector<uint8_t> bad(4); pencil_filter::apply(W, H, bad, owner, depth); }), "złe rozmiary buforów powinny być odrzucone");
+            need(pencil_filter::luminance(255, 255, 255) > .99 && pencil_filter::luminance(0, 0, 0) < .01, "jasność koloru liczona błędnie");
+            ctx.note(std::format("obrys {} px, kreski {} px", stats.edge_pixels, stats.hatch_pixels));
+        });
+
+        run(area, "szkic ołówkiem: tryb grafiki — papier, ciemniejsze kreskowane ścianki, silnik CPU, dziennik, miniatura i widok", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            const Mode original_mode = view_style::state.mode;
+            const std::string original_engine = app->viewport_engine;
+            auto restore = [&] { app->viewport_engine = original_engine; graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie"); };
+            try {
+                // logika: cieniowanie łagodne i w stałych granicach, kolor materiału tylko jako odcień papieru
+                for (const render_style::Point3 normal : {render_style::Point3{0, 0, 1}, {0, -1, 0}, {1, 0, 0}, {.5, .5, .7}}) {
+                    const auto shading = render_style::shade_face(Mode::Sketch, normal, 1, .82);
+                    need(shading.factor >= .70 && shading.factor <= 1.0, std::format("cieniowanie szkicu poza zakresem 0,70…1,0: {:.3f}", shading.factor));
+                }
+                const auto dark = render_style::sketch_tone({20, 20, 20}, .8), light = render_style::sketch_tone({240, 240, 240}, .8);
+                need(dark[0] < light[0] && light[0] - dark[0] < 80, "ciemny materiał powinien dawać nieco ciemniejszy papier, ale nie czerń");
+                need(std::string(render_style::paper_color()) == "#f4f0e6", "kolor papieru zmieniony");
+                // silnik: szkic zawsze przez CPU
+                view_style::state.mode = Mode::Sketch;
+                for (const char* name : {"auto", "d3d11", "d3d12", "vulkan", "gpu", "cpu"}) need(view_style::effective_engine(name) == "cpu", std::string("szkic ołówkiem powinien iść przez renderer CPU: ") + name);
+                view_style::state.mode = Mode::Classic;
+                need(view_style::mode_code() == 0, "kod trybu klasycznego");
+                view_style::state.mode = Mode::Sketch;
+                need(view_style::mode_code() == 2 && view_style::sketch() && !view_style::realistic(), "kod trybu szkicu");
+                view_style::state.mode = Mode::Classic;
+                // miniatura: kreskowanie (linie) i grafitowy obrys bryły
+                const auto thumb = render_style::mode_thumbnail(Mode::Sketch, 112, 70);
+                size_t hatch = 0, outlined = 0;
+                for (const auto& poly : thumb) { if (poly.line) ++hatch; if (poly.body && !poly.outline.empty()) ++outlined; }
+                need(hatch >= 4 && outlined >= 3 && thumb.front().fill == render_style::paper_color(), "miniatura szkicu powinna mieć papier, kreskowanie i grafitowy obrys");
+                // przełączenie: dziennik, kolory ścianek (kod trybu 2 w pamięci podręcznej), zapis i widok z filtrem
+                auto [p, g] = cabinet(Project());
+                app->project = p; app->refresh(); app->update();
+                auto from = log_mark();
+                need(graphics_mode_ui::set_mode(app, Mode::Sketch, "test") && view_style::state.mode == Mode::Sketch, "przełączenie na szkic ołówkiem nie zadziałało");
+                std::ifstream saved(view_style::file_path());
+                need(saved && std::string((std::istreambuf_iterator<char>(saved)), {}).find("\"sketch\"") != std::string::npos, "tryb szkicu nie został zapisany w ustawieniach");
+                auto context = viewport_render::prepare_scene(*app->project);
+                std::string sketch_colors;
+                for (const auto& record : context->records(false)) { const auto& c = context->face_colors(*record); if (!c.empty()) { for (size_t i = 0; i < std::min<size_t>(c.size(), 12); ++i) sketch_colors += c[i]; break; } }
+                view_style::state.mode = Mode::Classic;
+                std::string classic_colors;
+                for (const auto& record : context->records(false)) { const auto& c = context->face_colors(*record); if (!c.empty()) { for (size_t i = 0; i < std::min<size_t>(c.size(), 12); ++i) classic_colors += c[i]; break; } }
+                view_style::state.mode = Mode::Sketch;
+                need(!sketch_colors.empty() && sketch_colors != classic_colors, "kolory ścianek w trybie szkicu nie różnią się od klasycznych");
+                app->viewport_engine = "auto";
+                app->draw(); app->update();
+                const std::string text = log_since(from);
+                need(has_text(text, "[operacja:grafika] tryb grafiki: ") && has_text(text, "Szkic ołówkiem (test)"), "przełączenie na szkic nie zostało opisane w dzienniku");
+                need(has_text(text, "tryb szkicu ołówkiem: silnik auto → cpu"), "zamiana silnika na CPU w trybie szkicu nie jest opisana w dzienniku");
+                need(app->canvas->_active_renderer != "native", "szkic ołówkiem nie może być rysowany silnikiem natywnym");
+                const json pencil = app->canvas->_render_diagnostics.value("pencil", json());
+                if (pencil.is_object()) need(pencil.value("edge_pixels", 0) > 30, "filtr ołówka nie narysował obrysu mebla");
+                else ctx.warn("brak wpisu pencil w diagnostyce — widok nie przeszedł przez raster CPU (aktywny renderer: " + app->canvas->_active_renderer + ")");
+                restore();
+                ctx.note(std::format("obrys {} px, kreski {} px", pencil.value("edge_pixels", 0), pencil.value("hatch_pixels", 0)));
+            } catch (...) { restore(); throw; }
+            app->project = fresh(); app->refresh();
+        });
+
+        run(area, "ołówek: dopasowanie pociągnięcia do odcinków, łuków, okręgu i prostokąta — logika (cad2d::fit_stroke)", where, [=, this](Ctx& ctx) {
+            namespace c2 = cad2d;
+            std::mt19937 rng(7);
+            std::normal_distribution<double> noise(0, 0.5);
+            auto jitter = [&](c2::Point p) { return c2::Point{p[0] + noise(rng), p[1] + noise(rng)}; };
+            auto side = [&](std::vector<c2::Point>& out, c2::Point a, c2::Point b) { for (int i = 0; i < 20; ++i) { double t = i / 20.0; out.push_back(jitter({a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t})); } };
+            std::vector<c2::Point> line;
+            for (int i = 0; i <= 40; ++i) line.push_back(jitter({i * 10.0, i * 0.5}));
+            auto fit = c2::fit_stroke(line, 2.0);
+            need(!fit.path.closed && fit.lines == 1 && fit.arcs == 0 && fit.path.v.size() == 2, "odręczna prosta powinna dać jeden odcinek: " + fit.description);
+            std::vector<c2::Point> arc;
+            for (int i = 0; i <= 40; ++i) { double a = i * c2::PI / 2 / 40; arc.push_back(jitter({200 * std::cos(a), 200 * std::sin(a)})); }
+            fit = c2::fit_stroke(arc, 2.0);
+            need(fit.arcs == 1 && fit.lines == 0 && !fit.path.closed, "ćwierć okręgu powinno dać jeden łuk: " + fit.description);
+            const auto recovered = c2::arc_of(fit.path.v[0].p, fit.path.v[1].p, fit.path.v[0].bulge);
+            need(std::fabs(recovered.radius - 200) < 8 && std::fabs(recovered.sweep * 180 / c2::PI - 90) < 4, std::format("łuk z ołówka: R {:.1f}, kąt {:.1f}° (oczekiwano 200 i 90)", recovered.radius, recovered.sweep * 180 / c2::PI));
+            std::reverse(arc.begin(), arc.end());
+            need(c2::fit_stroke(arc, 2.0).path.v[0].bulge < 0, "łuk rysowany zgodnie z ruchem wskazówek powinien mieć ujemne wybrzuszenie");
+            std::vector<c2::Point> ring;
+            for (int i = 0; i <= 60; ++i) { double a = i * 2 * c2::PI / 60; ring.push_back(jitter({100 + 85 * std::cos(a), 50 + 85 * std::sin(a)})); }
+            fit = c2::fit_stroke(ring, 2.0);
+            const auto disc = c2::as_circle(fit.path);
+            need(fit.path.kind == "okrąg" && disc && std::fabs(disc->radius - 85) < 3 && std::fabs(disc->center[0] - 100) < 3, "zamknięte koło powinno dać okrąg R 85: " + fit.description);
+            std::vector<c2::Point> box;
+            side(box, {0, 0}, {300, 0}); side(box, {300, 0}, {300, 200}); side(box, {300, 200}, {0, 200}); side(box, {0, 200}, {0, 0}); box.push_back(jitter({0, 0}));
+            fit = c2::fit_stroke(box, 2.0);
+            need(fit.path.kind == "prostokąt" && c2::as_rectangle(fit.path).has_value(), "zamknięty obrys prostokąta powinien dać prostokąt: " + fit.description);
+            std::vector<c2::Point> angle;
+            side(angle, {0, 0}, {300, 0}); side(angle, {300, 0}, {300, 200}); angle.push_back({300, 200});
+            fit = c2::fit_stroke(angle, 2.0);
+            need(fit.lines == 2 && fit.arcs == 0 && !fit.path.closed, "litera L powinna dać dwa odcinki: " + fit.description);
+            std::vector<c2::Point> mixed;
+            side(mixed, {0, 0}, {200, 0});
+            for (int i = 0; i <= 20; ++i) { double a = -c2::PI / 2 + i * c2::PI / 2 / 20; mixed.push_back(jitter({200 + 60 * std::cos(a), 60 + 60 * std::sin(a)})); }
+            side(mixed, {260, 60}, {260, 300});
+            fit = c2::fit_stroke(mixed, 2.0);
+            need(fit.arcs >= 1 && fit.lines >= 2, "prosta + zaokrąglony narożnik + prosta powinny dać odcinki i łuk: " + fit.description);
+            std::vector<c2::Point> d_shape;
+            side(d_shape, {0, 0}, {200, 0});
+            for (int i = 0; i <= 30; ++i) { double a = -c2::PI / 2 + i * c2::PI / 30; d_shape.push_back(jitter({200 + 100 * std::cos(a), 100 + 100 * std::sin(a)})); }
+            side(d_shape, {200, 200}, {0, 200}); side(d_shape, {0, 200}, {0, 0}); d_shape.push_back(jitter({0, 0}));
+            fit = c2::fit_stroke(d_shape, 2.0);
+            need(fit.path.closed && fit.arcs >= 1, "obrys w kształcie litery D powinien być zamkniętym konturem z łukiem: " + fit.description);
+            c2::validate_profile(fit.path);
+            need(throws([&] { c2::fit_stroke({{0, 0}, {1, 0}}, 2.0); }), "zbyt krótkie pociągnięcie powinno być odrzucone");
+            need(throws([&] { c2::fit_stroke(line, 0); }), "zerowa tolerancja powinna być odrzucona");
+            std::vector<c2::Point> flat;
+            for (int i = 0; i <= 30; ++i) flat.push_back({i * 10.0, i * 0.2});
+            fit = c2::fit_stroke(flat, 2.0);
+            need(std::fabs(fit.path.v[1].p[1] - fit.path.v[0].p[1]) < 1e-9, "prawie pozioma prosta powinna zostać wyrównana do osi");
+            ctx.note("prosta, łuk (R 200, 90°), okrąg R 85, prostokąt, L, prosta+łuk+prosta, litera D");
+        });
+
+        run(area, "pracownia: ołówek i okrąg — 2D (odcinki, łuki, okrąg, prostokąt z pociągnięcia) i 3D (obrys z ołówka i okrąg → płyty), dziennik i odrzucenia", where, [=, this](Ctx& ctx) {
+            namespace mg = modeler_geometry;
+            namespace c2 = cad2d;
+            app->project = fresh(); app->refresh();
+            auto* m = modeler_ui::open(app);
+            auto cleanup = [&] { try { if (m->winfo_exists()) m->destroy(); } catch (const std::exception&) {} };
+            try {
+                app->update();
+                m->set_mode("2d");
+                m->snap_grid_var.set(false);
+                m->ortho_var.set(false);
+                m->draw_scene();
+                int w = m->canvas->winfo_width(), h = m->canvas->winfo_height();
+                need(w >= 100 && h >= 100, std::format("płótno pracowni jest za małe do testu ({}×{} px)", w, h));
+                auto px2 = [&](double x, double y) { auto s = m->camera.project(mg::from_plane(m->plane2d, x, y), w, h); return std::pair<double, double>{s[0], s[1]}; };
+                // pociągnięcie myszą: wciśnięcie, ruch przez kolejne punkty, puszczenie
+                auto drag2 = [&](const std::vector<c2::Point>& points) {
+                    auto first = px2(points[0][0], points[0][1]);
+                    m->begin_stroke(first.first, first.second);
+                    for (size_t i = 1; i < points.size(); ++i) { auto s = px2(points[i][0], points[i][1]); m->on_motion(s.first, s.second); }
+                    m->end_stroke();
+                };
+                auto circle_points = [](double cx, double cy, double r, int n) { std::vector<c2::Point> out; for (int i = 0; i <= n; ++i) { double a = i * 2 * c2::PI / n; out.push_back({cx + r * std::cos(a), cy + r * std::sin(a)}); } return out; };
+                auto arcs_in = [&](const c2::Path& path) { size_t n = 0; for (const auto& v : path.v) if (std::fabs(v.bulge) > 1e-12) ++n; return n; };
+                need(std::any_of(modeler_ui::tools2d().begin(), modeler_ui::tools2d().end(), [](const auto& t) { return std::string(t.id) == "pencil"; }), "narzędzie Ołówek nie jest na liście narzędzi 2D");
+                auto from = log_mark();
+                m->set_tool2("pencil");
+                // 1. okrąg
+                drag2(circle_points(500, 500, 100, 60));
+                need(m->shapes.size() == 1 && c2::as_circle(m->shapes[0]).has_value(), std::format("koło narysowane ołówkiem nie jest okręgiem (kształtów: {})", m->shapes.size()));
+                need(std::fabs(c2::as_circle(m->shapes[0])->radius - 100) < 8, "promień okręgu z ołówka odbiega od narysowanego");
+                // 2. prostokąt
+                std::vector<c2::Point> box;
+                {
+                    const std::vector<c2::Point> corners = {{900, 100}, {1300, 100}, {1300, 350}, {900, 350}, {900, 100}};
+                    for (size_t c = 0; c + 1 < corners.size(); ++c)
+                        for (int i = 0; i < 20; ++i) { double t = i / 20.0; box.push_back({corners[c][0] + (corners[c + 1][0] - corners[c][0]) * t, corners[c][1] + (corners[c + 1][1] - corners[c][1]) * t}); }
+                    box.push_back(corners.back());
+                }
+                drag2(box);
+                need(m->shapes.size() == 2 && c2::as_rectangle(m->shapes[1]).has_value(), "obrys prostokąta narysowany ołówkiem nie jest prostokątem");
+                // 3. łuk otwarty (ćwiartka okręgu R 300)
+                std::vector<c2::Point> arc;
+                for (int i = 0; i <= 40; ++i) { double a = i * c2::PI / 2 / 40; arc.push_back({-1500 + 300 * std::cos(a), 300 * std::sin(a)}); }
+                drag2(arc);
+                need(m->shapes.size() == 3 && !m->shapes[2].closed && arcs_in(m->shapes[2]) == 1, "ćwiartka okręgu narysowana ołówkiem powinna być jednym łukiem");
+                std::string text = log_since(from);
+                need(has_text(text, "[operacja:cad2d] ołówek: początek pociągnięcia") && has_text(text, "[operacja:cad2d] ołówek: ") && has_text(text, "[operacja:cad2d] dodano kształt z ołówka"), "pociągnięcia ołówkiem nie zostały opisane w dzienniku");
+                // 4. odrzucenia: zbyt krótkie pociągnięcie i anulowanie Esc w trakcie
+                from = log_mark();
+                const size_t count = m->shapes.size();
+                drag2({{2000, 2000}, {2001, 2000}});
+                need(m->shapes.size() == count && has_text(log_since(from), "[operacja:cad2d] odrzucono: ołówek"), "zbyt krótkie pociągnięcie powinno być odrzucone z powodem w dzienniku");
+                {
+                    auto first = px2(2000, 2000);
+                    m->begin_stroke(first.first, first.second);
+                    need(m->stroking, "wciśnięcie przycisku ołówka nie rozpoczęło pociągnięcia");
+                    m->on_key("Escape");
+                    need(!m->stroking && m->stroke.empty() && m->shapes.size() == count, "Esc powinien anulować pociągnięcie bez dodawania kształtu");
+                }
+                m->undo_2d();
+                need(m->shapes.size() == count - 1, "cofnięcie rysunku powinno usunąć ostatni kształt z ołówka");
+
+                // 5. 3D: okrąg (środek, promień wpisany) i obrys z ołówka → płyty
+                m->set_mode("3d");
+                m->view(0, 90);
+                m->draw_scene();
+                w = m->canvas->winfo_width(); h = m->canvas->winfo_height();
+                auto px3 = [&](double x, double y) { auto s = m->camera.project({x, y, 0}, w, h); return std::pair<double, double>{s[0], s[1]}; };
+                m->thickness.set("18");
+                m->group_name.set("Okrągły stolik");
+                from = log_mark();
+                const size_t parts_before = app->project->parts.size();
+                m->set_tool("circle");
+                auto center = px3(400, 400);
+                m->on_click(center.first, center.second);
+                need(m->draft.stage == 1, "pierwsze kliknięcie okręgu nie ustawiło środka");
+                need(!m->apply_typed("abc"), "tekst zamiast promienia powinien być odrzucony");
+                m->on_click(center.first, center.second);   // promień 0 → odrzucone z powodem, szkic okręgu zaczyna się od nowa
+                need(m->draft.stage == 0 && app->project->parts.size() == parts_before, "kliknięcie w środek (promień 0) nie może tworzyć okręgu");
+                m->on_click(center.first, center.second);
+                need(m->draft.stage == 1, "ponowne kliknięcie nie ustawiło środka okręgu");
+                need(m->apply_typed("150") && m->draft.stage == 2, "wpisany promień 150 nie zakończył rysowania okręgu");
+                need(m->apply_typed("18") && app->project->parts.size() == parts_before + 1, "okrąg nie został wyciągnięty do płyty");
+                {
+                    const core::Part& disc = app->project->parts.back();
+                    double lo = 1e18, hi = -1e18;
+                    for (const auto& p : disc.points()) { lo = std::min(lo, p[0]); hi = std::max(hi, p[0]); }
+                    need(disc.t == 18 && std::fabs((hi - lo) - 300) < 3 && disc.points().size() >= 12, std::format("okrągła płyta: grubość {}, szerokość {:.1f} (oczekiwano 300), punktów {}", disc.t, hi - lo, disc.points().size()));
+                }
+                need(has_text(log_since(from), "[operacja:modelowanie] okrąg R 150") && has_text(log_since(from), "[operacja:modelowanie] odrzucono: okrąg"), "okrąg w 3D nie zapisał się w dzienniku (utworzenie i odrzucenie z powodem)");
+                m->set_tool("pencil");
+                {
+                    auto ring3 = circle_points(1000, 400, 120, 60);
+                    auto first = px3(ring3[0][0], ring3[0][1]);
+                    m->begin_stroke(first.first, first.second);
+                    need(m->stroking && m->draft.stage == 1, "ołówek 3D nie rozpoczął pociągnięcia na podłodze");
+                    for (size_t i = 1; i < ring3.size(); ++i) { auto s = px3(ring3[i][0], ring3[i][1]); m->on_motion(s.first, s.second); }
+                    m->end_stroke();
+                    need(m->draft.stage == 2 && m->draft.points.size() >= 8, std::format("obrys z ołówka 3D nie jest gotowy do wyciągnięcia (etap {}, punktów {})", m->draft.stage, m->draft.points.size()));
+                    need(m->apply_typed("18") && app->project->parts.size() == parts_before + 2, "obrys z ołówka nie został wyciągnięty do płyty");
+                    // otwarta linia nie tworzy płyty
+                    from = log_mark();
+                    auto a = px3(0, 1000), b = px3(500, 1000);
+                    m->begin_stroke(a.first, a.second);
+                    for (int i = 1; i <= 20; ++i) m->on_motion(a.first + (b.first - a.first) * i / 20, a.second + (b.second - a.second) * i / 20);
+                    m->end_stroke();
+                    need(m->draft.stage == 0 && app->project->parts.size() == parts_before + 2, "otwarta linia nie może tworzyć płyty");
+                    need(has_text(log_since(from), "[operacja:modelowanie] odrzucono: ołówek"), "odrzucenie otwartego obrysu nie zostawiło powodu w dzienniku");
+                }
+                app->undo(); app->undo();
+                need(app->project->parts.size() == parts_before, "cofnięcie powinno usunąć obie płyty narysowane okręgiem i ołówkiem");
+                ctx.note("2D: okrąg, prostokąt, łuk z pociągnięcia; 3D: okrąg R150 i obrys z ołówka → płyty");
+            } catch (...) { cleanup(); app->project = fresh(); app->refresh(); throw; }
+            cleanup();
+            app->project = fresh(); app->refresh();
+        });
+
         run(area, "tryb realistyczny GPU: klatka bez zmian jest oddawana z pamięci, obrót nie powtarza przebiegu identyfikatorów, wynik jest ten sam", where, [=, this](Ctx& ctx) {
             using render_style::Mode;
             const Mode original_mode = view_style::state.mode;
@@ -2699,11 +3020,16 @@ public:
                 auto second = gpu_viewport::paint_gpu(app->canvas, request);
                 need(second.ok && app->canvas->_render_diagnostics.value("reused", false), "druga, identyczna klatka powinna być oddana z pamięci bez renderu OpenGL");
                 need(!app->canvas->find_withtag("viewport.gpu_model").empty(), "klatka z pamięci nie została położona na płótnie");
-                request.camera = core::Camera(-30, 24, 0.3);
+                // Pierwsza klatka interaktywna zmienia klucz synchronizacji (flaga interactive),
+                // więc przebieg identyfikatorów wolno pominąć dopiero w kolejnej klatce obrotu.
                 request.interactive = true;
+                request.camera = core::Camera(-30, 24, 0.3);
+                auto first_turn = gpu_viewport::paint_gpu(app->canvas, request);
+                need(first_turn.ok && !app->canvas->_render_diagnostics.value("reused", false), "po obrocie kamery obraz musi być narysowany od nowa");
+                request.camera = core::Camera(-25, 24, 0.3);
                 auto turned = gpu_viewport::paint_gpu(app->canvas, request);
-                need(turned.ok && !app->canvas->_render_diagnostics.value("reused", false), "po obrocie kamery obraz musi być narysowany od nowa");
-                need(app->canvas->_render_diagnostics.value("ids_reused", false), "klatka interaktywna po obrocie powinna użyć buforów identyfikatorów z poprzedniej klatki");
+                need(turned.ok && !app->canvas->_render_diagnostics.value("reused", false), "kolejna klatka obrotu musi być narysowana od nowa");
+                need(app->canvas->_render_diagnostics.value("ids_reused", false), "druga klatka interaktywna po obrocie powinna użyć buforów identyfikatorów z poprzedniej klatki");
                 double interactive_ms = app->canvas->_render_diagnostics.value("total_ms", 0.0);
                 request.interactive = false;
                 auto settled = gpu_viewport::paint_gpu(app->canvas, request);

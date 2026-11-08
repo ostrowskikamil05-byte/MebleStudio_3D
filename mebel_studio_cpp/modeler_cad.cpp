@@ -101,6 +101,7 @@ const std::vector<Tool2dInfo>& tools2d() {
         {"chamfer", "Ścięcie", "H", "Kliknij narożnik kształtu — zostanie ścięty na odległość z panelu."},
         {"movev", "Przesuń", "M", "Kliknij wierzchołek (przesuwa jego) albo kształt (przesuwa cały), potem miejsce docelowe."},
         {"delv", "Usuń punkt", "X", "Kliknij wierzchołek kształtu, aby go usunąć."},
+        {"pencil", "Ołówek", "N", "Przeciągnij myszą z wciśniętym lewym przyciskiem — odręczny kształt zostanie wyprostowany do odcinków, łuków, okręgu albo prostokąta. Zamknięty obrys od razu staje się kształtem do wyciągnięcia."},
         {"dim", "Wymiar", "D", "Kliknij odcinek, aby zobaczyć jego wymiar; wpisz nową długość i Enter, aby go zmienić."},
     };
     return list;
@@ -165,6 +166,8 @@ void Modeler::set_tool2(const std::string& name) {
 
 void Modeler::reset_draft_2d() {
     d2 = Draft2D();
+    stroke.clear();
+    stroking = false;
     if (d2.stage == 0) typed.set("");
 }
 
@@ -677,6 +680,7 @@ P Modeler::resolve_2d(double sx, double sy) {
 void Modeler::on_motion_2d(double sx, double sy) {
     mouse = {sx, sy};
     if (canvas == nullptr) return;
+    if (stroking) { add_stroke_point(sx, sy); return; }
     cursor2 = resolve_2d(sx, sy);
     draw_overlay_2d();
 }
@@ -698,6 +702,105 @@ void Modeler::on_click_2d(double sx, double sy, int state) {
         reset_draft_2d();
     }
     draw_overlay_2d();
+}
+
+// ------------------------------------------------------------------ ołówek (2D i 3D)
+
+namespace {
+std::optional<P> stroke_plane_point(const core::Camera& camera, const mg::Plane& plane, double sx, double sy, int w, int h) {
+    if (w < 10 || h < 10) return std::nullopt;
+    mg::Ray ray = mg::unproject(camera, sx, sy, w, h);
+    auto t = mg::ray_plane(ray, plane);
+    if (!t) return std::nullopt;
+    mg::Point ab = mg::to_plane(plane, mg::at(ray, *t));
+    return P{ab[0], ab[1]};
+}
+}  // namespace
+
+void Modeler::begin_stroke(double sx, double sy) {
+    mouse = {sx, sy};
+    stroke.clear();
+    stroking = false;
+    try {
+        const mg::Plane* plane = nullptr;
+        if (mode == "2d") {
+            plane = &plane2d;
+        } else {
+            cursor = resolve_cursor(sx, sy);
+            if (draft.stage == 2) { finish_draft_with_depth(std::fabs(draft.depth) < .5 ? panel_thickness() : draft.depth); draw_overlay(); return; }
+            if (!cursor.valid || !cursor.plane) throw std::invalid_argument("kursor nie trafia w płaszczyznę rysowania (patrzysz wzdłuż niej) — obróć widok");
+            draft = Draft();
+            draft.plane = *cursor.plane;
+            plane = &*draft.plane;
+        }
+        auto p = stroke_plane_point(camera, *plane, sx, sy, canvas->winfo_width(), canvas->winfo_height());
+        if (!p) throw std::invalid_argument("kursor nie trafia w płaszczyznę rysowania");
+        stroke = {*p};
+        stroking = true;
+        if (mode == "3d") draft.stage = 1;
+        note(mode == "2d" ? "cad2d" : "modelowanie", std::format("ołówek: początek pociągnięcia na płaszczyźnie „{}” w ({}, {}) mm", plane->label, num((*p)[0]), num((*p)[1])));
+    } catch (const std::exception& e) {
+        if (mode == "2d") reject_2d("ołówek", e.what()); else reject("ołówek", e.what());
+    }
+}
+
+void Modeler::add_stroke_point(double sx, double sy) {
+    if (!stroking || canvas == nullptr) return;
+    mouse = {sx, sy};
+    const mg::Plane* plane = mode == "2d" ? &plane2d : (draft.plane ? &*draft.plane : nullptr);
+    if (plane == nullptr) return;
+    auto p = stroke_plane_point(camera, *plane, sx, sy, canvas->winfo_width(), canvas->winfo_height());
+    if (!p) return;
+    if (stroke.empty() || dist(*p, stroke.back()) >= 1.5 / std::max(camera.scale, 1e-6)) {
+        if (stroke.size() < 6000) stroke.push_back(*p);
+    }
+    if (mode == "2d") draw_overlay_2d(); else draw_overlay();
+}
+
+void Modeler::cancel_stroke(const std::string& why) {
+    if (stroking || !stroke.empty()) note(mode == "2d" ? "cad2d" : "modelowanie", "ołówek: pociągnięcie anulowane — " + why);
+    stroke.clear();
+    stroking = false;
+}
+
+void Modeler::end_stroke() {
+    if (!stroking) return;
+    stroking = false;
+    std::vector<P> raw = std::move(stroke);
+    stroke.clear();
+    const char* category = mode == "2d" ? "cad2d" : "modelowanie";
+    try {
+        const double tol = std::max(0.4, 4.0 / std::max(camera.scale, 1e-6));
+        c2::StrokeFit fit = c2::fit_stroke(raw, tol);
+        if (mode == "2d") {
+            if (!fit.path.closed) {
+                // końce dociągnięte do istniejących punktów (połączenie z narysowanym wcześniej kształtem)
+                for (size_t index : {size_t{0}, fit.path.v.size() - 1}) {
+                    if (auto snap = c2::nearest_snap(shapes, fit.path.v[index].p, tol * 1.5)) fit.path.v[index].p = snap->p;
+                }
+            } else {
+                c2::validate_profile(fit.path, "Obrys z ołówka");
+            }
+            note(category, std::format("ołówek: {} punktów pociągnięcia → {} (tolerancja {} mm)", raw.size(), fit.description, num(tol)));
+            add_shape(fit.path, "kształt z ołówka (" + fit.description + ")");
+        } else {
+            if (!fit.path.closed) throw std::invalid_argument("obrys z ołówka nie jest zamknięty (" + fit.description + ") — zakończ pociągnięcie w punkcie początkowym albo narysuj okrąg lub prostokąt");
+            c2::validate_profile(fit.path, "Obrys z ołówka");
+            std::vector<P> outline = c2::tessellate(fit.path, 0.3);
+            if (!draft.plane) throw std::invalid_argument("brak płaszczyzny rysowania");
+            draft.points.clear();
+            for (const P& q : outline) draft.points.push_back(mg::from_plane(*draft.plane, q[0], q[1]));
+            draft.stage = 2;
+            draft.anchor = mouse;
+            draft.depth = 0;
+            status.set("Obrys z ołówka: " + fit.description + ". Wyciągnij kursorem (klik zatwierdza) albo wpisz grubość i Enter.");
+            note(category, std::format("ołówek: {} punktów pociągnięcia → {} (tolerancja {} mm, {} punktów konturu płyty)", raw.size(), fit.description, num(tol), outline.size()));
+        }
+    } catch (const std::exception& e) {
+        if (mode == "2d") reject_2d("ołówek", e.what());
+        else { reject("ołówek", e.what()); draft = Draft(); }
+    }
+    if (mode == "2d") draw_overlay_2d(); else draw_overlay();
 }
 
 void Modeler::add_draft_segment(const P& end, const P& through, bool tangent) {
@@ -1266,6 +1369,12 @@ void Modeler::draw_overlay_2d() {
     };
     const P cur = cursor2;
     const std::string t = tool2;
+    if (stroking && stroke.size() >= 2) {
+        std::vector<double> xy;
+        for (const P& q : stroke) { auto sp = map(q); xy.push_back(sp.first); xy.push_back(sp.second); }
+        canvas->create_line(xy, {{"fill", "#8d8d90"}, {"width", 3}, {"tags", tag}});
+        canvas->create_line(xy, {{"fill", "#3d3d40"}, {"width", 1}, {"tags", tag}});
+    }
     try {
         if ((t == "line" || t == "arc") && d2.stage >= 1 && !d2.verts.empty()) {
             c2::Path done;

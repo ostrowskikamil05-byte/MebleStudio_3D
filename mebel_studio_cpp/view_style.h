@@ -23,13 +23,20 @@ struct State {
 inline State state;
 
 inline bool realistic() { return state.mode == render_style::Mode::Realistic; }
+inline bool sketch() { return state.mode == render_style::Mode::Sketch; }
+// Kod trybu w pamięci podręcznej kolorów ścianek: 0 klasyczny, 1 realistyczny, 2 szkic ołówkiem.
+inline int mode_code() { return realistic() ? 1 : sketch() ? 2 : 0; }
 
 // Silniki natywne (biblioteka DLL) mają stałe, wbudowane cieniowanie — nie pokażą trybu realistycznego.
 inline bool native_engine_name(const std::string& engine) { return engine == "auto" || engine == "d3d11" || engine == "d3d12" || engine == "vulkan"; }
 
 // Silnik faktycznie użyty do rysowania: w trybie realistycznym zamiast DLL idzie GPU (VTK: PBR + SSAO), a gdy go brak — renderer CPU
 // z cieniowaniem, cieniami rzucanymi i płytkami podłogi. Tryb klasyczny zostaje bez zmian.
-inline std::string effective_engine(const std::string& engine) { return realistic() && native_engine_name(engine) ? "gpu" : engine; }
+// Szkic ołówkiem jest filtrem obrazu liczonym na rastrze CPU, więc zawsze idzie przez renderer CPU (GPU i DLL mają własne cieniowanie).
+inline std::string effective_engine(const std::string& engine) {
+    if (sketch()) return "cpu";
+    return realistic() && native_engine_name(engine) ? "gpu" : engine;
+}
 
 struct Palette {
     const char* swatch;      // próbka w panelu

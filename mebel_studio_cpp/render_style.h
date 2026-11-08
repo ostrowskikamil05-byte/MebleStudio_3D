@@ -12,7 +12,7 @@ namespace render_style {
 using Point2 = std::array<double, 2>;
 using Point3 = std::array<double, 3>;
 
-enum class Mode { Classic, Realistic };
+enum class Mode { Classic, Realistic, Sketch };  // Sketch = „szkic ołówkiem”: papier, grafitowy obrys, kreskowanie
 
 struct ModeInfo {
     Mode mode;
@@ -36,6 +36,11 @@ struct Shading {
 // i delikatna krawędź kontrastu — ścianki o różnej orientacji wyraźnie się od siebie różnią.
 Shading shade_face(Mode mode, const Point3& normal, double brightness, double ambient);
 std::array<int, 3> apply_shading(const std::array<int, 3>& base, const Shading& shading);
+// Szkic ołówkiem: łagodne cieniowanie 0,70 … 1,0 (zamiast mocnego kontrastu) — resztę robi kreskowanie z pencil_filter.
+// Kolor materiału zostaje tylko jako delikatny odcień papieru (ok. 22%), więc o ciemności decyduje oświetlenie ścianki.
+std::array<int, 3> sketch_tone(const std::array<int, 3>& base, double factor);
+// Kolor papieru szkicu (#rrggbb).
+const char* paper_color();
 
 // ------------------------------------------------------------------ cienie na podłodze
 
@@ -76,6 +81,7 @@ struct ThumbPoly {
     std::string fill;   // #rrggbb (dla linii: kolor linii)
     bool line = false;  // true = łamana (fuga płytek), false = wypełniony wielokąt
     bool body = false;  // true = ścianki bryły mebla (do testów obrysu)
+    std::string outline;  // kolor obrysu wielokąta bryły (puste = domyślny brązowy)
 };
 // Miniatura trybu: sześcienna szafka na podłodze, rysowana tymi samymi funkcjami cieniowania i cieni co widok 3D
 // (klasyczny: płaskie ścianki i cień kontaktowy; realistyczny: kontrast ścianek, miękki cień rzucany, płytki).

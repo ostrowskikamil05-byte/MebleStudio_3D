@@ -13,6 +13,8 @@
 #include "assembly.h"
 #include "depth_raster.h"
 #include "pyutil.h"
+#include "pencil_filter.h"
+#include "wood_grain.h"
 
 namespace viewport_scene {
 
@@ -183,6 +185,7 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
             if (flag(face, "mesh") || flag(face, "fitting")) continue;
             const std::string id = face.at("id").get<std::string>();
             bool selected = flag(face, "selected") || selected_ids.contains(id);
+            if (view_style::sketch() && !selected) continue;  // obrys robi filtr ołówka
             std::string border = selected ? SELECTION : mix_color(face.at("color").get<std::string>(), "#514b43", .3);
             std::vector<double> depths = item.depths;
             if (!depths.empty()) depths.push_back(depths.front());
@@ -241,8 +244,8 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
                 return depths[(size_t)i] + u * (depths[(size_t)j] - depths[(size_t)i]) + v * (depths[(size_t)k] - depths[(size_t)i]);
             };
             const std::string id = face.at("id").get<std::string>();
-            for (const auto& [start, end] : grain_segments(points, direction)) {
-                raster.line({start, end}, {z_at(start), z_at(end)}, mix_color(face.at("color").get<std::string>(), "#5b442f", .12), id);
+            for (const auto& [start, end] : grain_segments(points, direction, wood_grain::line_count(id), id)) {
+                raster.line({start, end}, {z_at(start), z_at(end)}, mix_color(face.at("color").get<std::string>(), "#5b442f", wood_grain::line_mix(id)), id);
                 ++grain;
                 if (grain >= 120) break;
             }
@@ -282,8 +285,22 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
                 raster.line({layers[0].first[i], layers[1].first[i]}, {layers[0].second[i], layers[1].second[i]}, color, owner, 1, true);
         }
     }
+    json pencil = json::object();
+    if (view_style::sketch()) {
+        // Szkic ołówkiem: filtr obrazu liczony z tych samych buforów (elementy + głębia), co wskazywanie myszą.
+        pencil_filter::Settings pencil_settings;
+        pencil_settings.hatching = !interactive;
+        pencil_settings.spacing = std::max(3.0, 6.0 * scale);
+        pencil_settings.wobble = std::max(0.4, scale);
+        std::vector<float> depth_copy = raster.depth.data;
+        pencil_filter::Stats pencil_stats = pencil_filter::apply(raster.width, raster.height, raster.rgba, raster.owner.data, depth_copy, pencil_settings);
+        pencil = json::object({{"covered", pencil_stats.covered}, {"edge_pixels", pencil_stats.edge_pixels}, {"hatch_pixels", pencil_stats.hatch_pixels}});
+    }
     raster.attach(canvas);
-    if (auto* state = dynamic_cast<depth_raster::CanvasState*>(canvas)) state->_render_diagnostics = stats.is_object() ? stats : json::object();
+    if (auto* state = dynamic_cast<depth_raster::CanvasState*>(canvas)) {
+        state->_render_diagnostics = stats.is_object() ? stats : json::object();
+        if (!pencil.empty()) state->_render_diagnostics["pencil"] = pencil;
+    }
     depth_raster::Image image = raster.image();
     photos()[canvas] = std::make_unique<tk::PhotoImage>(canvas, image.width, image.height, image.rgba);
     if (!destroy_bound().contains(canvas)) {
@@ -393,7 +410,10 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
         sky_top = SKY_TOP; sky_bottom = SKY_BOTTOM; floor = FLOOR; grid_color = GRID;
         shadow_colors = {"#dcd6ca", "#cfc6b7"};
     }
-    if (const auto& palette = view_style::palette(); palette.sky_top != nullptr) {  // tło wybrane w panelu "Silnik i jakość 3D"
+    if (view_style::sketch()) {  // papier: jednolite, ciepłe tło i podłoga, siatka jak miękki ołówek
+        sky_top = sky_bottom = render_style::paper_color(); floor = "#efeadc"; grid_color = "#cfc9ba";
+        shadow_colors = {"#e4dfd2", "#d3ccbb"};
+    } else if (const auto& palette = view_style::palette(); palette.sky_top != nullptr) {  // tło wybrane w panelu "Silnik i jakość 3D"
         sky_top = palette.sky_top; sky_bottom = palette.sky_bottom; floor = palette.floor; grid_color = palette.grid;
     }
     int count = 0;
@@ -548,7 +568,7 @@ double polygon_area(const std::vector<Point2>& points) {
     return std::fabs(py::sum(terms)) / 2;
 }
 
-std::vector<std::pair<Point2, Point2>> grain_segments(const std::vector<Point2>& points, const Point2& direction, int count) {
+std::vector<std::pair<Point2, Point2>> grain_segments(const std::vector<Point2>& points, const Point2& direction, int count, const std::string& seed) {
     double length = std::hypot(direction[0], direction[1]);
     if (points.size() < 3 || length < .001) return {};
     double dx = direction[0] / length, dy = direction[1] / length;
@@ -561,9 +581,11 @@ std::vector<std::pair<Point2, Point2>> grain_segments(const std::vector<Point2>&
     }
     if (high - low < 12) return {};
     std::vector<std::pair<Point2, Point2>> out;
+    std::vector<double> random_fractions;
+    if (!seed.empty()) random_fractions = wood_grain::line_fractions(seed, count);
     for (int i = 0; i < count; ++i) {
-        // Non-uniform, deterministic spacing avoids a ruler-like striped fill.
-        double fraction = (i + 1 + .12 * std::sin(i * 2.1)) / (count + 1);
+        // Non-uniform, deterministic spacing avoids a ruler-like striped fill; z ziarnem każda płyta ma własny rozkład.
+        double fraction = seed.empty() ? (i + 1 + .12 * std::sin(i * 2.1)) / (count + 1) : random_fractions[(size_t)i];
         double level = low + (high - low) * fraction;
         std::vector<Point2> hits;
         for (size_t k = 0; k < points.size(); ++k) {
@@ -670,10 +692,10 @@ json paint_faces(tk::Canvas* canvas, const core::Drawn& faces, core::ProjectPtr 
             const Point2 &a = points[best], &b = points[(best + 1) % points.size()];
             direction = {b[0] - a[0], b[1] - a[1]};
         }
-        for (const auto& [a, b] : grain_segments(points, direction)) {
+        for (const auto& [a, b] : grain_segments(points, direction, wood_grain::line_count(id), id)) {
             if (grain_items >= 120) break;
             canvas->create_line(std::vector<double>{a[0], a[1], b[0], b[1]},
-                                {{"fill", mix_color(color, "#5b442f", .12)}, {"width", 1}, {"tags", std::vector<std::string>{"viewport.grain", id}}});
+                                {{"fill", mix_color(color, "#5b442f", wood_grain::line_mix(id))}, {"width", 1}, {"tags", std::vector<std::string>{"viewport.grain", id}}});
             ++grain_items;
             ++items;
         }

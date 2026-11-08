@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "core.h"
+#include "render_style.h"
 
 namespace viewport_render {
 
@@ -79,7 +80,7 @@ struct Record {
     bool mesh = false, fitting = false, scene_object = false, emissive = false, architecture = false;
     int sign = 1;
     mutable std::optional<std::vector<std::string>> lit_colors;
-    mutable int lit_mode = 0;  // tryb grafiki, dla którego policzono lit_colors (0 klasyczny, 1 realistyczny)
+    mutable int lit_mode = 0;  // tryb grafiki, dla którego policzono lit_colors (0 klasyczny, 1 realistyczny, 2 szkic ołówkiem)
 
     explicit Record(std::shared_ptr<const Mesh> g)
         : geometry(std::move(g)), vertices(geometry->vertices), indices(geometry->indices),
@@ -132,7 +133,7 @@ std::string lit_color(const std::string& color, const Point3& normal, const Poin
 // Tryb realistyczny: półkulowe światło otoczenia + światło główne i wypełniające + światła LED (bez zmian względem klasycznego).
 std::vector<std::string> lit_colors_realistic(const std::string& color, const std::vector<Point3>& normals,
                                               const std::vector<Point3>& centers, const json& lights, double brightness,
-                                              const std::string& room, bool emissive);
+                                              const std::string& room, bool emissive, render_style::Mode mode = render_style::Mode::Realistic);
 std::vector<std::string> lit_colors(const std::string& color, const std::vector<Point3>& normals,
                                     const std::vector<Point3>& centers, const json& lights, double brightness = 1,
                                     const std::string& room = "neutral", bool emissive = false);

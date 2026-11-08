@@ -81,7 +81,7 @@ void draw_thumbnail(tk::Canvas* canvas, render_style::Mode mode, int width, int 
         std::vector<double> coords;
         for (const auto& p : poly.points) { coords.push_back(p[0]); coords.push_back(p[1]); }
         if (poly.line) canvas->create_line(coords, {{"fill", poly.fill}, {"width", 1}, {"tags", "mode_thumb"}});
-        else canvas->create_polygon(coords, {{"fill", poly.fill}, {"outline", poly.body ? "#6b5a45" : ""}, {"width", 1}, {"tags", "mode_thumb"}});
+        else canvas->create_polygon(coords, {{"fill", poly.fill}, {"outline", poly.body ? (poly.outline.empty() ? std::string("#6b5a45") : poly.outline) : std::string()}, {"width", 1}, {"tags", "mode_thumb"}});
     }
 }
 

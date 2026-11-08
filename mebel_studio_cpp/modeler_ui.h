@@ -116,6 +116,15 @@ public:
         std::optional<size_t> vertex;              // wskazany wierzchołek albo odcinek kształtu
         cad2d::Point base{0, 0};
     } d2;
+    // Ołówek: pociągnięcie myszą (współrzędne na płaszczyźnie rysowania) dopasowywane do odcinków, łuków, okręgu lub prostokąta.
+    std::vector<cad2d::Point> stroke;
+    bool stroking = false;
+    void begin_stroke(double sx, double sy);
+    void add_stroke_point(double sx, double sy);
+    void end_stroke();
+    void cancel_stroke(const std::string& why);
+    // 3D: okrąg o środku w pierwszym punkcie szkicu → kontur płyty do wyciągnięcia (etap 2)
+    bool circle_outline(double radius);
     struct SketchStep { std::vector<cad2d::Path> shapes; bool project_step = false; };
     std::vector<SketchStep> sketch_undo, sketch_redo;
     void set_mode(const std::string& name);

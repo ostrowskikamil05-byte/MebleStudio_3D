@@ -636,7 +636,9 @@ public:
             std::string note = engine != viewport_engine ? viewport_engine + " → " + engine : std::string();
             if (note != last_switch) {
                 last_switch = note;
-                if (!note.empty()) journal::event(this, "grafika", "tryb realistyczny: silnik " + note + " (natywna biblioteka ma stałe cieniowanie; GPU/CPU pokazują realistyczne światło, cienie i płytki)");
+                if (!note.empty()) journal::event(this, "grafika", view_style::sketch()
+                    ? "tryb szkicu ołówkiem: silnik " + note + " (filtr ołówka działa na obrazie renderera CPU; GPU i biblioteka natywna mają własne cieniowanie)"
+                    : "tryb realistyczny: silnik " + note + " (natywna biblioteka ma stałe cieniowanie; GPU/CPU pokazują realistyczne światło, cienie i płytki)");
                 else journal::event(this, "grafika", "silnik rysowania wrócił do ustawienia użytkownika: " + viewport_engine);
             }
         }

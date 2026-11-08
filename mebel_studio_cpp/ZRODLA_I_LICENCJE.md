@@ -31,6 +31,13 @@ To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem p
   znany, matematyczny sposób opisu łuku w łamanej (wzór tan(kąt/4)); nie używamy żadnego cudzego kodu ani bibliotek CAD. Z programów CAD przejęto wyłącznie ogólne idee
   użytkowe: linia/łuk 3-punktowy/łuk styczny, zaokrąglenie i ścięcie narożnika, okrąg, szczelina, przyciąganie do końców/środków/kwadrantów, wpisywanie długości i kąta
   z klawiatury, siatka, zmiana płaszczyzny rysunku. Nazwy poleceń i interfejs są własne.
+- Usłojenie drewna (`wood_grain`): procedura w GLSL liczona od „osi pnia” (słoje jako odległość od osi, pochylenie osi daje łuki typowe dla desek) z szumem wartościowym
+  i funkcją skrótu typu `fract(sin(...))` — powszechnie znane, niechronione techniki grafiki proceduralnej; kod napisany od zera, bez tekstur i cudzych zasobów.
+  Ziarno każdej płyty pochodzi z hasza jej identyfikatora (FNV-1a + miksowanie 64-bitowe — algorytmy publiczne).
+- Tryb „Szkic ołówkiem” (`pencil_filter`, `render_style`) — filtr obrazu napisany od zera: obrys z granic elementów i skoków głębi, drżenie linii z szumu wartościowego,
+  kreskowanie z jasności. Z programów rysunkowych przejęto wyłącznie ogólną ideę wyglądu „od ręki”; nie używamy cudzych tekstur papieru ani pędzli.
+- Narzędzie Ołówek (`cad2d::fit_stroke`): uproszczenie pociągnięcia z podziałem w miejscu największej odchyłki (idea klasyczna, jak w algorytmie Douglasa–Peuckera),
+  dopasowanie okręgu metodą najmniejszych kwadratów (Kåsa — metoda publiczna) i rozpoznanie okręgu/prostokąta — własna implementacja, bez bibliotek zewnętrznych.
 
 ## Czego jeszcze brakuje
 - Zbiorczego pliku z pełnymi tekstami licencji dla wersji C++ (OpenCASCADE, Tcl/Tk, VTK) w paczce wydawniczej.

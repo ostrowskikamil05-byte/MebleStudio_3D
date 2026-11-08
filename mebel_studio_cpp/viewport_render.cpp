@@ -768,7 +768,7 @@ std::vector<std::string> lit_colors(const std::string& color, const std::vector<
 }
 
 std::vector<std::string> lit_colors_realistic(const std::string& color, const std::vector<Point3>& normals, const std::vector<Point3>& centers,
-                                               const json& lights, double brightness, const std::string& room, bool emissive) {
+                                               const json& lights, double brightness, const std::string& room, bool emissive, render_style::Mode mode) {
     size_t count = normals.size();
     if (emissive) return std::vector<std::string>(count, color);
     std::vector<std::string> out;
@@ -776,8 +776,9 @@ std::vector<std::string> lit_colors_realistic(const std::string& color, const st
     auto base = rgb(color);
     double ambient = room == "light" || room == "bright" ? .96 : room == "dark" ? .32 : .82;
     for (size_t r = 0; r < count; ++r) {
-        render_style::Shading shading = render_style::shade_face(render_style::Mode::Realistic, {normals[r][0], normals[r][1], normals[r][2]}, brightness, ambient);
-        auto shaded = render_style::apply_shading({base[0], base[1], base[2]}, shading);
+        render_style::Shading shading = render_style::shade_face(mode, {normals[r][0], normals[r][1], normals[r][2]}, brightness, ambient);
+        auto shaded = mode == render_style::Mode::Sketch ? render_style::sketch_tone({base[0], base[1], base[2]}, shading.factor)
+                                                         : render_style::apply_shading({base[0], base[1], base[2]}, shading);
         std::vector<double> result = {(double)shaded[0], (double)shaded[1], (double)shaded[2]};
         for (const auto& light : lights) {
             Point3 position = point_of(light.at("position"));
@@ -969,7 +970,7 @@ std::vector<RecordPtr> Context::records(bool interactive) {
 const std::vector<std::string>& Context::face_colors(const Record& record) const {
     // An integer id can be recycled when cold preview is replaced by full
     // LOD. Cache on the actual object, so geometry and colors live together.
-    const int wanted_mode = view_style::realistic() ? 1 : 0;
+    const int wanted_mode = view_style::mode_code();
     if (record.lit_mode != wanted_mode) { record.lit_colors.reset(); record.lit_mode = wanted_mode; }
     if (!record.lit_colors) {
         json lighting = py::get(scene, "ambient", "neutral");
@@ -999,14 +1000,19 @@ const std::vector<std::string>& Context::face_colors(const Record& record) const
                     double factor = .74 + .26 * std::fabs(total.result());
                     if (wanted_mode == 1) factor = render_style::shade_face(render_style::Mode::Realistic, {n[0], n[1], n[2]}, 1.0, .82).factor;
                     std::vector<double> values;
+                    if (wanted_mode == 2) {
+                        auto tone = render_style::sketch_tone({channels[0], channels[1], channels[2]}, render_style::shade_face(render_style::Mode::Sketch, {n[0], n[1], n[2]}, 1.0, .82).factor);
+                        values = {(double)tone[0], (double)tone[1], (double)tone[2]};
+                    } else
                     for (int v : channels) values.push_back(v * factor);
                     colors.push_back(color_hex(values));
                 }
                 record.lit_colors = std::move(colors);
             }
         } else {
-            record.lit_colors = wanted_mode == 1
-                ? lit_colors_realistic(record.color, record.normals, record.centers, lights, brightness, room_name, record.emissive)
+            record.lit_colors = wanted_mode != 0
+                ? lit_colors_realistic(record.color, record.normals, record.centers, lights, brightness, room_name, record.emissive,
+                                       wanted_mode == 2 ? render_style::Mode::Sketch : render_style::Mode::Realistic)
                 : lit_colors(record.color, record.normals, record.centers, lights, brightness, room_name, record.emissive);
         }
     }

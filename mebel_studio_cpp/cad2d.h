@@ -117,4 +117,15 @@ struct Contour {
 };
 Contour to_contour(const Path& path, double tolerance = 0.2);
 
+// --- rysowanie odręczne (ołówek)
+// Dopasowanie pociągnięcia myszą do czystych odcinków i łuków. `tolerance` [mm] to największa odchyłka dopasowanego kształtu od ręcznie narysowanych punktów.
+// Rozpoznaje: okrąg (zamknięte pociągnięcie w kształcie koła), prostokąt równoległy do osi, ciąg odcinków i łuków (otwarty albo zamknięty kontur).
+// Pociągnięcie krótsze niż ok. 3 tolerancje albo bez dwóch różnych punktów jest odrzucane (std::invalid_argument).
+struct StrokeFit {
+    Path path;
+    std::string description;   // np. „okrąg R 85”, „2 odcinki + 1 łuk”
+    size_t lines = 0, arcs = 0;
+};
+StrokeFit fit_stroke(const std::vector<Point>& stroke, double tolerance);
+
 }  // namespace cad2d

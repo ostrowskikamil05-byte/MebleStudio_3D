@@ -65,7 +65,8 @@ inline json paint_background(tk::Canvas* canvas, const core::Camera& camera, cor
 double polygon_area(const std::vector<Point2>& points);
 
 // Clip parallel grain strokes to an arbitrary simple screen polygon.
-std::vector<std::pair<Point2, Point2>> grain_segments(const std::vector<Point2>& points, const Point2& direction, int count = 5);
+// `seed` (identyfikator elementu) włącza losowe, różne dla każdej płyty rozmieszczenie linii; pusty daje stary, równy rozkład.
+std::vector<std::pair<Point2, Point2>> grain_segments(const std::vector<Point2>& points, const Point2& direction, int count = 5, const std::string& seed = "");
 
 struct PaintFacesOptions {
     std::set<std::string> selected_ids;

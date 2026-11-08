@@ -600,4 +600,166 @@ Contour to_contour(const Path& path, double tolerance) {
     return out;
 }
 
+
+// ------------------------------------------------------------------ rysowanie odręczne
+
+namespace {
+
+struct CircleFit { Point c{0, 0}; double r = 0; bool ok = false; };
+
+// Okrąg najmniejszych kwadratów (Kåsa) na współrzędnych wyśrodkowanych.
+CircleFit fit_circle(const std::vector<Point>& p, size_t first, size_t last) {
+    CircleFit out;
+    const size_t n = last - first + 1;
+    if (n < 3) return out;
+    Point mean{0, 0};
+    for (size_t i = first; i <= last; ++i) { mean[0] += p[i][0]; mean[1] += p[i][1]; }
+    mean[0] /= (double)n; mean[1] /= (double)n;
+    double suu = 0, suv = 0, svv = 0, suuu = 0, svvv = 0, suvv = 0, svuu = 0;
+    for (size_t i = first; i <= last; ++i) {
+        double u = p[i][0] - mean[0], v = p[i][1] - mean[1];
+        suu += u * u; suv += u * v; svv += v * v; suuu += u * u * u; svvv += v * v * v; suvv += u * v * v; svuu += v * u * u;
+    }
+    double det = suu * svv - suv * suv;
+    if (std::fabs(det) < 1e-9 * std::max(1.0, suu * svv)) return out;
+    double b1 = 0.5 * (suuu + suvv), b2 = 0.5 * (svvv + svuu);
+    double uc = (b1 * svv - b2 * suv) / det, vc = (b2 * suu - b1 * suv) / det;
+    out.c = {mean[0] + uc, mean[1] + vc};
+    out.r = std::sqrt(uc * uc + vc * vc + (suu + svv) / (double)n);
+    out.ok = std::isfinite(out.r) && std::isfinite(out.c[0]) && std::isfinite(out.c[1]);
+    return out;
+}
+
+double chord_distance(const Point& a, const Point& b, const Point& p) {
+    double l = dist(a, b);
+    if (l < 1e-12) return dist(a, p);
+    return std::fabs(cross(sub(b, a), sub(p, a))) / l;
+}
+
+// Dopasowuje p[i..j] do jednego odcinka, jednego łuku albo dzieli w miejscu największej odchyłki. Dopisuje wierzchołki od i do j-1 (j dopisuje wywołujący).
+void fit_range(const std::vector<Point>& p, size_t i, size_t j, double tol, std::vector<Vertex>& out, size_t& lines, size_t& arcs, int depth) {
+    double worst = 0;
+    size_t split = i + 1;
+    for (size_t k = i + 1; k < j; ++k) {
+        double d = chord_distance(p[i], p[j], p[k]);
+        if (d > worst) { worst = d; split = k; }
+    }
+    if (j - i < 2 || worst <= tol) { out.push_back({p[i], 0}); ++lines; return; }
+    if (j - i >= 4 && depth < 24) {
+        CircleFit disc = fit_circle(p, i, j);
+        if (disc.ok && disc.r >= 2 * tol && disc.r < 1e5 && dist(p[i], p[j]) > tol) {
+            double deviation = 0;
+            for (size_t k = i; k <= j; ++k) deviation = std::max(deviation, std::fabs(dist(p[k], disc.c) - disc.r));
+            if (deviation <= tol) {
+                // kierunek obiegu z sumy iloczynów wektorowych kolejnych promieni
+                double turn = 0;
+                for (size_t k = i; k < j; ++k) turn += cross(sub(p[k], disc.c), sub(p[k + 1], disc.c));
+                double pi_ = 0;
+                try {
+                    pi_ = bulge_center(disc.c, p[i], p[j], turn > 0);
+                } catch (const std::invalid_argument&) {
+                    pi_ = 0;
+                }
+                // łuk do 300° i zgodny z kolejnością punktów (środkowy punkt po tej samej stronie cięciwy co łuk)
+                if (pi_ != 0 && 4 * std::atan(std::fabs(pi_)) <= 300 * PI / 180) {
+                    out.push_back({p[i], pi_}); ++arcs;
+                    return;
+                }
+            }
+        }
+    }
+    if (depth >= 40) { out.push_back({p[i], 0}); ++lines; return; }
+    fit_range(p, i, split, tol, out, lines, arcs, depth + 1);
+    fit_range(p, split, j, tol, out, lines, arcs, depth + 1);
+}
+
+}  // namespace
+
+StrokeFit fit_stroke(const std::vector<Point>& stroke, double tolerance) {
+    if (!(tolerance > 1e-6)) fail("Tolerancja dopasowania musi być dodatnia.");
+    std::vector<Point> p;
+    for (const Point& q : stroke) {
+        check_point(q);
+        if (p.empty() || dist(q, p.back()) >= tolerance * 0.3) p.push_back(q);
+    }
+    double length = 0;
+    for (size_t i = 1; i < p.size(); ++i) length += dist(p[i - 1], p[i]);
+    if (p.size() < 2 || length < 3 * tolerance) fail("Pociągnięcie jest zbyt krótkie — przeciągnij myszą dalej, trzymając lewy przycisk.");
+    // zamknięte: koniec wraca w pobliże początku
+    const double gap = dist(p.front(), p.back());
+    const bool closed = p.size() >= 8 && gap < std::max(4 * tolerance, 0.1 * length);
+    if (closed) { p.back() = p.front(); }
+    StrokeFit fit;
+    if (closed) {
+        std::vector<Point> body(p.begin(), p.end() - 1);
+        // okrąg
+        CircleFit disc = fit_circle(body, 0, body.size() - 1);
+        if (disc.ok && disc.r >= 0.25) {
+            double deviation = 0;
+            for (const Point& q : body) deviation = std::max(deviation, std::fabs(dist(q, disc.c) - disc.r));
+            // pokrycie kątowe: wszystkie ćwiartki odwiedzone
+            bool quadrant[4] = {false, false, false, false};
+            for (const Point& q : body) {
+                double a = std::atan2(q[1] - disc.c[1], q[0] - disc.c[0]);
+                quadrant[(int)std::floor((a + PI) / (PI / 2)) % 4] = true;
+            }
+            if (deviation <= std::max(1.5 * tolerance, 0.06 * disc.r) && quadrant[0] && quadrant[1] && quadrant[2] && quadrant[3]) {
+                fit.path = circle(disc.c, disc.r);
+                fit.description = std::format("okrąg R {} mm", num(disc.r));
+                fit.arcs = 2;
+                return fit;
+            }
+        }
+        // prostokąt równoległy do osi: punkty leżą przy obwodzie ramki, każdy bok odwiedzony
+        double x0 = 1e300, y0 = 1e300, x1 = -1e300, y1 = -1e300;
+        for (const Point& q : body) { x0 = std::min(x0, q[0]); y0 = std::min(y0, q[1]); x1 = std::max(x1, q[0]); y1 = std::max(y1, q[1]); }
+        const double w = x1 - x0, h = y1 - y0;
+        if (w > 4 * tolerance && h > 4 * tolerance) {
+            const double edge_tol = std::max(1.5 * tolerance, 0.05 * std::min(w, h));
+            bool left = false, right = false, bottom = false, top = false, fits = true;
+            for (const Point& q : body) {
+                double d = std::min({q[0] - x0, x1 - q[0], q[1] - y0, y1 - q[1]});
+                if (d > edge_tol) { fits = false; break; }
+                left |= q[0] - x0 <= edge_tol; right |= x1 - q[0] <= edge_tol; bottom |= q[1] - y0 <= edge_tol; top |= y1 - q[1] <= edge_tol;
+            }
+            if (fits && left && right && bottom && top) {
+                fit.path = rectangle({x0, y0}, {x1, y1});
+                fit.description = std::format("prostokąt {} × {} mm", num(w), num(h));
+                fit.lines = 4;
+                return fit;
+            }
+        }
+        // kontur zamknięty: dzielimy na dwie połowy w najdalszym od początku punkcie, żeby wierzchołek startowy nie był sztucznym narożnikiem
+        size_t far = 1;
+        double far_d = 0;
+        for (size_t k = 1; k < body.size(); ++k) if (dist(body[k], body[0]) > far_d) { far_d = dist(body[k], body[0]); far = k; }
+        std::vector<Vertex> verts;
+        size_t lines = 0, arcs = 0;
+        fit_range(p, 0, far, tolerance, verts, lines, arcs, 0);
+        fit_range(p, far, p.size() - 1, tolerance, verts, lines, arcs, 0);
+        fit.path.v = verts;
+        fit.path.closed = true;
+        fit.path.kind = "kontur";
+        fit.lines = lines; fit.arcs = arcs;
+        if (fit.path.v.size() < 3 && arcs == 0) fail("Zamknięty kształt z dwóch punktów nie istnieje — narysuj większy obrys.");
+        fit.description = std::format("kontur zamknięty: {} odc. + {} łuk.", lines, arcs);
+        return fit;
+    }
+    std::vector<Vertex> verts;
+    size_t lines = 0, arcs = 0;
+    fit_range(p, 0, p.size() - 1, tolerance, verts, lines, arcs, 0);
+    verts.push_back({p.back(), 0});
+    fit.path.v = verts;
+    fit.path.closed = false;
+    fit.path.kind = "linia";
+    fit.lines = lines; fit.arcs = arcs;
+    if (verts.size() == 2 && verts[0].bulge == 0) {
+        // pojedynczy prosty odcinek: wyrównanie do osi, gdy odchyłka jest mała
+        verts[1].p = snap_to_axis(verts[0].p, verts[1].p, 4);
+        fit.path.v = verts;
+    }
+    fit.description = std::format("{} odc. + {} łuk.", lines, arcs);
+    return fit;
+}
+
 }  // namespace cad2d

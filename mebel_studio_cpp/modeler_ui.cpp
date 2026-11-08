@@ -60,6 +60,8 @@ const std::vector<ToolInfo>& tools() {
         {"select", "Wybierz", "S", "Kliknij płytę, aby ją zaznaczyć (Shift dodaje do zaznaczenia)."},
         {"rect", "Prostokąt", "R", "Kliknij pierwszy narożnik, drugi narożnik, potem wyciągnij (lub wpisz wymiar i Enter). Rysujesz na podłodze albo na ścianie płyty."},
         {"polygon", "Kontur", "G", "Klikaj kolejne wierzchołki; Enter zamyka kontur. Potem wyciągnij."},
+        {"pencil", "Ołówek", "N", "Przeciągnij myszą na ścianie albo podłodze, jak ołówkiem: zamknięty obrys (też okrąg, prostokąt i kształt z łukami) zostanie wyprostowany do odcinków i łuków. Potem wyciągnij."},
+        {"circle", "Okrąg", "K", "Kliknij środek i punkt na okręgu (albo wpisz promień i Enter). Powstaje okrągła płyta do wyciągnięcia — np. blat, półka, fronty okrągłe."},
         {"pull", "Wyciągnij", "P", "Kliknij ścianę płyty i przeciągnij — zmienia grubość, długość lub szerokość. Wpisz liczbę i Enter."},
         {"move", "Przesuń / kopiuj", "M", "Kliknij punkt bazowy, potem miejsce docelowe. Strzałki blokują oś; ‘*N’ po liczbie robi N kopii."},
         {"mill", "Frez", "F", "Kliknij dużą ścianę płyty: rowek (dwa punkty), kieszeń (dwa narożniki) lub kieszeń okrągła (środek)."},
@@ -171,14 +173,19 @@ Modeler::Modeler(App* app_) : dock_workspace::DockDocument(app_), camera(-38, 24
     canvas->bind("<ButtonPress-1>", handler([this](tk::Event& e) {
         canvas->focus_set();
         anchor_px = {e.x, e.y};
-        if (mode == "2d") on_click_2d(e.x, e.y, e.state);
+        if (mode == "2d") {
+            if (tool2 == "pencil") begin_stroke(e.x, e.y); else on_click_2d(e.x, e.y, e.state);
+        } else if (tool == "pencil") begin_stroke(e.x, e.y);
         else if (tool != "orbit") on_click(e.x, e.y, e.state);
     }));
     canvas->bind("<B1-Motion>", handler([this](tk::Event& e) {
         if (mode == "3d" && tool == "orbit") orbit(e);
         else on_motion(e.x, e.y);
     }));
-    canvas->bind("<ButtonRelease-1>", handler([this](tk::Event&) { if (tool == "orbit") finish_view(); }));
+    canvas->bind("<ButtonRelease-1>", handler([this](tk::Event&) {
+        if (stroking) end_stroke();
+        else if (mode == "3d" && tool == "orbit") finish_view();
+    }));
     canvas->bind("<ButtonPress-2>", handler([this](tk::Event& e) { anchor_px = {e.x, e.y}; }));
     canvas->bind("<B2-Motion>", handler([this](tk::Event& e) { if (mode == "2d") pan(e); else orbit(e); }));
     canvas->bind("<ButtonRelease-2>", handler([this](tk::Event&) { finish_view(); }));
@@ -562,7 +569,13 @@ void Modeler::draw_overlay() {
         canvas->create_rectangle(s.first - 4, s.second - 4, s.first + 4, s.second + 4, {{"outline", "#0b7a4b"}, {"width", 2}, {"tags", tag}});
         canvas->create_text(s.first + 10, s.second - 10, {{"text", cursor.label}, {"fill", "#0b7a4b"}, {"anchor", "w"}, {"font", "{Segoe UI} 9"}, {"tags", tag}});
     }
-    if ((tool == "rect" || tool == "polygon") && draft.plane) {
+    if (tool == "pencil" && stroking && draft.plane && stroke.size() >= 2) {
+        std::vector<Vec3> line;
+        for (const auto& q : stroke) line.push_back(mg::from_plane(*draft.plane, q[0], q[1]));
+        polygon_outline(canvas, camera, line, false, w, h, "#8d8d90", 4, tag);
+        polygon_outline(canvas, camera, line, false, w, h, "#3d3d40", 1, tag);
+    }
+    if ((tool == "rect" || tool == "polygon" || tool == "pencil" || tool == "circle") && draft.plane) {
         const mg::Plane& plane = *draft.plane;
         if (tool == "rect" && draft.stage == 1 && !draft.points.empty() && cursor.valid) {
             mg::Point a = mg::to_plane(plane, draft.points[0]), b = mg::to_plane(plane, cursor.point);
@@ -576,7 +589,16 @@ void Modeler::draw_overlay() {
                 wire_box(canvas, camera, box, w, h, "#2f80c8", 2, tag);
                 label(draft.points[1], std::format("wyciągnięcie {} mm", g(depth)));
             } catch (const std::invalid_argument&) {}
-        } else if (tool == "polygon" && !draft.points.empty()) {
+        } else if (tool == "circle" && draft.stage == 1 && !draft.points.empty() && cursor.valid) {
+            mg::Point a = mg::to_plane(plane, draft.points[0]), b = mg::to_plane(plane, cursor.point);
+            const double radius = std::hypot(b[0] - a[0], b[1] - a[1]);
+            if (radius >= .5) {
+                std::vector<Vec3> ring;
+                for (const auto& q : cad2d::tessellate(cad2d::circle({a[0], a[1]}, radius), 0.5)) ring.push_back(mg::from_plane(plane, q[0], q[1]));
+                polygon_outline(canvas, camera, ring, true, w, h, "#2f80c8", 2, tag);
+                label(cursor.point, std::format("R {} mm (Ø {})", g(radius), g(2 * radius)));
+            }
+        } else if ((tool == "polygon" || tool == "pencil" || tool == "circle") && !draft.points.empty() && !((tool == "pencil" || tool == "circle") && draft.stage == 1)) {
             std::vector<Vec3> line = draft.points;
             if (draft.stage == 1 && cursor.valid) line.push_back(cursor.point);
             polygon_outline(canvas, camera, line, draft.stage == 2, w, h, "#2f80c8", 2, tag);
@@ -674,6 +696,7 @@ Modeler::Cursor Modeler::resolve_cursor(double sx, double sy) {
 void Modeler::set_tool(const std::string& name) {
     const ToolInfo& info = tool_info(name);
     if (tool != name) note("modelowanie", std::format("narzędzie: {} → {}", tool_info(tool).label, info.label));
+    cancel_stroke("zmieniono narzędzie");
     tool = name;
     tool_var.set(name);
     draft = Draft();
@@ -686,18 +709,42 @@ void Modeler::set_tool(const std::string& name) {
 void Modeler::cancel() {
     if (mode == "2d") { on_key_2d("Escape"); return; }
     if (draft.stage != 0 || !typed.get().empty()) note("modelowanie", std::format("anulowano rysowanie ({}, etap {})", tool_info(tool).label, draft.stage));
+    cancel_stroke("Esc");
     draft = Draft();
     typed.set("");
     status.set(tool_info(tool).hint);
     draw_overlay();
 }
 
+bool Modeler::circle_outline(double radius) {
+    try {
+        if (!draft.plane || draft.points.empty()) throw std::invalid_argument("najpierw kliknij środek okręgu");
+        if (!(radius >= .5)) throw std::invalid_argument(std::format("promień {} mm jest mniejszy niż 0,5 mm — przesuń kursor dalej od środka", g(radius)));
+        if (radius > 20000) throw std::invalid_argument("promień większy niż 20 m");
+        mg::Point center = mg::to_plane(*draft.plane, draft.points[0]);
+        std::vector<Vec3> ring;
+        for (const auto& q : cad2d::tessellate(cad2d::circle({center[0], center[1]}, radius), 0.3)) ring.push_back(mg::from_plane(*draft.plane, q[0], q[1]));
+        draft.points = ring;
+        draft.stage = 2;
+        draft.anchor = mouse;
+        draft.depth = 0;
+        status.set(std::format("Okrąg R {} mm. Wyciągnij kursorem (klik zatwierdza) albo wpisz grubość i Enter.", g(radius)));
+        note("modelowanie", std::format("okrąg R {} mm (Ø {}) → kontur z {} punktów", g(radius), g(2 * radius), ring.size()));
+        return true;
+    } catch (const std::exception& e) {
+        reject("okrąg", e.what());
+        draft = Draft();
+        return false;
+    }
+}
+
 void Modeler::on_motion(double sx, double sy) {
     if (mode == "2d") { on_motion_2d(sx, sy); return; }
     mouse = {sx, sy};
     if (canvas == nullptr) return;
+    if (stroking) { add_stroke_point(sx, sy); return; }
     cursor = resolve_cursor(sx, sy);
-    if ((tool == "rect" || tool == "polygon") && draft.stage == 2 && draft.plane && draft.points.size() >= 2) {
+    if ((tool == "rect" || tool == "polygon" || tool == "pencil" || tool == "circle") && draft.stage == 2 && draft.plane && draft.points.size() >= 2) {
         const mg::Plane& plane = *draft.plane;
         double raw = mg::pull_distance(camera, draft.points.back(), plane.n, sx - draft.anchor.first, sy - draft.anchor.second);
         int axis = 0;
@@ -761,6 +808,22 @@ void Modeler::on_click(double sx, double sy, int state) {
             if (!cursor.hit) { reject("usunięcie płyty", "kliknij płytę"); return; }
             selection = {proj->parts[cursor.hit->part].id};
             erase_selected();
+            return;
+        }
+        if (tool == "circle") {
+            if (draft.stage == 2) { finish_draft_with_depth(std::fabs(draft.depth) < .5 ? panel_thickness() : draft.depth); draw_overlay(); return; }
+            if (!cursor.valid || !cursor.plane) { reject("okrąg", "kursor nie trafia w płaszczyznę rysowania (patrzysz wzdłuż niej) — obróć widok"); return; }
+            if (draft.stage == 0) {
+                draft.plane = *cursor.plane;
+                draft.points = {cursor.point};
+                draft.stage = 1;
+                status.set("Kliknij punkt na okręgu albo wpisz promień i Enter.");
+                note("modelowanie", std::format("początek okręgu (środek) na płaszczyźnie „{}”", draft.plane->label));
+            } else {
+                mg::Point a = mg::to_plane(*draft.plane, draft.points[0]), b = mg::to_plane(*draft.plane, cursor.point);
+                circle_outline(std::hypot(b[0] - a[0], b[1] - a[1]));
+            }
+            draw_overlay();
             return;
         }
         if (tool == "rect" || tool == "polygon") {
@@ -894,7 +957,7 @@ void Modeler::finish_draft_with_depth(double depth) {
         } catch (const std::invalid_argument& e) {
             reject("prostokąt", e.what());
         }
-    } else if (tool == "polygon" && draft.points.size() >= 3) {
+    } else if ((tool == "polygon" || tool == "pencil" || tool == "circle") && draft.points.size() >= 3) {
         ok = add_polygon_board(*draft.plane, draft.points, depth);
     }
     if (ok) {
@@ -908,7 +971,14 @@ bool Modeler::apply_typed(const std::string& text_in) {
     if (mode == "2d") return apply_typed_2d(text_in);
     std::string text = text_in;
     try {
-        if (tool == "rect" || tool == "polygon") {
+        if (tool == "rect" || tool == "polygon" || tool == "pencil" || tool == "circle") {
+            if (draft.stage == 1 && tool == "circle") {
+                if (text.empty()) throw std::invalid_argument("wpisz promień okręgu, np. 150");
+                auto numbers = mg::parse_numbers(text);
+                if (numbers.size() != 1) throw std::invalid_argument("okrąg wymaga jednej liczby — promienia");
+                typed.set("");
+                return circle_outline(numbers[0]);
+            }
             if (draft.stage == 1 && tool == "rect") {
                 if (text.empty()) throw std::invalid_argument("wpisz wymiary, np. 600x400");
                 auto numbers = mg::parse_numbers(text);

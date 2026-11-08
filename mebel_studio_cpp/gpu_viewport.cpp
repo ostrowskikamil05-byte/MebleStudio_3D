@@ -8,14 +8,18 @@
 #include <cstring>
 #include <format>
 #include <limits>
+#include <map>
 
 #include "pyutil.h"
+#include "wood_grain.h"
 
 #ifdef MEBEL_HAVE_VTK
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <vtkDataObject.h>
+#include <vtkPointData.h>
 #include <vtkFloatArray.h>
 #include <vtkIdTypeArray.h>
 #include <vtkLight.h>
@@ -58,6 +62,7 @@ struct ActorMesh {
     vtkSmartPointer<vtkActor> actor;
     vtkSmartPointer<vtkOpenGLPolyDataMapper> id_mapper;
     vtkSmartPointer<vtkActor> id_actor;
+    bool wood = false;  // partia z procedurą usłojenia w shaderze
 
     ActorMesh(const MeshGroupPtr& group_, const core::Project& project) : group(group_) {
         auto points = vtkSmartPointer<vtkPoints>::New();
@@ -71,6 +76,27 @@ struct ActorMesh {
         for (size_t i = 0; i < group->connectivity.size(); ++i) connectivity->SetValue(static_cast<vtkIdType>(i), static_cast<vtkIdType>(group->connectivity[i]));
         auto cells = vtkSmartPointer<vtkCellArray>::New(); cells->SetData(offsets, connectivity);
         auto source = vtkSmartPointer<vtkPolyData>::New(); source->SetPoints(points); source->SetPolys(cells);
+        wood = gpu_scene::material_style(project, *group->source_groups.front()).wood;
+        if (wood) {
+            // Każda płyta ma własne ziarno usłojenia: oś pnia, pochylenie, szerokość słojów, odcień i kierunek włókien z ustawień elementu.
+            static const char* names[4] = {"GrainSeed", "GrainDir", "GrainOrg", "GrainExtra"};
+            vtkSmartPointer<vtkFloatArray> arrays[4];
+            for (int a = 0; a < 4; ++a) {
+                arrays[a] = vtkSmartPointer<vtkFloatArray>::New(); arrays[a]->SetName(names[a]);
+                arrays[a]->SetNumberOfComponents(4); arrays[a]->SetNumberOfTuples(static_cast<vtkIdType>(group->vertex_count()));
+            }
+            std::map<std::string, const core::Part*> parts;
+            for (auto& part : project.parts) parts[part.id] = &part;
+            vtkIdType at = 0;
+            for (auto& source_group : group->source_groups) {
+                auto found = parts.find(source_group->owner);
+                const wood_grain::VertexData v = wood_grain::vertex_data(found == parts.end() ? nullptr : found->second, source_group->owner);
+                const std::array<float, 4>* values[4] = {&v.seed, &v.dir, &v.origin, &v.extra};
+                for (size_t k = 0; k < source_group->vertex_count(); ++k, ++at)
+                    for (int a = 0; a < 4; ++a) arrays[a]->SetTuple(at, values[a]->data());
+            }
+            for (int a = 0; a < 4; ++a) source->GetPointData()->AddArray(arrays[a]);
+        }
         normals = vtkSmartPointer<vtkPolyDataNormals>::New(); normals->SetInputData(source);
         normals->SetFeatureAngle(42); normals->SplittingOn(); normals->ConsistencyOff();
         normals->AutoOrientNormalsOff(); normals->ComputePointNormalsOn();
@@ -88,21 +114,16 @@ struct ActorMesh {
         // the mapper's automatic [0..1] vertex compression coordinates.
         mapper->SetVBOShiftScaleMethod(0);
         actor = vtkSmartPointer<vtkActor>::New(); actor->SetMapper(mapper);
-        if (gpu_scene::material_style(project, *group->source_groups.front()).wood) {
-            // Procedural grain stays in world coordinates while orbiting. It
-            // only changes beauty RGB; the separate ID actor stays untouched.
+        if (wood) {
+            // Usłojenie liczone w świecie (nie obraca się razem z kamerą); zmienia tylko kolor obrazu, osobny aktor identyfikatorów jest nietknięty.
+            const char* attributes[4][2] = {{"grainSeedMC", "GrainSeed"}, {"grainDirMC", "GrainDir"}, {"grainOrgMC", "GrainOrg"}, {"grainExtraMC", "GrainExtra"}};
+            for (auto& attribute : attributes) mapper->MapDataArrayToVertexAttribute(attribute[0], attribute[1], vtkDataObject::FIELD_ASSOCIATION_POINTS, -1);
+            const wood_grain::Shader code = wood_grain::shader_code();
             vtkShaderProperty* shader = actor->GetShaderProperty();
-            shader->AddVertexShaderReplacement("//VTK::PositionVC::Dec", true,
-                "//VTK::PositionVC::Dec\nout vec3 furnitureGrain;\n", false);
-            shader->AddVertexShaderReplacement("//VTK::PositionVC::Impl", true,
-                "//VTK::PositionVC::Impl\nfurnitureGrain=vertexMC.xyz;\n", false);
-            shader->AddFragmentShaderReplacement("//VTK::Light::Dec", true,
-                "//VTK::Light::Dec\nin vec3 furnitureGrain;\n", false);
-            shader->AddFragmentShaderReplacement("//VTK::Light::Impl", true,
-                "//VTK::Light::Impl\nfloat along=furnitureGrain.z+.17*furnitureGrain.y;\n"
-                "float ring=furnitureGrain.x+9.*sin(along*.008)+2.*sin(along*.025);\n"
-                "float fiber=sin(ring*.24+3.*sin(ring*.02)+.45*sin(along*.11));\n"
-                "gl_FragData[0].rgb *= .985+.028*fiber+.009*sin(ring*1.7);\n", false);
+            shader->AddVertexShaderReplacement("//VTK::PositionVC::Dec", true, code.vertex_declarations, false);
+            shader->AddVertexShaderReplacement("//VTK::PositionVC::Impl", true, code.vertex_code, false);
+            shader->AddFragmentShaderReplacement("//VTK::Light::Dec", true, code.fragment_declarations, false);
+            shader->AddFragmentShaderReplacement("//VTK::Light::Impl", true, code.fragment_code, false);
         }
         id_mapper = vtkSmartPointer<vtkOpenGLPolyDataMapper>::New(); id_mapper->SetInputData(data);
         id_mapper->SetScalarModeToUseCellFieldData(); id_mapper->SetColorModeToDirectScalars();
@@ -124,7 +145,7 @@ struct Backend {
 
 #else
 
-struct ActorMesh { MeshGroupPtr group; };
+struct ActorMesh { MeshGroupPtr group; bool wood = false; };
 struct Backend {};
 
 #endif  // MEBEL_HAVE_VTK
@@ -351,6 +372,17 @@ void GPUViewport::quality_pass(const std::string& quality_, bool interactive) {
             backend->ssao->SetIntensityScale(.35); backend->ssao->SetIntensityShift(.65);
             backend->ssao->BlurOn();
         }
+        // Promień zasłaniania otoczenia proporcjonalny do wielkości sceny: mała szafka dostaje ciasne ciemnienie narożników,
+        // duża zabudowa — szersze, miękkie (stałe 70 mm było zbyt ostre na dużych i za słabe na małych meblach).
+        double diagonal = 0;
+        if (bounds.size() == 8) {
+            const core::Point3 &lo = bounds[0], &hi = bounds[6];
+            diagonal = std::sqrt((hi[0] - lo[0]) * (hi[0] - lo[0]) + (hi[1] - lo[1]) * (hi[1] - lo[1]) + (hi[2] - lo[2]) * (hi[2] - lo[2]));
+        }
+        const double radius = diagonal > 1 ? std::min(160.0, std::max(35.0, diagonal * 0.045)) : 70.0;
+        backend->ssao->SetRadius(radius); backend->ssao->SetBias(radius * 0.02);
+        if (view_style::realistic()) { backend->ssao->SetIntensityScale(.42); backend->ssao->SetIntensityShift(.58); }
+        else { backend->ssao->SetIntensityScale(.35); backend->ssao->SetIntensityShift(.65); }
         backend->ssao->SetKernelSize(quality_ == "high" ? 12 : 8);  // mniej próbek = szybsza klatka bez widocznej różnicy w cieniowaniu narożników
         backend->renderer->SetPass(backend->ssao);
     } else {
@@ -564,7 +596,8 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
     diagnostics = {{"engine", "vtk-opengl"}, {"geometry_changed", changed}, {"interactive", options.interactive}, {"quality", options.quality}, {"sample_scale", sample_scale},
                    {"actors", current.size()}, {"faces", face_count}, {"geometry_ms", (prepared - start) * 1000}, {"beauty_ms", (beauty - prepared) * 1000},
                    {"configure_ms", (configured - prepared) * 1000}, {"render_ms", (rendered - configured) * 1000}, {"rgba_read_ms", (colored - rendered) * 1000},
-                   {"depth_read_ms", (beauty - colored) * 1000}, {"owner_pass_ms", (finished - beauty) * 1000}, {"total_ms", (finished - start) * 1000}, {"reused", false}, {"ids_reused", ids_reused}};
+                   {"depth_read_ms", (beauty - colored) * 1000}, {"owner_pass_ms", (finished - beauty) * 1000}, {"total_ms", (finished - start) * 1000}, {"reused", false}, {"ids_reused", ids_reused},
+                   {"wood_batches", std::count_if(current.begin(), current.end(), [](const std::shared_ptr<ActorMesh>& mesh) { return mesh->wood; })}};
     viewport_render::RenderedFaces cheap = gpu_scene::cheap_drawn(*context, groups, camera_, size_, selection, options.explode, visible);
     drawn = cheap.faces;
     output_roi = {std::max(0, static_cast<int>(std::floor(static_cast<double>(roi[0]) * output_size.first / size.first))),

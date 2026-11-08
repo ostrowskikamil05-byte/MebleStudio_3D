@@ -39,7 +39,8 @@ std::array<int, 3> parse_hex(const std::string& color) {
 const std::vector<ModeInfo>& modes() {
     static const std::vector<ModeInfo> list = {
         {Mode::Classic, "classic", "Klasyczna", "Lekkie, płaskie cieniowanie i cienie kontaktowe — najszybsze, czytelne przy pracy nad konstrukcją."},
-        {Mode::Realistic, "realistic", "Realistyczna", "Głębsze cieniowanie ścianek, miękkie cienie rzucane przez mebel i płytki na podłodze — jak na wizualizacji. Rysuje go silnik GPU lub CPU (natywna biblioteka ma stałe cieniowanie)."},
+        {Mode::Realistic, "realistic", "Realistyczna", "Głębsze cieniowanie ścianek, miękkie cienie rzucane przez mebel, płytki na podłodze i drewno z losowym usłojeniem na każdej płycie — jak na wizualizacji. Rysuje go silnik GPU lub CPU (natywna biblioteka ma stałe cieniowanie)."},
+        {Mode::Sketch, "sketch", "Szkic ołówkiem", "Rysunek jak od ręki: papier, grafitowy obrys z lekkim drżeniem linii i kreskowanie cieni. Rysuje go renderer CPU; linie i łuki rysowane w Pracowni wyglądają jak narysowane ołówkiem."},
     };
     return list;
 }
@@ -63,6 +64,12 @@ Shading shade_face(Mode mode, const Point3& normal_in, double brightness, double
         double directional = std::fabs(dot(n, sun));
         return {std::min(1.3, std::max(.08, (ambient + .18 * directional) * brightness)), 0};
     }
+    if (mode == Mode::Sketch) {
+        static const Point3 sun = normalized({-.45, -.60, .66});
+        static const Point3 side = normalized({.70, .20, .30});
+        double lit = .62 * std::fabs(dot(n, sun)) + .20 * std::fabs(dot(n, side)) + .18 * std::fabs(n[2]);
+        return {std::min(1.0, std::max(.70, (.74 + .26 * lit) * std::min(1.1, std::max(.8, brightness)) * std::min(1.1, std::max(.9, ambient / .82)))), 0};
+    }
     // Normalne ścianek nie zawsze są skierowane na zewnątrz, więc światło liczymy dwustronnie.
     static const Point3 key = normalized({-.45, -.60, .66});
     static const Point3 fill = normalized({.70, .20, .30});
@@ -80,6 +87,18 @@ std::array<int, 3> apply_shading(const std::array<int, 3>& base, const Shading& 
     double blue = base[2] * shading.factor * (1 - .05 * shading.warm);
     auto clamp = [](double x) { return (int)std::lround(std::min(255.0, std::max(0.0, x))); };
     return {clamp(red), clamp(green), clamp(blue)};
+}
+
+const char* paper_color() { return "#f4f0e6"; }
+
+std::array<int, 3> sketch_tone(const std::array<int, 3>& base, double factor) {
+    const auto paper = parse_hex(paper_color());
+    std::array<int, 3> out{};
+    for (int i = 0; i < 3; ++i) {
+        double mixed = paper[(size_t)i] * .78 + base[(size_t)i] * .22;
+        out[(size_t)i] = (int)std::lround(std::min(255.0, std::max(0.0, mixed * factor)));
+    }
+    return out;
 }
 
 std::vector<Point2> convex_hull(std::vector<Point2> points) {
@@ -176,7 +195,8 @@ std::string rgb_hex(const std::array<int, 3>& c) {
 
 std::vector<ThumbPoly> mode_thumbnail(Mode mode, double w, double h) {
     if (!(w >= 30 && h >= 30)) throw std::invalid_argument("Miniatura trybu grafiki wymaga pola co najmniej 30 × 30 px.");
-    const std::string floor_color = "#ece8e0";
+    const bool sketch = mode == Mode::Sketch;
+    const std::string floor_color = sketch ? paper_color() : "#ece8e0";
     std::vector<ThumbPoly> out;
     out.push_back({{{0, 0}, {w, 0}, {w, h}, {0, h}}, floor_color, false, false});
     const double s = std::min(w, h) * 0.30, cx = w * 0.44, gy = h * 0.76, height = s * 1.1;
@@ -193,24 +213,39 @@ std::vector<ThumbPoly> mode_thumbnail(Mode mode, double w, double h) {
         }
     }
     ShadowSettings settings;
-    settings.layers = real ? 6 : 2;
+    settings.layers = real ? 6 : sketch ? 3 : 2;
     settings.spread = real ? s * .35 : s * .12;
     settings.max_strength = real ? .55 : .38;
     settings.offset_per_height_x = .55;
     settings.offset_per_height_y = .10;
     for (const auto& layer : cast_shadow({front, right, back, left}, 0, real ? height * .8 : 0, settings))
-        out.push_back({layer.polygon, blend_hex(floor_color, real ? "#3a342c" : "#2f3031", layer.strength), false, false});
-    auto face_color = [&](const Point3& normal) { return rgb_hex(apply_shading({201, 162, 107}, shade_face(mode, normal, 1.0, .82))); };
+        out.push_back({layer.polygon, blend_hex(floor_color, real ? "#3a342c" : "#2f3031", layer.strength * (sketch ? .6 : 1.0)), false, false});
+    auto face_color = [&](const Point3& normal) {
+        const Shading shading = shade_face(mode, normal, 1.0, .82);
+        return rgb_hex(sketch ? sketch_tone({201, 162, 107}, shading.factor) : apply_shading({201, 162, 107}, shading));
+    };
+    const std::string pencil = "#3d3d40";
     const Point2 up{0, -height};
     auto lift = [&](const Point2& p) { return Point2{p[0] + up[0], p[1] + up[1]}; };
-    out.push_back({{left, front, lift(front), lift(left)}, face_color({-1, 0, 0}), false, true});
-    out.push_back({{front, right, lift(right), lift(front)}, face_color({0, -1, 0}), false, true});
-    out.push_back({{lift(front), lift(right), lift(back), lift(left)}, face_color({0, 0, 1}), false, true});
+    const std::string edge = sketch ? pencil : "";
+    out.push_back({{left, front, lift(front), lift(left)}, face_color({-1, 0, 0}), false, true, edge});
+    out.push_back({{front, right, lift(right), lift(front)}, face_color({0, -1, 0}), false, true, edge});
+    out.push_back({{lift(front), lift(right), lift(back), lift(left)}, face_color({0, 0, 1}), false, true, edge});
+    if (sketch) {
+        // kreskowanie ciemniejszej, lewej ścianki: ukośne kreski od krawędzi do krawędzi
+        for (int i = 1; i <= 5; ++i) {
+            const double ta = i * .2, tb = i * .2 - .2;
+            out.push_back({{{left[0] + up[0] * ta, left[1] + up[1] * ta}, {front[0] + up[0] * tb, front[1] + up[1] * tb}}, "#8d8d90", true, false, ""});
+        }
+    }
     // front (drzwiczki) w jaśniejszym kolorze, wcięty w prawą ściankę
     Point2 d0{front[0] + (right[0] - front[0]) * .12, front[1] + (right[1] - front[1]) * .12 - height * .10};
     Point2 d1{front[0] + (right[0] - front[0]) * .88, front[1] + (right[1] - front[1]) * .88 - height * .10};
-    out.push_back({{d0, d1, {d1[0], d1[1] - height * .8}, {d0[0], d0[1] - height * .8}},
-                   rgb_hex(apply_shading({233, 224, 207}, shade_face(mode, {0, -1, 0}, 1.0, .82))), false, true});
+    {
+        const Shading door = shade_face(mode, {0, -1, 0}, 1.0, .82);
+        out.push_back({{d0, d1, {d1[0], d1[1] - height * .8}, {d0[0], d0[1] - height * .8}},
+                       rgb_hex(sketch ? sketch_tone({233, 224, 207}, door.factor) : apply_shading({233, 224, 207}, door)), false, true, edge});
+    }
     return out;
 }
 
