@@ -294,10 +294,12 @@ void GPUViewport::configure_lights(const core::Project& project, const core::Cam
     if (project.scene.is_object() && project.scene.contains("brightness")) brightness = project.scene["brightness"].get<double>();
     brightness = std::max(.1, std::min(2.0, brightness));
     const json& lights = context->lights;
-    double boost = quality == "high" || view_style::realistic() ? 1.8 : 1;
+    const bool realistic = view_style::realistic();
+    // PBR bez oświetlenia z otoczenia (IBL) daje wypłowiałe, szare kolory, więc tryb realistyczny używa cieniowania Phonga z ciepłymi i chłodnymi światłami.
+    double boost = quality == "high" && !realistic ? 1.8 : 1;
     json key_lights = json::array();
     if (lights.is_array()) for (auto& l : lights) key_lights.push_back(json::array({py::get(l, "position"), py::get(l, "color"), py::get(l, "intensity"), py::get(l, "direction", json::array())}));
-    std::string key = py::repr(brightness) + "|" + py::repr(boost) + "|" + key_lights.dump();
+    std::string key = py::repr(brightness) + "|" + py::repr(boost) + "|" + (realistic ? "R" : "C") + "|" + key_lights.dump();
     if (!has_light_key || key != light_key) {
 #ifdef MEBEL_HAVE_VTK
         backend->renderer->RemoveAllLights(); backend->lights.clear();
@@ -305,7 +307,11 @@ void GPUViewport::configure_lights(const core::Project& project, const core::Cam
         // coherent while orbiting rather than baking camera-based colors.
         core::Point3 center = camera_.center;
         struct Studio { core::Point3 position; double intensity; const char* color; };
-        for (const Studio& source : {Studio{{-3000, -4000, 6000}, .75, "#fff4df"}, Studio{{4000, 1000, 4500}, .35, "#d9e8ff"}}) {
+        // Tryb realistyczny: ciepłe światło główne, chłodne wypełnienie i słabe ciepłe odbicie od podłogi (spody i wnętrza nie giną w czerni).
+        const std::vector<Studio> studio_lights = realistic
+            ? std::vector<Studio>{Studio{{-3000, -4000, 6000}, .80, "#fff0d8"}, Studio{{4000, 1000, 4500}, .34, "#dbe8ff"}, Studio{{600, 300, -2500}, .26, "#ffe0b8"}, Studio{{300, -5000, 1500}, .22, "#fff6ea"}}
+            : std::vector<Studio>{Studio{{-3000, -4000, 6000}, .75, "#fff4df"}, Studio{{4000, 1000, 4500}, .35, "#d9e8ff"}};
+        for (const Studio& source : studio_lights) {
             auto light = vtkSmartPointer<vtkLight>::New(); light->SetLightTypeToSceneLight();
             light->SetPosition(source.position[0], source.position[1], source.position[2]); light->SetFocalPoint(center[0], center[1], center[2]);
             auto c = rgb_unit(source.color); light->SetColor(c[0], c[1], c[2]); light->SetIntensity(source.intensity * brightness * boost);
@@ -360,9 +366,11 @@ void GPUViewport::material_pass(const core::Project& project, const std::set<std
         mesh->id_actor->VisibilityOff();
         actor->SetPosition(0, 0, 0);
         vtkProperty* prop = actor->GetProperty(); auto c = rgb_unit(group.color); prop->SetColor(c[0], c[1], c[2]); prop->LightingOn();
-        prop->SetAmbient(.2); prop->SetDiffuse(.78); prop->SetInterpolationToPhong();
-        gpu_scene::MaterialStyle style = gpu_scene::material_style(project, *group.source_groups.front()); prop->SetSpecular(style.specular); prop->SetSpecularPower(style.power);
-        if ((quality == "high" || view_style::realistic()) && !group.emissive) {
+        const bool realistic = view_style::realistic();
+        prop->SetAmbient(realistic ? .30 : .2); prop->SetDiffuse(realistic ? .72 : .78); prop->SetInterpolationToPhong();
+        gpu_scene::MaterialStyle style = gpu_scene::material_style(project, *group.source_groups.front());
+        prop->SetSpecular(realistic ? style.specular * .55 : style.specular); prop->SetSpecularPower(style.power);
+        if (quality == "high" && !realistic && !group.emissive) {
             prop->SetInterpolationToPBR(); prop->SetRoughness(style.roughness); prop->SetMetallic(style.metallic);
         }
         prop->SetOpacity(group.ghost ? .13 : group.opacity);
