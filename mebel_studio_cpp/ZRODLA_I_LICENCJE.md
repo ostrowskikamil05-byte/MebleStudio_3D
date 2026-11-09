@@ -34,8 +34,15 @@ To notatka robocza dla twórców, nie porada prawna. Przed publicznym wydaniem p
 - Usłojenie drewna (`wood_grain`): procedura w GLSL liczona od „osi pnia” (słoje jako odległość od osi, pochylenie osi daje łuki typowe dla desek) z szumem wartościowym
   i funkcją skrótu typu `fract(sin(...))` — powszechnie znane, niechronione techniki grafiki proceduralnej; kod napisany od zera, bez tekstur i cudzych zasobów.
   Ziarno każdej płyty pochodzi z hasza jej identyfikatora (FNV-1a + miksowanie 64-bitowe — algorytmy publiczne).
+  Wersja 2: pierścienie roczne (ciemna linia drewna późnego, losowa siła pierścienia, szerokie pasma tonalne), włókna i pory — własne wzory; wzorzec wyglądu deski
+  (łuki i „płomienie” na przekroju stycznym) oparty wyłącznie na obserwacji prawdziwego drewna. Korekcja kolorów trybu realistycznego (`grade_shader`: nasycenie, ciepłe światła,
+  miękkie ramię jasności, lekka krzywa S) to własne, elementarne przekształcenie kolorów.
 - Tryb „Szkic ołówkiem” (`pencil_filter`, `render_style`) — filtr obrazu napisany od zera: obrys z granic elementów i skoków głębi, drżenie linii z szumu wartościowego,
   kreskowanie z jasności. Z programów rysunkowych przejęto wyłącznie ogólną ideę wyglądu „od ręki”; nie używamy cudzych tekstur papieru ani pędzli.
+  Wersja 2: kreskowanie z trzech rodzin linii włączanych stopniowo wraz z ciemnością, tabele drżenia w blokach 4×4, ziarno papieru z tablicy 256×256, pamięć podręczna wzorów
+  i podział na pasy przetwarzane równolegle (`std::thread`) — własny kod.
+- Tryb „Szkielet” (X-ray / krawędzie): z programów typu SketchUp czy SolidWorks przejęto wyłącznie ogólną ideę stylów wyświetlania (szkielet / cieniowanie / przezroczystość);
+  implementacja i nazwy są własne.
 - Narzędzie Ołówek (`cad2d::fit_stroke`): uproszczenie pociągnięcia z podziałem w miejscu największej odchyłki (idea klasyczna, jak w algorytmie Douglasa–Peuckera),
   dopasowanie okręgu metodą najmniejszych kwadratów (Kåsa — metoda publiczna) i rozpoznanie okręgu/prostokąta — własna implementacja, bez bibliotek zewnętrznych.
 

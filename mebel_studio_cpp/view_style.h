@@ -17,14 +17,15 @@ struct State {
     bool shadows = true;   // cienie kontaktowe pod meblami
     int aa = 0;            // MSAA dla silnika OpenGL (0 = wyłączony); działa od następnego uruchomienia
     int background = 0;    // indeks palety tła
-    render_style::Mode mode = render_style::Mode::Classic;  // tryb grafiki: klasyczny / realistyczny
+    render_style::Mode mode = render_style::Mode::Classic;  // tryb grafiki: klasyczny / realistyczny / szkic ołówkiem / szkielet
 };
 
 inline State state;
 
 inline bool realistic() { return state.mode == render_style::Mode::Realistic; }
 inline bool sketch() { return state.mode == render_style::Mode::Sketch; }
-// Kod trybu w pamięci podręcznej kolorów ścianek: 0 klasyczny, 1 realistyczny, 2 szkic ołówkiem.
+inline bool wire() { return state.mode == render_style::Mode::Wire; }
+// Kod trybu w pamięci podręcznej kolorów ścianek: 0 klasyczny (także szkielet — ścianki i tak nie są rysowane), 1 realistyczny, 2 szkic ołówkiem.
 inline int mode_code() { return realistic() ? 1 : sketch() ? 2 : 0; }
 
 // Silniki natywne (biblioteka DLL) mają stałe, wbudowane cieniowanie — nie pokażą trybu realistycznego.
@@ -32,9 +33,10 @@ inline bool native_engine_name(const std::string& engine) { return engine == "au
 
 // Silnik faktycznie użyty do rysowania: w trybie realistycznym zamiast DLL idzie GPU (VTK: PBR + SSAO), a gdy go brak — renderer CPU
 // z cieniowaniem, cieniami rzucanymi i płytkami podłogi. Tryb klasyczny zostaje bez zmian.
-// Szkic ołówkiem jest filtrem obrazu liczonym na rastrze CPU, więc zawsze idzie przez renderer CPU (GPU i DLL mają własne cieniowanie).
+// Szkic ołówkiem jest filtrem obrazu liczonym na rastrze CPU, więc zawsze idzie przez renderer CPU (GPU i DLL mają własne cieniowanie);
+// szkielet (X-ray wszystkich płyt) też.
 inline std::string effective_engine(const std::string& engine) {
-    if (sketch()) return "cpu";
+    if (sketch() || wire()) return "cpu";  // szkielet to same linie na rastrze CPU (tanio), GPU i DLL nie mają trybu X-ray dla wszystkich płyt
     return realistic() && native_engine_name(engine) ? "gpu" : engine;
 }
 

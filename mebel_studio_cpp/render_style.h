@@ -12,7 +12,7 @@ namespace render_style {
 using Point2 = std::array<double, 2>;
 using Point3 = std::array<double, 3>;
 
-enum class Mode { Classic, Realistic, Sketch };  // Sketch = „szkic ołówkiem”: papier, grafitowy obrys, kreskowanie
+enum class Mode { Classic, Realistic, Sketch, Wire };  // Sketch = „szkic ołówkiem”: papier, grafitowy obrys, kreskowanie; Wire = szkielet (X-ray)
 
 struct ModeInfo {
     Mode mode;

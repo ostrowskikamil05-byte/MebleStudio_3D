@@ -16,6 +16,7 @@
 #include <memory>
 #include <optional>
 #include <random>
+#include <cctype>
 #include <set>
 #include <sstream>
 #include <typeinfo>
@@ -2548,7 +2549,7 @@ public:
 
         run(area, "tryb grafiki: cieniowanie, miękkie cienie rzucane, płytki i miniatury — logika", where, [=, this](Ctx& ctx) {
             using render_style::Mode;
-            need(render_style::modes().size() == 3 && render_style::mode_from("sketch") == Mode::Sketch && render_style::mode_from("Realistyczna") == Mode::Realistic && render_style::mode_from("classic") == Mode::Classic, "katalog trybów grafiki jest błędny");
+            need(render_style::modes().size() == 4 && render_style::mode_from("wire") == Mode::Wire && render_style::mode_from("Szkielet") == Mode::Wire && render_style::mode_from("sketch") == Mode::Sketch && render_style::mode_from("Realistyczna") == Mode::Realistic && render_style::mode_from("classic") == Mode::Classic, "katalog trybów grafiki jest błędny");
             need(throws([] { render_style::mode_from("fotorealizm"); }), "nieznany tryb grafiki powinien być odrzucony");
             auto top = render_style::shade_face(Mode::Realistic, {0, 0, 1}, 1, .82), side = render_style::shade_face(Mode::Realistic, {0, -1, 0}, 1, .82);
             auto ctop = render_style::shade_face(Mode::Classic, {0, 0, 1}, 1, .82), cside = render_style::shade_face(Mode::Classic, {0, -1, 0}, 1, .82);
@@ -2686,7 +2687,7 @@ public:
                 const std::string id = "plyta-" + std::to_string(i);
                 const auto p = wood_grain::params_for(id), again = wood_grain::params_for(id);
                 need(p.axis_across == again.axis_across && p.tone == again.tone && p.ring_width == again.ring_width, "ziarno usłojenia nie jest powtarzalne dla tej samej płyty");
-                need(p.axis_across >= -260 && p.axis_across <= 260 && p.axis_depth >= 14 && p.axis_depth <= 140 && std::fabs(p.tilt) <= .09 && p.ring_width >= 7 && p.ring_width <= 18 &&
+                need(p.axis_across >= -260 && p.axis_across <= 260 && p.axis_depth >= 3 && p.axis_depth <= 49 && std::fabs(p.tilt) <= .15 && p.ring_width >= 3.2 && p.ring_width <= 7.8 &&
                      p.tone >= -1 && p.tone <= 1 && p.warm >= -1 && p.warm <= 1 && p.contrast >= .55 && p.contrast <= 1.35 && p.fibre >= .5 && p.fibre <= 1.4, "parametry usłojenia wyszły poza dozwolone granice: " + id);
                 distinct.insert(std::format("{:.4f}/{:.4f}/{:.4f}", p.axis_across, p.ring_width, p.tone));
                 tone_sum += p.tone;
@@ -2711,6 +2712,40 @@ public:
             }
             for (const char* name : {"grainSeedMC", "grainDirMC", "grainOrgMC", "grainExtraMC"}) need(code.vertex_declarations.find(name) != std::string::npos, std::string("brak atrybutu ") + name + " w shaderze");
             need(code.fragment_code.find("gl_FragData[0].rgb *=") != std::string::npos && code.fragment_code.find("fwidth") != std::string::npos, "shader usłojenia nie mnoży koloru albo nie wygasza drobnych słojów z daleka");
+            // statyczna kontrola GLSL (shader kompiluje dopiero sterownik, więc pilnujemy tego, co da się sprawdzić bez niego):
+            // każdy identyfikator fg… musi być zadeklarowany przed użyciem, a wszystkie nowe elementy wzoru obecne
+            {
+                const auto graded = wood_grain::shader_code(true);
+                need(graded.fragment_code.size() > code.fragment_code.size() && graded.fragment_code.find("fgC = ") != std::string::npos && code.fragment_code.find("fgC = ") == std::string::npos,
+                     "korekcja kolorów powinna być dopisywana tylko po zażądaniu (shader_code(true))");
+                const auto only_grade = wood_grain::grade_shader();
+                need(only_grade.fragment_declarations == "//VTK::Light::Dec\n" && only_grade.fragment_code.find("//VTK::Light::Impl\n") == 0 && only_grade.vertex_code.empty() && only_grade.fragment_code.find("gl_FragData[0].rgb = clamp(") != std::string::npos,
+                     "sama korekcja kolorów ma mieć tylko wstawki fragmentu (bez atrybutów wierzchołków)");
+                for (const char* feature : {"fgRingW", "fgHash1", "fgPores", "fgFibre", "fgBand", "fgRr", "fwidth"})
+                    need(graded.fragment_code.find(feature) != std::string::npos || graded.fragment_declarations.find(feature) != std::string::npos, std::string("brak elementu wzoru słojów: ") + feature);
+                for (const wood_grain::Shader* variant : {&graded, &only_grade}) {
+                    std::set<std::string> declared;
+                    auto tokens_of = [](const std::string& text) {
+                        std::vector<std::string> out; std::string current;
+                        for (char c : text) {
+                            if (std::isalnum(static_cast<unsigned char>(c)) || c == '_') current += c;
+                            else { if (!current.empty()) out.push_back(current); current.clear(); }
+                        }
+                        if (!current.empty()) out.push_back(current);
+                        return out;
+                    };
+                    const std::set<std::string> types = {"float", "vec2", "vec3", "vec4", "bool", "int"};
+                    const auto declarations = tokens_of(variant->fragment_declarations + variant->vertex_declarations);
+                    for (size_t i = 1; i < declarations.size(); ++i)
+                        if (types.contains(declarations[i - 1]) && declarations[i].rfind("fg", 0) == 0) declared.insert(declarations[i]);
+                    const auto body = tokens_of(variant->fragment_code);
+                    for (size_t i = 0; i < body.size(); ++i) {
+                        if (body[i].rfind("fg", 0) != 0) continue;
+                        if (i > 0 && types.contains(body[i - 1])) { declared.insert(body[i]); continue; }
+                        need(declared.contains(body[i]), "shader używa niezadeklarowanego identyfikatora: " + body[i]);
+                    }
+                }
+            }
             // linie słojów dla renderera CPU
             const auto a = wood_grain::line_fractions("A", 6), b = wood_grain::line_fractions("B", 6);
             need(a.size() == 6 && a != b && wood_grain::line_fractions("A", 6) == a, "rozkład linii słojów ma być różny dla płyt i powtarzalny");
@@ -2720,7 +2755,7 @@ public:
             for (int i = 0; i < 60; ++i) {
                 const std::string id = "x" + std::to_string(i);
                 const int n = wood_grain::line_count(id); const double mix = wood_grain::line_mix(id);
-                need(n >= 4 && n <= 8 && mix >= .08 && mix <= .19, "liczba lub siła linii słojów poza granicami");
+                need(n >= 5 && n <= 12 && mix >= .06 && mix <= .15, "liczba lub siła linii słojów poza granicami");
                 counts.insert(n); mixes.insert(std::format("{:.3f}", mix));
             }
             need(counts.size() >= 3 && mixes.size() >= 30, "płyty powinny mieć różną liczbę i siłę linii słojów");
@@ -2767,6 +2802,98 @@ public:
             need(throws([&] { std::vector<uint8_t> bad(4); pencil_filter::apply(W, H, bad, owner, depth); }), "złe rozmiary buforów powinny być odrzucone");
             need(pencil_filter::luminance(255, 255, 255) > .99 && pencil_filter::luminance(0, 0, 0) < .01, "jasność koloru liczona błędnie");
             ctx.note(std::format("obrys {} px, kreski {} px", stats.edge_pixels, stats.hatch_pixels));
+        });
+
+        run(area, "szkic ołówkiem: szybkość i spójność — wątki dają ten sam obraz, pamięć podręczna wzorów, kreski tylko w cieniu", where, [=, this](Ctx& ctx) {
+            // obraz większy niż próg wielowątkowości: trzy pola o różnej jasności (jasne, średnie, ciemne)
+            const int W = 600, H = 400;
+            std::vector<uint8_t> rgba((size_t)W * H * 4, 0);
+            std::vector<int32_t> owner((size_t)W * H, -1);
+            std::vector<float> depth((size_t)W * H, -1e30f);
+            for (int y = 40; y < 360; ++y)
+                for (int x = 30; x < 570; ++x) {
+                    const size_t i = (size_t)y * W + x;
+                    const int field = x < 210 ? 0 : x < 390 ? 1 : 2;
+                    owner[i] = field; depth[i] = 10.f + field;
+                    const int v = field == 0 ? 236 : field == 1 ? 190 : 120;
+                    rgba[i * 4] = (uint8_t)v; rgba[i * 4 + 1] = (uint8_t)v; rgba[i * 4 + 2] = (uint8_t)(v - 8); rgba[i * 4 + 3] = 255;
+                }
+            need(pencil_filter::thread_count(100, 8) == 1 && pencil_filter::thread_count(1000000, 3) == 3 && pencil_filter::thread_count(1000000, 100) == 8 && pencil_filter::thread_count(1000000, 0) >= 1,
+                 "liczba wątków: mały obraz = 1 wątek, żądanie respektowane, ale nie więcej niż 8");
+            pencil_filter::clear_cache();
+            need(pencil_filter::cached_patterns() == 0, "czyszczenie pamięci podręcznej wzorów nie zadziałało");
+            pencil_filter::Settings one; one.threads = 1;
+            auto single = rgba; const auto first = pencil_filter::apply(W, H, single, owner, depth, one);
+            need(!first.pattern_cached && first.threads_used == 1 && pencil_filter::cached_patterns() == 1, "pierwsza klatka powinna zbudować wzór i zapisać go w pamięci podręcznej");
+            auto again = rgba; const auto second = pencil_filter::apply(W, H, again, owner, depth, one);
+            need(second.pattern_cached && again == single, "druga klatka tego samego rozmiaru powinna wziąć wzór z pamięci i dać identyczny obraz");
+            pencil_filter::Settings many; many.threads = 4;
+            auto parallel = rgba; const auto par = pencil_filter::apply(W, H, parallel, owner, depth, many);
+            need(par.threads_used == 4, std::format("obraz {}×{} powinien być liczony na 4 wątkach (jest {})", W, H, par.threads_used));
+            need(parallel == single && par.edge_pixels == first.edge_pixels && par.hatch_pixels == first.hatch_pixels, "wynik filtra zależy od liczby wątków — klatki by migotały między komputerami");
+            // kreski tylko w cieniu: jasne pole (236) zostaje czystym papierem, ciemne dostaje gęste kreskowanie
+            auto dark_pixels = [&](int x0, int x1) { size_t n = 0; for (int y = 60; y < 340; ++y) for (int x = x0; x < x1; ++x) if (single[((size_t)y * W + x) * 4] < rgba[((size_t)y * W + x) * 4] - 25) ++n; return n; };
+            const size_t lit = dark_pixels(50, 190), mid = dark_pixels(230, 370), shade = dark_pixels(410, 550);
+            need(lit == 0, std::format("jasne (oświetlone) pole nie powinno być kreskowane, a ma {} ciemnych pikseli", lit));
+            need(mid > 0 && shade > mid, std::format("im ciemniejsze pole, tym gęstsze kreskowanie (średnie {}, ciemne {})", mid, shade));
+            // inny odstęp kresek = inny wzór (osobny wpis w pamięci), a rozmiar okna zmienia wzór bez błędu
+            pencil_filter::Settings wide = one; wide.spacing = 9;
+            auto spaced = rgba; const auto wide_stats = pencil_filter::apply(W, H, spaced, owner, depth, wide);
+            need(!wide_stats.pattern_cached && spaced != single && pencil_filter::cached_patterns() == 2, "inny odstęp kresek powinien dać nowy wzór");
+            need(wide_stats.hatch_pixels < first.hatch_pixels, "większy odstęp kresek ma dawać mniej kreskowanych pikseli");
+            // rozsądny czas (bardzo luźny próg: pilnuje patologii, nie mikrosekund)
+            need(second.milliseconds < 2000 && par.milliseconds < 2000, std::format("filtr ołówka trwał zbyt długo: {:.0f} / {:.0f} ms", second.milliseconds, par.milliseconds));
+            pencil_filter::clear_cache();
+            ctx.note(std::format("{}×{}: 1 wątek {:.1f} ms (z pamięci), 4 wątki {:.1f} ms; kreski jasne/średnie/ciemne: {}/{}/{}", W, H, second.milliseconds, par.milliseconds, lit, mid, shade));
+        });
+
+        run(area, "szkielet (X-ray): tryb grafiki Szkielet — logika, silnik CPU, płyty tylko jako krawędzie, dziennik i miniatura", where, [=, this](Ctx& ctx) {
+            using render_style::Mode;
+            const Mode original_mode = view_style::state.mode;
+            const std::string original_engine = app->viewport_engine;
+            auto restore = [&] { app->viewport_engine = original_engine; graphics_mode_ui::set_mode(app, original_mode, "test — przywrócenie"); };
+            try {
+                need(render_style::mode_from("wire") == Mode::Wire && render_style::mode_from("Szkielet") == Mode::Wire && render_style::info(Mode::Wire).name == "Szkielet", "tryb Szkielet nie jest w katalogu trybów");
+                view_style::state.mode = Mode::Wire;
+                need(view_style::wire() && !view_style::sketch() && !view_style::realistic() && view_style::mode_code() == 0, "kody trybu szkieletu");
+                for (const char* name : {"auto", "d3d11", "d3d12", "vulkan", "gpu", "cpu"}) need(view_style::effective_engine(name) == "cpu", std::string("szkielet powinien iść przez renderer CPU: ") + name);
+                view_style::state.mode = Mode::Classic;
+                // miniatura: bryła bez wypełnień (przezroczysta) i zasłonięte krawędzie jaśniejszym kolorem
+                const auto thumb = render_style::mode_thumbnail(Mode::Wire, 112, 70);
+                size_t bodies = 0, hidden = 0;
+                for (const auto& poly : thumb) { if (poly.body) { ++bodies; need(poly.fill.empty(), "ścianki szkieletu na miniaturze powinny być przezroczyste"); } if (poly.line && poly.fill == "#a9bccd") ++hidden; }
+                need(bodies >= 3 && hidden >= 2, "miniatura szkieletu powinna mieć obrysy ścianek i jaśniejsze krawędzie zasłonięte");
+                // widok: ten sam mebel w trybie klasycznym ma wypełnione ścianki, w szkielecie prawie brak trójkątów rastra
+                auto [p, g] = cabinet(Project());
+                app->project = p; app->refresh(); app->update();
+                const int w = 900, h = 600;
+                auto triangles_in = [&](Mode mode) {
+                    view_style::state.mode = mode;
+                    auto faces = core::render_faces(*app->project, app->camera, w, h, std::nullopt, 0, false);
+                    const json result = viewport_scene::paint_faces(app->canvas, faces, app->project, {.selected_ids = {}, .camera = app->camera, .size = {(double)w, (double)h}, .xray = false, .explode = 0,
+                                                                                                         .interactive = false, .xray_ids = std::nullopt, .stats = json::object()});
+                    return result.value("triangles", 0LL);
+                };
+                const long long solid = triangles_in(Mode::Classic), wire = triangles_in(Mode::Wire);
+                view_style::state.mode = Mode::Classic;
+                need(solid > 20, std::format("tryb klasyczny powinien wypełniać ścianki (trójkąty rastra: {})", solid));
+                need(wire * 3 < solid, std::format("szkielet ma pokazywać same krawędzie: trójkąty rastra {} (klasyczny {})", wire, solid));
+                // przełączenie i dziennik
+                auto from = log_mark();
+                need(graphics_mode_ui::set_mode(app, Mode::Wire, "test") && view_style::state.mode == Mode::Wire, "przełączenie na szkielet nie zadziałało");
+                need(!graphics_mode_ui::set_mode(app, Mode::Wire, "test"), "powtórne ustawienie szkieletu powinno być bez zmiany");
+                app->viewport_engine = "auto";
+                app->draw(); app->update();
+                const std::string text = log_since(from);
+                need(has_text(text, "[operacja:grafika] tryb grafiki: ") && has_text(text, "Szkielet (test)"), "przełączenie na szkielet nie zostało opisane w dzienniku");
+                need(has_text(text, "tryb szkieletu: silnik auto → cpu"), "zamiana silnika na CPU w trybie szkieletu nie jest opisana w dzienniku");
+                need(app->canvas->_active_renderer != "native", "szkielet nie może być rysowany silnikiem natywnym");
+                if (app->canvas->_active_renderer == "cpu") need(has_text(text, "[operacja:render] CPU: szkielet (CPU)"), "działanie renderera CPU w trybie szkieletu nie zostało zapisane w dzienniku [render]");
+                else ctx.warn("aktywny renderer to " + app->canvas->_active_renderer + " — wpis [render] o szkielecie pominięty");
+                restore();
+                ctx.note(std::format("trójkąty rastra: klasyczny {}, szkielet {}", solid, wire));
+            } catch (...) { restore(); throw; }
+            app->project = fresh(); app->refresh();
         });
 
         run(area, "szkic ołówkiem: tryb grafiki — papier, ciemniejsze kreskowane ścianki, silnik CPU, dziennik, miniatura i widok", where, [=, this](Ctx& ctx) {

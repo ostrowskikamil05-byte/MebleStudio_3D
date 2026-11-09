@@ -145,7 +145,9 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
     std::map<std::string, const core::Material*> materials;
     for (const auto& m : project.materials) materials[m.id] = &m;
     std::set<std::string> ghost_ids;
-    if (xray) {
+    if (view_style::wire()) {
+        for (const auto& p : project.parts) ghost_ids.insert(p.id);  // szkielet: wszystkie płyty jako przezroczyste, same krawędzie
+    } else if (xray) {
         if (xray_ids_in) ghost_ids = *xray_ids_in;
         else
             for (const auto& p : project.parts) {
@@ -193,7 +195,8 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
         }
     }
     int grain = 0;
-    if (use_wood && !interactive) {
+    // Linie słojów: w trybie szkicu rysowane po filtrze ołówka jako jasne kreski grafitu (przed filtrem dawałyby szum kreskowania).
+    auto draw_grain = [&]() {
         struct Candidate { double area; const Solid* item; };
         std::vector<Candidate> candidates;
         for (const auto& item : solid) {
@@ -245,13 +248,16 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
             };
             const std::string id = face.at("id").get<std::string>();
             for (const auto& [start, end] : grain_segments(points, direction, wood_grain::line_count(id), id)) {
-                raster.line({start, end}, {z_at(start), z_at(end)}, mix_color(face.at("color").get<std::string>(), "#5b442f", wood_grain::line_mix(id)), id);
+                const std::string line_color = view_style::sketch() ? mix_color(face.at("color").get<std::string>(), "#4a4640", .12 + 1.6 * wood_grain::line_mix(id))
+                                                                    : mix_color(face.at("color").get<std::string>(), "#5b442f", wood_grain::line_mix(id));
+                raster.line({start, end}, {z_at(start), z_at(end)}, line_color, id);
                 ++grain;
-                if (grain >= 120) break;
+                if (grain >= 220) break;
             }
-            if (grain >= 120) break;
+            if (grain >= 220) break;
         }
-    }
+    };
+    if (use_wood && !interactive && !view_style::sketch()) draw_grain();
     if (!ghost_ids.empty() && camera) {
         std::set<std::string> face_selected, present;
         for (const auto& f : faces) {
@@ -275,7 +281,7 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
                 layers.push_back({outline, depths});
             }
             bool selected = selected_ids.contains(owner) || face_selected.contains(owner);
-            std::string color = selected ? "#259ec4" : "#819bb3";
+            std::string color = selected ? "#259ec4" : view_style::wire() ? "#4d6a86" : "#819bb3";
             for (const auto& [outline, depths] : layers) {
                 std::vector<double> closed = depths;
                 if (!closed.empty()) closed.push_back(closed.front());
@@ -292,9 +298,10 @@ json paint_depth_faces(tk::Canvas* canvas, const json& faces, const Project& pro
         pencil_settings.hatching = !interactive;
         pencil_settings.spacing = std::max(3.0, 6.0 * scale);
         pencil_settings.wobble = std::max(0.4, scale);
-        std::vector<float> depth_copy = raster.depth.data;
-        pencil_filter::Stats pencil_stats = pencil_filter::apply(raster.width, raster.height, raster.rgba, raster.owner.data, depth_copy, pencil_settings);
-        pencil = json::object({{"covered", pencil_stats.covered}, {"edge_pixels", pencil_stats.edge_pixels}, {"hatch_pixels", pencil_stats.hatch_pixels}});
+        pencil_filter::Stats pencil_stats = pencil_filter::apply(raster.width, raster.height, raster.rgba, raster.owner.data, raster.depth.data, pencil_settings);
+        pencil = json::object({{"covered", pencil_stats.covered}, {"edge_pixels", pencil_stats.edge_pixels}, {"hatch_pixels", pencil_stats.hatch_pixels},
+                               {"threads", pencil_stats.threads_used}, {"pattern_cached", pencil_stats.pattern_cached}, {"ms", pencil_stats.milliseconds}});
+        if (use_wood && !interactive) draw_grain();
     }
     raster.attach(canvas);
     if (auto* state = dynamic_cast<depth_raster::CanvasState*>(canvas)) {
@@ -410,6 +417,11 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
         sky_top = SKY_TOP; sky_bottom = SKY_BOTTOM; floor = FLOOR; grid_color = GRID;
         shadow_colors = {"#dcd6ca", "#cfc6b7"};
     }
+    if (view_style::realistic() && brightness >= .65) {
+        // studio: chłodniejsze światło z góry i ciepły horyzont, jasna ciepła podłoga — kolory mebli nie toną w szarozielonym tle
+        sky_top = brightness > 1.1 ? "#e6edf3" : "#dde4ea"; sky_bottom = "#f6f1e7"; floor = "#e9e2d4"; grid_color = "#d5cab8";
+        shadow_colors = {"#d9d0c0", "#cbbfac"};
+    }
     if (view_style::sketch()) {  // papier: jednolite, ciepłe tło i podłoga, siatka jak miękki ołówek
         sky_top = sky_bottom = render_style::paper_color(); floor = "#efeadc"; grid_color = "#cfc9ba";
         shadow_colors = {"#e4dfd2", "#d3ccbb"};
@@ -478,9 +490,9 @@ json paint_background(tk::Canvas* canvas, const core::Camera& camera, core::Proj
             }
         }
         render_style::ShadowSettings settings;
-        settings.layers = options.interactive ? 3 : 6;
+        settings.layers = options.interactive ? 3 : 10;  // więcej warstw półcienia = gładszy, bardziej naturalny cień (bez widocznych stopni)
         if (brightness < .65) settings.max_strength = .42;
-        const std::string shadow_color = brightness < .65 ? "#101114" : "#3a342c";
+        const std::string shadow_color = brightness < .65 ? "#101114" : "#4a3f33";  // ciepły, nie szary: cień na jasnej podłodze ma odcień podłogi
         std::vector<std::vector<render_style::ShadowLayer>> all;
         size_t counted = 0;
         for (const auto& item : cache[options.include_fittings]) {
@@ -620,7 +632,9 @@ json paint_faces(tk::Canvas* canvas, const core::Drawn& faces, core::ProjectPtr 
     for (const auto& m : project.materials) if (wood(m)) wood_ids.insert(m.id);
     const std::set<std::string>& selected_ids = options.selected_ids;
     std::set<std::string> ghost_ids;
-    if (options.xray) {
+    if (view_style::wire()) {
+        for (const auto& p : project.parts) ghost_ids.insert(p.id);
+    } else if (options.xray) {
         if (options.xray_ids) ghost_ids = *options.xray_ids;
         else
             for (const auto& p : project.parts) {
@@ -693,7 +707,7 @@ json paint_faces(tk::Canvas* canvas, const core::Drawn& faces, core::ProjectPtr 
             direction = {b[0] - a[0], b[1] - a[1]};
         }
         for (const auto& [a, b] : grain_segments(points, direction, wood_grain::line_count(id), id)) {
-            if (grain_items >= 120) break;
+            if (grain_items >= 220) break;
             canvas->create_line(std::vector<double>{a[0], a[1], b[0], b[1]},
                                 {{"fill", mix_color(color, "#5b442f", wood_grain::line_mix(id))}, {"width", 1}, {"tags", std::vector<std::string>{"viewport.grain", id}}});
             ++grain_items;

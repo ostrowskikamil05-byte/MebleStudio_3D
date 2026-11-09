@@ -636,7 +636,9 @@ public:
             std::string note = engine != viewport_engine ? viewport_engine + " → " + engine : std::string();
             if (note != last_switch) {
                 last_switch = note;
-                if (!note.empty()) journal::event(this, "grafika", view_style::sketch()
+                if (!note.empty()) journal::event(this, "grafika", view_style::wire()
+                    ? "tryb szkieletu: silnik " + note + " (przezroczyste płyty rysuje renderer CPU; GPU i biblioteka natywna nie mają X-ray dla wszystkich płyt)"
+                    : view_style::sketch()
                     ? "tryb szkicu ołówkiem: silnik " + note + " (filtr ołówka działa na obrazie renderera CPU; GPU i biblioteka natywna mają własne cieniowanie)"
                     : "tryb realistyczny: silnik " + note + " (natywna biblioteka ma stałe cieniowanie; GPU/CPU pokazują realistyczne światło, cienie i płytki)");
                 else journal::event(this, "grafika", "silnik rysowania wrócił do ustawienia użytkownika: " + viewport_engine);
@@ -695,10 +697,18 @@ public:
             std::string effect;
             const json pencil = c->_render_diagnostics.value("pencil", json());
             if (pencil.is_object()) effect = std::string("szkic ołówkiem (CPU): ") + (interactive ? "tylko obrys (klatka interaktywna)" : "obrys + kreskowanie cieni");
+            else if (view_style::wire()) effect = "szkielet (CPU): przezroczyste płyty, same krawędzie (X-ray)";
             else if (cpu_result.is_object() && cpu_result.value("grain", 0) > 0) effect = "usłojenie drewna (CPU): linie słojów z własnym ziarnem na element";
             if (effect != last_cpu_effect) {
                 last_cpu_effect = effect;
-                if (!effect.empty()) journal::event(this, "render", "CPU: " + effect + (pencil.is_object() ? std::format(" — obrys {} px, kreski {} px", pencil.value("edge_pixels", 0), pencil.value("hatch_pixels", 0)) : std::string()));
+                if (!effect.empty()) journal::event(this, "render", "CPU: " + effect + (pencil.is_object() ? std::format(" — obrys {} px, kreski {} px, filtr {:.1f} ms na {} wątkach", pencil.value("edge_pixels", 0), pencil.value("hatch_pixels", 0), pencil.value("ms", 0.0), pencil.value("threads", 1)) : std::string()));
+            }
+            // Powolny filtr ołówka (np. słaby procesor, bardzo duże okno) — jednorazowa uwaga z liczbami, żeby dało się zdiagnozować z logu.
+            static bool slow_pencil_noted = false;
+            if (pencil.is_object() && !interactive && !slow_pencil_noted && pencil.value("ms", 0.0) > 80.0) {
+                slow_pencil_noted = true;
+                journal::event(this, "render", std::format("UWAGA: filtr ołówka trwał {:.0f} ms (próg 80 ms) przy {} wątkach, okno {}×{} px — rozważ mniejsze okno albo tryb Klasyczny przy pracy nad konstrukcją",
+                                                           pencil.value("ms", 0.0), pencil.value("threads", 1), w, h));
             }
         }
         Part* p = nullptr; for (auto& q : display->parts) if (selected && q.id == *selected) { p = &q; break; }

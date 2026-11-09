@@ -40,7 +40,8 @@ const std::vector<ModeInfo>& modes() {
     static const std::vector<ModeInfo> list = {
         {Mode::Classic, "classic", "Klasyczna", "Lekkie, płaskie cieniowanie i cienie kontaktowe — najszybsze, czytelne przy pracy nad konstrukcją."},
         {Mode::Realistic, "realistic", "Realistyczna", "Głębsze cieniowanie ścianek, miękkie cienie rzucane przez mebel, płytki na podłodze i drewno z losowym usłojeniem na każdej płycie — jak na wizualizacji. Rysuje go silnik GPU lub CPU (natywna biblioteka ma stałe cieniowanie)."},
-        {Mode::Sketch, "sketch", "Szkic ołówkiem", "Rysunek jak od ręki: papier, grafitowy obrys z lekkim drżeniem linii i kreskowanie cieni. Rysuje go renderer CPU; linie i łuki rysowane w Pracowni wyglądają jak narysowane ołówkiem."},
+        {Mode::Sketch, "sketch", "Szkic ołówkiem", "Rysunek jak od ręki: papier, grafitowy obrys z lekkim drżeniem linii, kreskowanie cieni i kilka kresek słojów. Rysuje go renderer CPU; linie i łuki rysowane w Pracowni wyglądają jak narysowane ołówkiem."},
+        {Mode::Wire, "wire", "Szkielet", "Przezroczysty szkielet (X-ray): widać krawędzie wszystkich płyt, także zasłoniętych, jak w trybie szkieletowym SolidWorks czy SketchUp. Dobry do rysowania konstrukcji linia po linii — potem przełącz na Szkic ołówkiem albo Realistyczną."},
     };
     return list;
 }
@@ -59,7 +60,7 @@ Mode mode_from(const std::string& key) {
 
 Shading shade_face(Mode mode, const Point3& normal_in, double brightness, double ambient) {
     Point3 n = normalized(normal_in);
-    if (mode == Mode::Classic) {
+    if (mode == Mode::Classic || mode == Mode::Wire) {
         const Point3 sun = {-.3, -.5, .81};
         double directional = std::fabs(dot(n, sun));
         return {std::min(1.3, std::max(.08, (ambient + .18 * directional) * brightness)), 0};
@@ -201,6 +202,22 @@ std::vector<ThumbPoly> mode_thumbnail(Mode mode, double w, double h) {
     out.push_back({{{0, 0}, {w, 0}, {w, h}, {0, h}}, floor_color, false, false});
     const double s = std::min(w, h) * 0.30, cx = w * 0.44, gy = h * 0.76, height = s * 1.1;
     const Point2 front{cx, gy}, right{cx + s, gy - s * .5}, back{cx, gy - s}, left{cx - s, gy - s * .5};
+    if (mode == Mode::Wire) {
+        // szkielet: tylko krawędzie — widoczne ciemniejsze, zasłonięte jaśniejsze; bez wypełnień i cienia
+        const Point2 up{0, -height};
+        auto lift = [&](const Point2& p) { return Point2{p[0] + up[0], p[1] + up[1]}; };
+        const std::string seen = "#4d6a86", hidden = "#a9bccd";
+        auto edge = [&](const Point2& a, const Point2& b, const std::string& color) { out.push_back({{a, b}, color, true, false, ""}); };
+        edge(back, left, hidden); edge(back, right, hidden); edge(back, lift(back), hidden);
+        // ścianki bez wypełnienia (przezroczyste), same obrysy
+        out.push_back({{left, front, lift(front), lift(left)}, "", false, true, seen});
+        out.push_back({{front, right, lift(right), lift(front)}, "", false, true, seen});
+        out.push_back({{lift(front), lift(right), lift(back), lift(left)}, "", false, true, seen});
+        const Point2 d0{front[0] + (right[0] - front[0]) * .12, front[1] + (right[1] - front[1]) * .12 - height * .10};
+        const Point2 d1{front[0] + (right[0] - front[0]) * .88, front[1] + (right[1] - front[1]) * .88 - height * .10};
+        out.push_back({{d0, d1, {d1[0], d1[1] - height * .8}, {d0[0], d0[1] - height * .8}}, "", false, true, seen});
+        return out;
+    }
     const bool real = mode == Mode::Realistic;
     if (real) {
         const double t = s * .8;

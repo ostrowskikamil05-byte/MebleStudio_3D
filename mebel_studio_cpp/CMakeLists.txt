@@ -39,6 +39,7 @@ set(MEBEL_NATIVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../biblioteki_natywne" CACHE P
 find_package(nlohmann_json 3.11 CONFIG REQUIRED)
 
 find_package(OpenCASCADE REQUIRED)
+find_package(Threads)
 set(MEBEL_OCCT_LIBS "")
 foreach(toolkit TKernel TKMath TKG2d TKG3d TKGeomBase TKBRep TKGeomAlgo TKTopAlgo TKPrim TKBO TKBool
                 TKFillet TKOffset TKMesh TKShHealing TKXSBase TKDESTEP TKSTEP TKDESTL TKSTL)
@@ -97,6 +98,9 @@ set_source_files_properties(tkcore.cpp PROPERTIES
 target_include_directories(MebelStudio3D_cpp SYSTEM PRIVATE ${OpenCASCADE_INCLUDE_DIR})
 target_link_libraries(MebelStudio3D_cpp PRIVATE nlohmann_json::nlohmann_json ${MEBEL_OCCT_LIBS}
                       ${MEBEL_TK_LIBRARY} ${MEBEL_TCL_LIBRARY})
+if(Threads_FOUND)
+    target_link_libraries(MebelStudio3D_cpp PRIVATE Threads::Threads)
+endif()
 if(MEBEL_DEV_TOOLS)
     target_compile_definitions(MebelStudio3D_cpp PRIVATE MEBEL_DEV_TOOLS)
 endif()

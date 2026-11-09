@@ -143,6 +143,12 @@ Modeler::Modeler(App* app_) : dock_workspace::DockDocument(app_), camera(-38, 24
         (new ttk::Button(tools3d_frame, {{"text", label}, {"command", Cmd([this, a] { view(a.first, a.second); })}}))->pack({{"side", "left"}, {"padx", 2}});
     }
     (new ttk::Button(tools3d_frame, {{"text", "Dopasuj"}, {"command", Cmd([this] { fit(); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    // Styl wyświetlania jednym kliknięciem: rysujesz w szkielecie (X-ray), a potem przełączasz na ołówek albo realistyczny.
+    (new ttk::Separator(tools3d_frame, {{"orient", "vertical"}}))->pack({{"side", "left"}, {"fill", "y"}, {"padx", 6}});
+    for (auto& [label, style] : std::vector<std::pair<std::string, render_style::Mode>>{{"Szkielet", render_style::Mode::Wire}, {"Ołówek", render_style::Mode::Sketch}, {"Realistyczny", render_style::Mode::Realistic}}) {
+        auto chosen = style;
+        (new ttk::Button(tools3d_frame, {{"text", label}, {"command", Cmd([this, chosen] { graphics_mode_ui::set_mode(app, chosen, "pracownia 3D · pasek narzędzi"); })}}))->pack({{"side", "left"}, {"padx", 2}});
+    }
     for (const auto& t : tools2d()) {
         std::string id = t.id;
         (new ttk::Radiobutton(tools2d_frame, {{"text", std::string(t.label) + " (" + t.key + ")"}, {"variable", tool2_var}, {"value", id}, {"style", "Toolbutton"},

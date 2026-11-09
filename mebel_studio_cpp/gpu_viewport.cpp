@@ -86,7 +86,8 @@ struct ActorMesh {
     vtkSmartPointer<vtkActor> actor;
     vtkSmartPointer<vtkOpenGLPolyDataMapper> id_mapper;
     vtkSmartPointer<vtkActor> id_actor;
-    bool wood = false;  // partia z procedurą usłojenia w shaderze
+    bool wood = false;    // partia z procedurą usłojenia w shaderze
+    bool graded = false;  // partia z korekcją kolorów trybu realistycznego (nasycenie, ciepłe światła, miękkie rozjaśnienia)
 
     ActorMesh(const MeshGroupPtr& group_, const core::Project& project) : group(group_) {
         auto points = vtkSmartPointer<vtkPoints>::New();
@@ -101,6 +102,7 @@ struct ActorMesh {
         auto cells = vtkSmartPointer<vtkCellArray>::New(); cells->SetData(offsets, connectivity);
         auto source = vtkSmartPointer<vtkPolyData>::New(); source->SetPoints(points); source->SetPolys(cells);
         wood = wood_shader_enabled() && gpu_scene::material_style(project, *group->source_groups.front()).wood;
+        graded = wood_shader_enabled() && view_style::realistic() && !group->emissive;
         if (wood) {
             // Każda płyta ma własne ziarno usłojenia: oś pnia, pochylenie, szerokość słojów, odcień i kierunek włókien z ustawień elementu.
             static const char* names[4] = {"GrainSeed", "GrainDir", "GrainOrg", "GrainExtra"};
@@ -142,10 +144,16 @@ struct ActorMesh {
             // Usłojenie liczone w świecie (nie obraca się razem z kamerą); zmienia tylko kolor obrazu, osobny aktor identyfikatorów jest nietknięty.
             const char* attributes[4][2] = {{"grainSeedMC", "GrainSeed"}, {"grainDirMC", "GrainDir"}, {"grainOrgMC", "GrainOrg"}, {"grainExtraMC", "GrainExtra"}};
             for (auto& attribute : attributes) mapper->MapDataArrayToVertexAttribute(attribute[0], attribute[1], vtkDataObject::FIELD_ASSOCIATION_POINTS, -1);
-            const wood_grain::Shader code = wood_grain::shader_code();
+            const wood_grain::Shader code = wood_grain::shader_code(graded);
             vtkShaderProperty* shader = actor->GetShaderProperty();
             shader->AddVertexShaderReplacement("//VTK::PositionVC::Dec", true, code.vertex_declarations, false);
             shader->AddVertexShaderReplacement("//VTK::PositionVC::Impl", true, code.vertex_code, false);
+            shader->AddFragmentShaderReplacement("//VTK::Light::Dec", true, code.fragment_declarations, false);
+            shader->AddFragmentShaderReplacement("//VTK::Light::Impl", true, code.fragment_code, false);
+        } else if (graded) {
+            // Sama korekcja kolorów (bez drewna): ten sam punkt wstawienia w shaderze, bez dodatkowych atrybutów wierzchołków.
+            const wood_grain::Shader code = wood_grain::grade_shader();
+            vtkShaderProperty* shader = actor->GetShaderProperty();
             shader->AddFragmentShaderReplacement("//VTK::Light::Dec", true, code.fragment_declarations, false);
             shader->AddFragmentShaderReplacement("//VTK::Light::Impl", true, code.fragment_code, false);
         }
@@ -169,7 +177,7 @@ struct Backend {
 
 #else
 
-struct ActorMesh { MeshGroupPtr group; bool wood = false; };
+struct ActorMesh { MeshGroupPtr group; bool wood = false; bool graded = false; };
 struct Backend {};
 
 #endif  // MEBEL_HAVE_VTK
@@ -233,7 +241,7 @@ void GPUViewport::drop_meshes() {
         backend->renderer->RemoveActor(mesh->actor); backend->renderer->RemoveActor(mesh->id_actor);
     }
 #endif
-    meshes.clear(); current.clear(); signature.reset(); have_cache = false; wood_noted = -1;
+    meshes.clear(); current.clear(); signature.reset(); have_cache = false; wood_noted = -1; graded_noted = -1;
 }
 
 void GPUViewport::close() {
@@ -270,6 +278,7 @@ bool GPUViewport::sync(const core::Project& project, bool interactive, const std
     { std::vector<std::string> sel(selection.begin(), selection.end()); key += py::join(sel, ",") + "|"; }
     { std::vector<std::string> gh(ghosts.begin(), ghosts.end()); key += py::join(gh, ",") + "|"; }
     key += py::repr(explode) + "|";
+    key += view_style::realistic() ? "R|" : "C|";  // inny tryb grafiki = inne shadery partii, więc scena musi zostać zsynchronizowana od nowa
     if (explode != 0) key += py::repr(camera_.center[0]) + "," + py::repr(camera_.center[1]) + "," + py::repr(camera_.center[2]);
     if (signature && *signature == key) return false;
     std::vector<MeshGroupPtr> grouped = (context == next && mode && *mode == mode_) ? groups : gpu_scene::mesh_groups(*next, mode_);
@@ -278,7 +287,8 @@ bool GPUViewport::sync(const core::Project& project, bool interactive, const std
     for (auto& group : batches) {
         std::shared_ptr<ActorMesh> mesh;
         auto found = previous.find(group->key);
-        if (found != previous.end()) mesh = found->second;
+        const bool want_graded = wood_shader_enabled() && view_style::realistic() && !group->emissive;
+        if (found != previous.end() && found->second->graded == want_graded) mesh = found->second;  // zmiana trybu grafiki buduje partię od nowa (inny shader)
 #ifdef MEBEL_HAVE_VTK
         else mesh = std::make_shared<ActorMesh>(group, project);
 #else
@@ -466,7 +476,7 @@ void GPUViewport::material_pass(const core::Project& project, const std::set<std
         actor->SetPosition(0, 0, 0);
         vtkProperty* prop = actor->GetProperty(); auto c = rgb_unit(group.color); prop->SetColor(c[0], c[1], c[2]); prop->LightingOn();
         const bool realistic = view_style::realistic();
-        prop->SetAmbient(realistic ? .30 : .2); prop->SetDiffuse(realistic ? .72 : .78); prop->SetInterpolationToPhong();
+        prop->SetAmbient(realistic ? .33 : .2); prop->SetDiffuse(realistic ? .78 : .78); prop->SetInterpolationToPhong();
         gpu_scene::MaterialStyle style = gpu_scene::material_style(project, *group.source_groups.front());
         prop->SetSpecular(realistic ? style.specular * .55 : style.specular); prop->SetSpecularPower(style.power);
         if (quality == "high" && !realistic && !group.emissive) {
@@ -613,6 +623,8 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
     material_pass(project, visible);
     quality_pass(options.quality, options.interactive); double configured = perf_counter();
     const int wood_batches = static_cast<int>(std::count_if(current.begin(), current.end(), [](const std::shared_ptr<ActorMesh>& mesh) { return mesh->wood; }));
+    const int graded_batches = static_cast<int>(std::count_if(current.begin(), current.end(), [](const std::shared_ptr<ActorMesh>& mesh) { return mesh->graded; }));
+    const int shader_batches = static_cast<int>(std::count_if(current.begin(), current.end(), [](const std::shared_ptr<ActorMesh>& mesh) { return mesh->wood || mesh->graded; }));
     const std::string vtk_errors = render_window();
     if (!vtk_errors.empty()) {
         std::string lowered = vtk_errors;
@@ -620,8 +632,8 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
         const bool shader_problem = lowered.find("shader") != std::string::npos || lowered.find("glsl") != std::string::npos || lowered.find("link") != std::string::npos;
         std::string shortened = vtk_errors.substr(0, 300);
         if (vtk_errors_noted.insert(shortened).second)
-            note(std::string(shader_problem ? "BŁĄD shadera OpenGL" : "błąd VTK") + ": " + shortened + (wood_batches > 0 && shader_problem ? " — shader usłojenia drewna wyłączony, drewno rysowane jednolicie" : ""));
-        if (shader_problem && wood_batches > 0 && wood_shader_enabled()) {
+            note(std::string(shader_problem ? "BŁĄD shadera OpenGL" : "błąd VTK") + ": " + shortened + (shader_batches > 0 && shader_problem ? " — własne shadery (usłojenie drewna, korekcja kolorów) wyłączone, scena rysowana standardowo" : ""));
+        if (shader_problem && shader_batches > 0 && wood_shader_enabled()) {
             set_wood_shader_enabled(false);
             drop_meshes();
             std::vector<std::string> kept = notes;
@@ -679,7 +691,11 @@ Rgba GPUViewport::frame(const core::Project& project, const core::Camera& camera
                    {"actors", current.size()}, {"faces", face_count}, {"geometry_ms", (prepared - start) * 1000}, {"beauty_ms", (beauty - prepared) * 1000},
                    {"configure_ms", (configured - prepared) * 1000}, {"render_ms", (rendered - configured) * 1000}, {"rgba_read_ms", (colored - rendered) * 1000},
                    {"depth_read_ms", (beauty - colored) * 1000}, {"owner_pass_ms", (finished - beauty) * 1000}, {"total_ms", (finished - start) * 1000}, {"reused", false}, {"ids_reused", ids_reused},
-                   {"wood_batches", wood_batches}, {"wood_shader_enabled", wood_shader_enabled()}, {"ssao_radius", ssao_radius}};
+                   {"wood_batches", wood_batches}, {"graded_batches", graded_batches}, {"wood_shader_enabled", wood_shader_enabled()}, {"ssao_radius", ssao_radius}};
+    if (graded_batches != graded_noted) {
+        graded_noted = graded_batches;
+        if (graded_batches > 0) note(std::format("korekcja kolorów trybu realistycznego (GPU): {} partii — nasycenie +16%, ciepłe światła, miękkie przejście bieli, lekka krzywa S", graded_batches));
+    }
     if (wood_batches != wood_noted) {
         wood_noted = wood_batches;
         std::set<std::string> wooden;

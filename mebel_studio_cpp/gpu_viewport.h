@@ -124,6 +124,7 @@ private:
     Rgba cached_color;
     bool have_cache = false;
     int wood_noted = -1;                // liczba partii drewna, o której już zapisano wpis
+    int graded_noted = -1;              // liczba partii z korekcją kolorów, o której już zapisano wpis
     double ssao_noted = -1;
     std::set<std::string> vtk_errors_noted;
     void note(const std::string& text);
